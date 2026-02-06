@@ -192,3 +192,20 @@ To apply this pipeline to a different RISE benchmark task:
 5. Symlink the new benchmark's data directories
 
 The module, optimizer scripts, and comparison tooling remain unchanged.
+
+### Next benchmarks to test
+
+The following RISE benchmarks are strong candidates for DSPy optimization, given their structural similarity to Library Cards (image → structured JSON extraction):
+
+| Benchmark | Description | Why it's a good fit |
+|---|---|---|
+| **[Personnel Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/personnel_cards)** | Extract structured employment data (position, location, salary, dates) from 20th-century Swiss personnel card tables | Table-like card images with structured output — very similar pipeline to library cards, but with tabular rather than bibliographic data |
+| **[Blacklist Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/blacklist)** | Extract and structure information from historical blacklist cards | Card-based extraction with a different domain schema — tests whether DSPy optimization generalises across card types |
+
+Other benchmarks that could benefit from optimization but require more adaptation:
+
+| Benchmark | Notes |
+|---|---|
+| **Bibliographic Data** | Very close to library cards (bibliographic extraction from documents), minimal schema changes needed |
+| **Business Letters** | Structured metadata extraction from correspondence — different document type but same image → JSON pattern |
+| **Company Lists** | List-like rather than card-like input — tests whether the approach works on different visual layouts |
