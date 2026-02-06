@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets
+.env
+
+# Results (regenerated)
+results/
+
+# Symlinks to benchmark data
+images
+ground_truths
+
+.DS_Store
