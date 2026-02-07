@@ -454,6 +454,10 @@ The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manusc
 
 All experiments used Gemini 2.0 Flash as the target model. A natural next step is to apply MIPROv2 medium-CoT to the models that currently lead the RISE leaderboard and measure whether optimization yields meaningful gains when the unoptimized baseline is already strong. 
 
+### Revisiting GEPA with a stronger reflection model
+
+GEPA underperformed in our experiments (scoring only +0.14 pts over the Library Cards baseline), likely because Gemini 2.0 Flash served as both the target model and the reflection model — the model struggled to diagnose its own extraction failures. [Bogin et al. (2025)](https://arxiv.org/abs/2507.19457) show that GEPA can outperform MIPROv2 by over 10% when its reflective evolution loop works well, with up to 35× fewer rollouts than reinforcement learning approaches. The reflection step — where the LM examines execution traces and proposes prompt mutations — is text-only, so using a stronger model (e.g. Gemini 2.5 Pro or Claude Sonnet) for reflection while keeping Flash as the inference model would add minimal cost. Re-running GEPA with a capable reflection model on the benchmarks where it underperformed most would test whether the optimizer's poor showing was due to reflection quality rather than the evolutionary approach itself.
+
 ### Small and local models
 
 Since optimization is most impactful on cheaper models, it's conceivable that small, locally-run vision models could see similar gains. The RISE benchmark already includes a [local MLX runner](https://github.com/RISE-UNIBAS/humanities_data_benchmark), making it straightforward to establish local model baselines. 
