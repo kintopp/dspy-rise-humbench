@@ -49,21 +49,7 @@ The RISE benchmarks are well-suited for DSPy optimization for several reasons:
 
 Every benchmark uses the same pipeline structure. The input image and schema vary per benchmark, but the architecture is identical:
 
-```
-┌─────────────┐     ┌──────────────────────────────┐     ┌──────────────┐
-│  Document    │ ──> │  Extractor                    │ ──> │  JSON Output  │
-│  Image       │     │  (Predict or ChainOfThought)  │     │  (document)   │
-│  (dspy.Image)│     └──────────────────────────────┘     └──────────────┘
-                              │
-                    ┌─────────┴─────────┐
-                    │  Benchmark         │
-                    │  Signature         │
-                    │  (dspy.Signature)  │
-                    │                   │
-                    │  Input: image      │
-                    │  Output: document  │
-                    └───────────────────┘
-```
+![Pipeline architecture](docs/pipeline.svg)
 
 The module wraps either a `dspy.Predict` or `dspy.ChainOfThought` call (selected via `--module predict|cot`) with a signature that specifies the expected JSON schema in its output field description. ChainOfThought adds a reasoning step before the JSON output, encouraging step-by-step thinking. The LM receives the image and the schema description, and returns a JSON string which is then parsed and scored.
 
