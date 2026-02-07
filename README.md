@@ -195,7 +195,7 @@ All four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, in
 
 ---
 
-### Library Cards
+### [Library Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/library_cards)
 
 *263 images of Swiss library catalog cards. Each card contains bibliographic metadata — author, title, year, shelfmark, classification codes — to be extracted into a flat JSON structure. One card, one record.*
 
@@ -253,7 +253,7 @@ The different optimizers revealed different improvement strategies. SIMBA's mini
 
 ---
 
-### Bibliographic Data
+### [Bibliographic Data](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/bibliographic_data)
 
 *5 JPEG pages from a 1961 bibliography of philosophy of history ("Bibliography of Works in the Philosophy of History, 1945-1957", History and Theory). Each page contains 14-20 bibliographic entries (~82 total) with multilingual titles, nested related entries, and cross-page continuations. Task: extract structured entries with authors, titles, types, publishers, volumes, pages, and relations.*
 
@@ -323,7 +323,7 @@ An ID-aware scoring approach — matching entries by their `id` field rather tha
 
 ---
 
-### Personnel Cards
+### [Personnel Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/personnel_cards)
 
 *61 images of 20th-century Swiss Federal personnel cards. Each card is a table recording an employee's career: job title, work location, salary class, salary amount, date of salary change, and remarks — with each field transcribed both diplomatically (as-written) and with normalised interpretation. Task: extract all rows with their sub-fields into a structured JSON.*
 
@@ -354,7 +354,7 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 
 ---
 
-### Business Letters
+### [Business Letters](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/business_letters)
 
 *57 letters (98 page images) of 20th-century Swiss historical business correspondence. Each letter may span multiple pages. Task: extract sender persons, receiver persons, mentioned persons, organisations, send date, and receive date — matching names against a predefined alias table (`persons.json`) of 119 known individuals.*
 
@@ -456,6 +456,6 @@ The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manusc
 
 ## Credits
 
-This project was developed by [Arno Bosse](https://orcid.org/0000-0003-3681-1289) ([RISE — Research and Infrastructure Support](https://rise.unibas.ch/en/), University of Basel) with assistance from [Claude Code](https://claude.ai/claude-code) (Anthropic).
+This project was conceived by [Arno Bosse](https://orcid.org/0000-0003-3681-1289) ([RISE](https://rise.unibas.ch/en/), University of Basel) and coded and co-written by [Claude Code](https://claude.ai/claude-code) (Anthropic).
 
 The benchmark tasks and evaluation framework are from the [RISE Humanities Data Benchmark](https://github.com/RISE-UNIBAS/humanities_data_benchmark/).
