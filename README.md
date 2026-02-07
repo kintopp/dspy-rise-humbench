@@ -401,6 +401,29 @@ This benchmark has a unique scoring characteristic: person names must exactly ma
 
 ### Cross-Benchmark Findings
 
+#### What the optimized prompts look like
+
+Each benchmark's optimized program is a JSON file containing three components: an instruction, a set of signature field descriptions (input/output specifications with embedded schema rules), and few-shot demonstrations with images. The full prompts are documented here:
+
+- [Library Cards](docs/optimized-prompt-library-cards.md) — 2-sentence instruction, 2 demos
+- [Bibliographic Data](docs/optimized-prompt-bibliographic-data.md) — 40-line instruction with inline schema, 1 demo
+- [Personnel Cards](docs/optimized-prompt-personnel-cards.md) — persona-framed instruction, 2 demos
+- [Business Letters](docs/optimized-prompt-business-letters.md) — 2-sentence instruction, 2 demos
+
+Comparing the four optimized prompts reveals how MIPROv2's Bayesian search adapted its strategy to each benchmark's characteristics:
+
+**Instruction length trades off against demonstration count.** Bibliographic Data — the most complex schema (18 fields per entry, nested authors, cross-references) with the smallest training set (2 images) — received a 40-line instruction that embeds the full JSON schema twice (once in the instruction, once in the output field description). The other three benchmarks received 1-3 sentence instructions with 2 demonstrations each. With fewer training examples to learn from, the optimizer compensated with more explicit instructions; with more training examples, it relied on demonstrations to implicitly teach the schema.
+
+**The optimizer independently discovered established prompting patterns.** Personnel Cards' instruction frames the model as "a highly skilled data entry specialist working for the Swiss Federal Archives" with stakes ("errors could significantly impact the historical analysis"). This persona + consequences pattern is well-known in prompt engineering — it's notable that MIPROv2's automated search converged on it without human guidance. Similarly, Bibliographic Data's instruction includes "explicitly detail your thought process step by step" — a manual reinforcement of the CoT module's built-in reasoning prefix, discovered by the optimizer as beneficial for complex multi-entry extraction.
+
+**Bootstrapped reasoning quality varies by task type.** All four programs use ChainOfThought ("Let's think step by step..."), but the quality of the optimizer's bootstrapped reasoning traces differs dramatically. Library Cards produced detailed step-by-step field extraction reasoning ("The card contains 'S.' on the same line as the page number, so the type is..."). Business Letters produced brief summaries ("The letter is from..., dated..."). Personnel Cards couldn't bootstrap reasoning at all ("Not supplied for this particular example."). The pattern: reasoning quality tracks how well the model can articulate *why* each extraction decision was made — field-by-field decisions (Library Cards) are easier to reason about than tabular transcription (Personnel Cards) or entity recognition (Business Letters).
+
+**Output field descriptions do the heavy lifting.** Across all four benchmarks, the Document field description — not the instruction — contains the detailed extraction rules: JSON schema, field-by-field conventions, edge case handling. The instruction sets the overall framing and approach; the output field description specifies exactly what to produce and how. This division of labour emerges naturally from DSPy's signature architecture, where field descriptions are fixed at module definition time while instructions are optimized by MIPROv2.
+
+**A single prompt element can dominate all other optimization gains.** Business Letters' "First Last" name format rule is the clearest example: because the `persons.json` alias table uses exact string matching with all 119 entries in "First Last" format, adding this single rule to the output field description lifted the baseline by +18 points — more than MIPROv2 optimization contributed on top. The lesson: when scoring depends on format conventions that the model cannot infer from the task alone, explicit format rules in the prompt are more valuable than any amount of optimizer search.
+
+#### Results
+
 Results across all four RISE benchmarks — spanning dataset sizes from 5 to 263 images, three different metric types, and four different document genres — converge on consistent findings:
 
 | Benchmark | Predict baseline | CoT baseline | MIPROv2 medium CoT | Gain |
