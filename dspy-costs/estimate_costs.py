@@ -62,6 +62,26 @@ BENCHMARKS = {
         "avg_output_tokens": 3000,            # multi-entry JSON (14-20 entries)
         "image_field": "page_image",
     },
+    "personnel_cards": {
+        "total_images": 61,
+        "train": 9,
+        "dev": 9,
+        "test": 43,
+        "avg_input_tokens_baseline": 600,     # prompt + card image (~258 img tokens)
+        "avg_input_tokens_optimized": 4000,   # instructions + 2 demos w/ images + query image (larger JSON schema)
+        "avg_output_tokens": 2000,            # multi-row table JSON (6 cols × ~5-10 rows × 3 sub-fields)
+        "image_field": "card_image",
+    },
+    "business_letters": {
+        "total_images": 57,
+        "train": 8,
+        "dev": 8,
+        "test": 41,
+        "avg_input_tokens_baseline": 900,     # prompt + multi-page images (~1.7 pages avg)
+        "avg_input_tokens_optimized": 4500,   # instructions + 2 demos w/ multi-page images + query
+        "avg_output_tokens": 400,             # flat JSON (persons, orgs, dates — small output)
+        "image_field": "page_images",
+    },
 }
 
 
