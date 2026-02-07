@@ -162,6 +162,18 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def _strip_code_fences(text: str) -> str:
+    """Strip markdown code fences (```json ... ```) from a string."""
+    s = text.strip()
+    if s.startswith("```"):
+        # Remove opening fence (```json or ```)
+        first_newline = s.index("\n") if "\n" in s else len(s)
+        s = s[first_newline + 1:]
+    if s.endswith("```"):
+        s = s[:-3]
+    return s.strip()
+
+
 def _parse_prediction_document(prediction) -> dict | None:
     """Extract the document dict from a DSPy prediction."""
     doc = prediction.document
@@ -171,6 +183,11 @@ def _parse_prediction_document(prediction) -> dict | None:
         try:
             return json.loads(doc)
         except json.JSONDecodeError:
+            pass
+        # Retry after stripping markdown code fences
+        try:
+            return json.loads(_strip_code_fences(doc))
+        except (json.JSONDecodeError, ValueError):
             logger.warning("Failed to parse prediction document as JSON")
             return None
     return None
@@ -203,23 +220,58 @@ def refine_reward_fn(example, prediction, trace=None) -> float:
     return 1.0
 
 
+class FeedbackScore(dict):
+    """A dict with score/feedback that supports arithmetic for DSPy's parallelizer.
+
+    DSPy's Evaluate uses sum() on metric results for progress tracking.
+    GEPA expects dict-like access with "score" and "feedback" keys, and
+    checks hasattr(s, "score") before doing s["score"].
+    This class satisfies both by being a dict that also supports + and has
+    a .score attribute.
+    """
+
+    def __init__(self, score: float, feedback: str = ""):
+        super().__init__(score=score, feedback=feedback)
+        self.score = score
+        self.feedback = feedback
+
+    def __add__(self, other):
+        if isinstance(other, (int, float)):
+            return self["score"] + other
+        if isinstance(other, dict) and "score" in other:
+            return self["score"] + other["score"]
+        return NotImplemented
+
+    def __radd__(self, other):
+        if isinstance(other, (int, float)):
+            return other + self["score"]
+        return NotImplemented
+
+    def __float__(self):
+        return float(self["score"])
+
+    def __repr__(self):
+        return f"FeedbackScore(score={self['score']:.4f})"
+
+
 def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
     """GEPA-compatible metric returning score + textual feedback.
 
     GEPA passes 5 args: (gold, pred, trace, pred_name, pred_trace) and expects
-    a dict with ``{"score": float, "feedback": str}``.
+    a dict with ``{"score": float, "feedback": str}``.  Returns a FeedbackScore
+    that also supports arithmetic so DSPy's parallelizer can call sum().
     """
     pred_dict = _parse_prediction_document(pred)
     gt_dict = _parse_gt_document(gold)
 
     if pred_dict is None or gt_dict is None:
-        return {"score": 0.0, "feedback": "Failed to parse JSON output"}
+        return FeedbackScore(0.0, "Failed to parse JSON output")
 
     scores = score_single_prediction(pred_dict, gt_dict)
     f1 = scores["f1_score"]
 
     if f1 >= 1.0:
-        return {"score": f1, "feedback": "Perfect score"}
+        return FeedbackScore(f1, "Perfect score")
 
     # Build field-level feedback for low-scoring fields
     low_fields = []
@@ -230,7 +282,7 @@ def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None
             )
 
     feedback = f"f1={f1:.3f}. Low-scoring fields:\n" + "\n".join(low_fields) if low_fields else f"f1={f1:.3f}"
-    return {"score": f1, "feedback": feedback}
+    return FeedbackScore(f1, feedback)
 
 
 def dspy_metric(example, prediction, trace=None) -> float | bool:
