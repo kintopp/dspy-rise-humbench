@@ -22,13 +22,14 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(description="Evaluate baseline")
     parser.add_argument("--model", type=str, default="gpt-4o", help="Model preset or full model string")
+    parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
     model_id = resolve_model(args.model)
     logger.info(f"Using model: {model_id}")
     configure_dspy(model=args.model)
-    extractor = LibraryCardExtractor()
+    extractor = LibraryCardExtractor(module_type=args.module)
 
     samples = load_matched_samples()
     _, _, test_raw = split_data(samples, seed=args.seed)
@@ -77,18 +78,20 @@ def main():
 
     # Save results — use model short name in filename
     model_tag = args.model.replace("/", "_")
+    module_tag = f"_{args.module}" if args.module != "predict" else ""
     out_dir = RESULTS_DIR / "baseline"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     summary = {
         "model": model_id,
+        "module_type": args.module,
         "aggregate": aggregate,
         "per_image": [
             {k: v for k, v in r.items() if k != "field_scores"}
             for r in per_image_results
         ],
     }
-    out_path = out_dir / f"scores_{model_tag}.json"
+    out_path = out_dir / f"scores{module_tag}_{model_tag}.json"
     with open(out_path, "w") as f:
         json.dump(summary, f, indent=2)
     logger.info(f"Results saved to {out_path}")

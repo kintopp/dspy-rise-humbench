@@ -190,6 +190,19 @@ def _parse_gt_document(example) -> dict | None:
     return None
 
 
+REQUIRED_KEYS = {"type", "author", "publication", "library_reference"}
+
+
+def refine_reward_fn(example, prediction, trace=None) -> float:
+    """Reward function for dspy.Refine: 1.0 if output is valid JSON with required keys, else 0.0."""
+    doc = _parse_prediction_document(prediction)
+    if doc is None:
+        return 0.0
+    if not REQUIRED_KEYS.issubset(doc.keys()):
+        return 0.0
+    return 1.0
+
+
 def dspy_metric(example, prediction, trace=None) -> float | bool:
     """DSPy-compatible metric.
 

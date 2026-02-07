@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.config import configure_dspy, resolve_model, RESULTS_DIR
 from src.data import load_matched_samples, split_data, samples_to_examples
 from src.module import LibraryCardExtractor
-from src.scoring import score_single_prediction, compute_aggregate_scores, _parse_prediction_document
+from src.scoring import score_single_prediction, compute_aggregate_scores, _parse_prediction_document, refine_reward_fn
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -27,6 +27,8 @@ def main():
         help="Path to saved optimized program JSON",
     )
     parser.add_argument("--model", type=str, default="gpt-4o", help="Model preset or full model string")
+    parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
+    parser.add_argument("--refine", type=int, default=0, help="Refine retries (0=disabled, e.g. 3 for N=3)")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -35,9 +37,20 @@ def main():
     configure_dspy(model=args.model)
 
     # Load the optimized program
-    extractor = LibraryCardExtractor()
+    extractor = LibraryCardExtractor(module_type=args.module)
     extractor.load(args.program)
     logger.info(f"Loaded optimized program from {args.program}")
+
+    # Optionally wrap with Refine for inference-time retries
+    if args.refine > 0:
+        import dspy
+        extractor = dspy.Refine(
+            module=extractor,
+            N=args.refine,
+            reward_fn=refine_reward_fn,
+            threshold=1.0,
+        )
+        logger.info(f"Wrapped extractor with Refine(N={args.refine}, threshold=1.0)")
 
     # Load test split
     samples = load_matched_samples()
@@ -86,18 +99,21 @@ def main():
 
     # Determine output name from program path
     program_name = Path(args.program).stem
+    refine_tag = f"_refine{args.refine}" if args.refine > 0 else ""
     out_dir = RESULTS_DIR / "optimized"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     summary = {
         "program": args.program,
+        "module_type": args.module,
+        "refine_n": args.refine,
         "aggregate": aggregate,
         "per_image": [
             {k: v for k, v in r.items() if k != "field_scores"}
             for r in per_image_results
         ],
     }
-    out_path = out_dir / f"{program_name}_test_scores.json"
+    out_path = out_dir / f"{program_name}{refine_tag}_test_scores.json"
     with open(out_path, "w") as f:
         json.dump(summary, f, indent=2)
     logger.info(f"Results saved to {out_path}")

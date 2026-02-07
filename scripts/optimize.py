@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 
-def run_mipro(trainset, devset, auto="light", max_bootstrapped=2, max_labeled=2, num_threads=8):
+def run_mipro(trainset, devset, auto="light", max_bootstrapped=2, max_labeled=2, num_threads=8, module_type="predict"):
     """Run MIPROv2 optimization."""
     import dspy
 
@@ -29,7 +29,7 @@ def run_mipro(trainset, devset, auto="light", max_bootstrapped=2, max_labeled=2,
         max_bootstrapped_demos=max_bootstrapped,
         max_labeled_demos=max_labeled,
     )
-    extractor = LibraryCardExtractor()
+    extractor = LibraryCardExtractor(module_type=module_type)
     optimized = optimizer.compile(
         extractor,
         trainset=trainset,
@@ -38,7 +38,7 @@ def run_mipro(trainset, devset, auto="light", max_bootstrapped=2, max_labeled=2,
     return optimized
 
 
-def run_bootstrap(trainset, max_bootstrapped=3, max_labeled=3, num_threads=8):
+def run_bootstrap(trainset, max_bootstrapped=3, max_labeled=3, num_threads=8, module_type="predict"):
     """Run BootstrapFewShot optimization."""
     import dspy
 
@@ -48,7 +48,7 @@ def run_bootstrap(trainset, max_bootstrapped=3, max_labeled=3, num_threads=8):
         max_labeled_demos=max_labeled,
         num_threads=num_threads,
     )
-    extractor = LibraryCardExtractor()
+    extractor = LibraryCardExtractor(module_type=module_type)
     optimized = optimizer.compile(extractor, trainset=trainset)
     return optimized
 
@@ -66,6 +66,7 @@ def main():
     parser.add_argument("--max-labeled", type=int, default=2)
     parser.add_argument("--model", type=str, default="gpt-4o", help="Model preset or full model string")
     parser.add_argument("--num-threads", type=int, default=8, help="Number of parallel threads for evaluation")
+    parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -77,28 +78,31 @@ def main():
     logger.info(f"Data split: train={len(train_ex)}, dev={len(dev_ex)}, test={len(test_ex)}")
 
     if args.optimizer == "mipro":
-        logger.info(f"Running MIPROv2 (auto={args.auto}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads})")
+        logger.info(f"Running MIPROv2 (auto={args.auto}, module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads})")
         optimized = run_mipro(
             train_ex, dev_ex,
             auto=args.auto,
             max_bootstrapped=args.max_bootstrapped,
             max_labeled=args.max_labeled,
             num_threads=args.num_threads,
+            module_type=args.module,
         )
     else:
-        logger.info(f"Running BootstrapFewShot (bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads})")
+        logger.info(f"Running BootstrapFewShot (module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads})")
         optimized = run_bootstrap(
             train_ex,
             max_bootstrapped=args.max_bootstrapped,
             max_labeled=args.max_labeled,
             num_threads=args.num_threads,
+            module_type=args.module,
         )
 
     # Save optimized program
     out_dir = RESULTS_DIR / "optimized"
     out_dir.mkdir(parents=True, exist_ok=True)
     model_tag = args.model.replace("/", "_")
-    save_path = out_dir / f"{args.optimizer}_{model_tag}_optimized.json"
+    module_tag = f"-{args.module}" if args.module != "predict" else ""
+    save_path = out_dir / f"{args.optimizer}{module_tag}_{model_tag}_optimized.json"
     optimized.save(str(save_path))
     logger.info(f"Optimized program saved to {save_path}")
 
