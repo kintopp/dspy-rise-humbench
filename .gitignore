@@ -23,4 +23,7 @@ data/
 # Offline analysis artifacts (local only)
 offline/
 
+# Claude Code project instructions (local only)
+CLAUDE.md
+
 .DS_Store
