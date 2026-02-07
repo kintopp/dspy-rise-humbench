@@ -23,6 +23,8 @@ def load_scores(path: Path) -> dict | None:
 METRIC_KEYS = {
     "library_cards": ["f1_macro", "f1_micro", "micro_precision", "micro_recall"],
     "bibliographic_data": ["fuzzy", "total_instances", "total_keys"],
+    "personnel_cards": ["f1_macro", "f1_micro", "micro_precision", "micro_recall"],
+    "business_letters": ["f1_macro", "f1_micro", "micro_precision", "micro_recall"],
 }
 
 
