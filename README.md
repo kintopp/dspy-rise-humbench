@@ -199,15 +199,17 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 
 **Metric**: Field-level fuzzy F1 (macro-averaged across images). **Data split**: 39 train (15%) / 39 dev (15%) / 185 test (70%), seed=42.
 
-**RISE leaderboard reference** (full 263 images, hand-crafted prompts):
+**RISE leaderboard reference** (full 263 images, hand-crafted prompts, [dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/benchmarks/?id=library_cards)):
 
 | Rank | Model | f1_macro |
 |------|-------|----------|
-| 1 | Gemini 3 Pro (preview) | 89.1 |
-| 2 | GPT-5 | 87.9 |
-| 3 | Claude 3.5 Sonnet | 87.6 |
-| 4 | Gemini 2.5 Pro | 87.2 |
-| 5 | GPT-4.1 | 86.5 |
+| 1 | GPT-5 | 89.5 |
+| 2 | GPT-4.1 | 89.4 |
+| 3 | GPT-4o | 89.4 |
+| 4 | Gemini 3 Pro (preview) | 89.1 |
+| 5 | Claude 3.5 Sonnet | 88.3 |
+
+*Last accessed: 2026-02-07. Scores are best results per model across all benchmark runs.*
 
 #### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
 
@@ -255,7 +257,17 @@ The different optimizers revealed different improvement strategies. SIMBA's mini
 
 **Metric**: Average fuzzy score across all leaf fields (continuous, no threshold). **Data split**: 2 train (40%) / 1 dev (20%) / 2 test (40%). Leave-one-out cross-validation also run (5 folds, one image per fold).
 
-**RISE leaderboard reference**: ~70.2% top (Gemini 2.5 Flash Preview). GPT-4o: 61.9, Gemini 2.5 Flash: 66.9.
+**RISE leaderboard reference** (full 5 images, hand-crafted prompts, [dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/benchmarks/?id=bibliographic_data)):
+
+| Rank | Model | Avg fuzzy |
+|------|-------|-----------|
+| 1 | GPT-4o | 71.4 |
+| 2 | Gemini 2.5 Flash (preview) | 70.2 |
+| 3 | GPT-5 | 68.5 |
+| 4 | GPT-5 Mini | 67.8 |
+| 5 | o3 | 67.4 |
+
+*Last accessed: 2026-02-07. Scores are best results per model across all benchmark runs.*
 
 This benchmark tests DSPy optimization under a fundamentally different regime from Library Cards: 5 images instead of 263, multi-entry extraction per image instead of one-card-one-record, and a continuous metric instead of thresholded F1. The tiny dataset severely constrains what optimizers can learn.
 
@@ -315,7 +327,9 @@ An ID-aware scoring approach — matching entries by their `id` field rather tha
 
 **Metric**: Field-level fuzzy F1 (macro-averaged across images, same threshold logic as Library Cards). **Data split**: 9 train (15%) / 9 dev (15%) / 43 test (70%), seed=42.
 
-**RISE leaderboard reference**: ~79.0 top (Gemini 2.5 Pro).
+**RISE leaderboard reference**: This benchmark is not yet listed on the public [RISE leaderboard dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/leaderboard/). The previously reported top score was ~79.0 (Gemini 2.5 Pro).
+
+*Last accessed: 2026-02-07.*
 
 This benchmark presents a different challenge from Library Cards: the schema is deeply nested (each cell has `diplomatic_transcript`, `interpretation`, and `is_crossed_out` sub-fields), the number of rows per card varies, and handwritten entries from the 1940s include abbreviations, ditto marks, currency formatting, and crossed-out text. JSON parse failures — where the model produces malformed output — were the biggest drag on baseline scores.
 
@@ -344,7 +358,17 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 
 **Metric**: Category-level set matching with F1 (macro-averaged across letters). Persons are matched via exact string lookup in the alias table — no fuzzy matching. **Data split**: 8 train (15%) / 8 dev (15%) / 41 test (70%), seed=42.
 
-**RISE leaderboard reference**: ~67.8 top (Gemini 2.5 Pro).
+**RISE leaderboard reference** (full 57 letters, hand-crafted prompts, [dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/benchmarks/?id=business_letters)):
+
+| Rank | Model | f1_macro |
+|------|-------|----------|
+| 1 | GPT-5 | 77.0 |
+| 2 | o3 | 64.0 |
+| 3 | Gemini 3 Pro (preview) | 63.0 |
+| 4 | GPT-4.5 (preview) | 63.0 |
+| 5 | GPT-4.1 Mini | 61.0 |
+
+*Last accessed: 2026-02-07. Scores are best results per model across all benchmark runs.*
 
 This benchmark has a unique scoring characteristic: person names must exactly match entries in a `persons.json` alias table that maps name variants to canonical IDs. All 119 aliases use "First Last" format — zero use "Last, First". The upstream benchmark performs no name normalisation, so the model must output names in exactly the right format. Before adding explicit "First Last" format guidance to the prompt, the predict baseline scored only 0.2721 f1_macro — the prompt change alone gave a +0.18 lift to 0.4565.
 
