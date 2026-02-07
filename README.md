@@ -93,21 +93,30 @@ The 263 matched image/ground-truth pairs are split deterministically (seed=42):
 
 ### Project structure
 
+The project uses a multi-benchmark plugin architecture. Each benchmark is a self-contained package under `benchmarks/` that exports the same interface (`Extractor`, `load_and_split`, `dspy_metric`, `score_single_prediction`, etc.). Scripts select a benchmark at runtime via `--benchmark`.
+
 ```
-src/
-  config.py       # LM setup, model presets, path constants
-  schema.py       # Pydantic Document schema (mirrors benchmark)
-  data.py         # Data loading, splitting, dspy.Example conversion
-  signature.py    # DSPy Signature with schema-guided output description
-  module.py       # DSPy Module wrapping Predict or ChainOfThought
-  scoring.py      # Field-level fuzzy F1 metric, GEPA feedback metric, code fence handling
+benchmarks/
+  shared/
+    config.py             # LM setup, model presets, results_dir() helper
+    scoring_helpers.py    # Generic fuzzy scoring, key traversal, FeedbackScore
+  library_cards/          # Library Cards benchmark (F1 metric, 263 images)
+    schema.py / signature.py / data.py / module.py / scoring.py
+  bibliographic_data/     # Bibliographic Data benchmark (average fuzzy metric, 5 images)
+    schema.py / signature.py / data.py / module.py / scoring.py
+
+data/{benchmark}/         # Symlinks to humanities_data_benchmark repo
+  images/ ground_truths/
+
+results/{benchmark}/      # Per-benchmark results
+  baseline/ optimized/
 
 scripts/
-  check_rate_limits.py     # Check provider API rate limits
-  evaluate_baseline.py     # Run unoptimized module on test set
-  optimize.py              # Run MIPROv2, BootstrapFewShot, SIMBA, or GEPA
-  evaluate_optimized.py    # Evaluate saved optimized program (supports Refine wrapper)
-  compare_results.py       # Print side-by-side comparison (auto-discovers results)
+  evaluate_baseline.py    # --benchmark flag, dynamic imports
+  optimize.py             # MIPROv2, BootstrapFewShot, SIMBA, or GEPA
+  evaluate_optimized.py   # Evaluate saved optimized program (supports Refine)
+  compare_results.py      # Side-by-side comparison (auto-discovers results)
+  check_rate_limits.py    # Check provider API rate limits
 ```
 
 ### Running the pipeline
@@ -119,7 +128,7 @@ uv sync
 # 0. Check provider rate limits
 uv run python scripts/check_rate_limits.py
 
-# 1. Evaluate unoptimized baseline
+# 1. Evaluate unoptimized baseline (--benchmark defaults to library_cards)
 uv run python scripts/evaluate_baseline.py --model gemini-2.0-flash --module cot
 
 # 2. Run optimization
@@ -136,10 +145,14 @@ uv run python scripts/optimize.py --optimizer gepa --model gemini-2.0-flash --mo
 uv run python scripts/optimize.py --optimizer bootstrap --model gemini-2.5-pro
 
 # 3. Evaluate optimized program on test set
-uv run python scripts/evaluate_optimized.py --program results/optimized/mipro-cot_gemini-2.0-flash_optimized.json --model gemini-2.0-flash --module cot
+uv run python scripts/evaluate_optimized.py --program results/library_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json --model gemini-2.0-flash --module cot
 
 # 4. Compare all results
 uv run python scripts/compare_results.py
+
+# Run on a different benchmark:
+uv run python scripts/evaluate_baseline.py --benchmark bibliographic_data --model gemini-2.0-flash
+uv run python scripts/compare_results.py --benchmark bibliographic_data
 ```
 
 ### Multi-provider support
@@ -215,23 +228,21 @@ The different optimizers revealed different improvement strategies. SIMBA's mini
 - **Gemini 2.5 Pro:** No rate limit issues. The GA model has generous limits (1M+ TPM), making it well-suited for optimization workloads with many parallel calls.
 - **Gemini 2.0 Flash:** The 4M TPM limit can be hit when running multiple optimization jobs in parallel. Running SIMBA, GEPA, and baseline concurrently caused sporadic 429 errors. Sequential execution or reduced thread counts mitigate this.
 
-**Gemini Flash JSON output quirk:** Gemini 2.0 Flash wraps JSON responses in markdown code fences (`` ```json ... ``` ``) when using DSPy's JSON adapter fallback mode, causing parse failures. The scoring module includes `_strip_code_fences()` to handle this. This does not affect Gemini 2.5 Pro (which uses structured output) or GPT-4o.
+**Gemini Flash JSON output quirk:** Gemini 2.0 Flash wraps JSON responses in markdown code fences (`` ```json ... ``` ``) when using DSPy's JSON adapter fallback mode, causing parse failures. The shared scoring helpers include `strip_code_fences()` to handle this. This does not affect Gemini 2.5 Pro (which uses structured output) or GPT-4o.
 
-**GEPA metric compatibility:** DSPy's parallelizer calls `sum()` on metric results for progress tracking, but GEPA expects a dict with `{"score", "feedback"}` keys. The `FeedbackScore` class in `scoring.py` bridges this by being a dict subclass that also supports arithmetic operations.
+**GEPA metric compatibility:** DSPy's parallelizer calls `sum()` on metric results for progress tracking, but GEPA expects a dict with `{"score", "feedback"}` keys. The `FeedbackScore` class in `benchmarks/shared/scoring_helpers.py` bridges this by being a dict subclass that also supports arithmetic operations.
 
 **Recommendation:** Use GA (generally available) models with high rate limits for optimization. Preview/experimental models typically have restrictive quotas unsuitable for parallel evaluation strategies. Use `scripts/check_rate_limits.py` to verify provider limits before running optimization.
 
 ## Adapting to other RISE benchmarks
 
-To apply this pipeline to a different RISE benchmark task:
+To apply this pipeline to a different RISE benchmark task, create a new package under `benchmarks/` with the standard interface:
 
-1. Update `src/schema.py` with the task's Pydantic schema
-2. Update `src/signature.py` with the appropriate output description
-3. Update `src/data.py` to point to the new images/ground_truths directories
-4. Update `src/scoring.py` if the task uses a different scoring method
-5. Symlink the new benchmark's data directories
+1. Create `benchmarks/{task_name}/` with `schema.py`, `signature.py`, `data.py`, `module.py`, `scoring.py`
+2. Symlink data into `data/{task_name}/images` and `data/{task_name}/ground_truths`
+3. Export the standard interface: `Extractor`, `load_and_split`, `dspy_metric`, `score_single_prediction`, `compute_aggregate_scores`, etc.
 
-The module, optimizer scripts, and comparison tooling remain unchanged.
+No changes to any scripts are needed — just pass `--benchmark {task_name}`.
 
 ### Next benchmarks to test
 
