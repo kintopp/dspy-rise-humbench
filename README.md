@@ -424,8 +424,6 @@ Comparing the four optimized prompts reveals how MIPROv2's Bayesian search adapt
 
 #### Results
 
-Results across all four RISE benchmarks — spanning dataset sizes from 5 to 263 images, three different metric types, and four different document genres — converge on consistent findings:
-
 | Benchmark | Predict baseline | CoT baseline | MIPROv2 medium CoT | Gain |
 |---|---|---|---|---|
 | Library Cards (263 imgs) | 0.8134 | 0.7583 | **0.9017** | +8.8 pts |
@@ -433,19 +431,17 @@ Results across all four RISE benchmarks — spanning dataset sizes from 5 to 263
 | Personnel Cards (61 imgs) | 0.6296 | 0.7983 | **0.8858** | +25.6 pts |
 | Business Letters (57 letters) | 0.4565 | 0.4713 | **0.6378** | +18.1 pts |
 
-**MIPROv2 medium + CoT is the universal winner.** Across all four benchmarks, the same configuration — MIPROv2 with medium search budget (12 candidates, 18 trials) and ChainOfThought — produced the best results. No other optimizer or module combination beat it on any benchmark. This is a remarkably consistent given the diversity of tasks.
+**MIPROv2 medium + CoT is the universal winner.** The same configuration — MIPROv2 with medium search budget and ChainOfThought — produced the best results on all four benchmarks. No other optimizer or module combination beat it on any benchmark.
 
-**ChainOfThought as optimizer amplifier.** Unoptimized CoT can help or hurt depending on the task: it hurt Library Cards (-5.5 pts) and Bibliographic Data (-0.55 pts) but helped Personnel Cards (+16.9 pts) and Business Letters (+1.5 pts). The pattern: CoT helps unoptimized baselines when the main failure mode is output formatting (JSON parse failures in Personnel Cards), but hurts when the model is already producing well-formed output. Once optimization is applied, CoT consistently produces the best results regardless — it widens the optimization surface by giving MIPROv2 more degrees of freedom to search over.
+**ChainOfThought as optimizer amplifier.** Unoptimized CoT can help or hurt: it hurt Library Cards (-5.5 pts) and Bibliographic Data (-0.55 pts) but helped Personnel Cards (+16.9 pts) and Business Letters (+1.5 pts). CoT helps when the main failure mode is output formatting (JSON parse failures), but hurts when the model already produces well-formed output. Once optimization is applied, CoT consistently wins — it widens the search space that MIPROv2 can exploit.
 
-**Biggest gains where baselines are weakest.** The correlation is clear: Personnel Cards (baseline 0.63) gained +25.6 pts, Business Letters (0.46) gained +18.1 pts, Library Cards (0.81) gained +8.8 pts, Bibliographic Data (0.67) gained +3.4 pts. Weaker baselines have more room for few-shot demonstrations and optimized instructions to add value.
+**Biggest gains where baselines are weakest.** Personnel Cards (baseline 0.63) gained +25.6 pts, Business Letters (0.46) gained +18.1 pts, Library Cards (0.81) gained +8.8 pts, Bibliographic Data (0.67) gained +3.4 pts.
 
-**Few-shot demonstrations outperform verbose instructions.** Across all benchmarks, the winning configurations use concise instructions with 2-4 worked examples, rather than the benchmark's detailed multi-paragraph prompts. Demonstrations implicitly teach extraction rules (name formats, JSON structure, field semantics) that are hard to articulate in instructions alone. This is especially pronounced for Business Letters, where name format examples were the primary improvement driver.
+**Optimized Flash competes with expensive models.** On three of four benchmarks, optimized Gemini 2.0 Flash matched or exceeded the RISE leaderboard leaders — at roughly one-tenth the inference cost. Business Letters was the exception: optimized Flash (63.78) fell short of GPT-5's 77.0, likely because the exact-match alias lookup rewards stronger entity recognition that few-shot optimization alone cannot compensate for.
 
-**Optimized Flash competes with expensive models.** Gemini 2.0 Flash with MIPROv2 optimization exceeded the RISE leaderboard top on Library Cards (90.17 vs 89.5) and Personnel Cards (88.58 vs ~79.0), and came within 1 point on Bibliographic Data (70.59 vs 71.4) — despite evaluating on held-out subsets rather than the full datasets. Business Letters was the exception: optimized Flash (63.78) fell well short of GPT-5's 77.0, likely because the exact-match alias lookup rewards models with stronger entity recognition that few-shot optimization alone cannot fully compensate for. On three of four benchmarks, a model costing ~10x less matched or exceeded the leaderboard leaders — for large-scale archival deployments where inference cost matters, this remains the key practical finding.
+**Small dev sets cause overfitting.** Business Letters showed the largest dev-test gap (89.58 dev → 63.78 test with 8 dev letters); Library Cards (39 dev) showed minimal gap. Practitioners should expect dev scores to overestimate test performance on small datasets.
 
-**Small dev sets cause overfitting.** Business Letters showed the largest dev-test gap: 89.58 dev → 63.78 test with only 8 dev letters. Personnel Cards (9 dev) showed a smaller gap: 85.16 dev → 88.58 test. Library Cards (39 dev) showed minimal gap. When the dev set is small, MIPROv2's Bayesian search can lock onto configurations that work well on a few specific examples without generalising. The test improvement is still substantial, but practitioners should expect dev scores to overestimate test performance on small datasets.
-
-**Total project cost: ~$3–4 on Gemini 2.0 Flash.** All four benchmarks — baselines, MIPROv2 optimizations, and test evaluations — used an estimated 3,600 Flash API calls totalling ~7.9M input and ~4.6M output tokens, for a base cost of $2.63 on AI Studio pricing ($0.10/$0.40 per 1M tokens). Including a 1.3× retry multiplier, the all-Flash work cost ~$3.42. The early Library Cards experiments on Gemini 2.5 Pro and 3 Pro Preview added ~$12.71 — most of the project's total spend. A single MIPROv2 medium optimization run on Flash costs roughly $1–2 per benchmark.
+**Total project cost: ~$3–4 on Gemini 2.0 Flash.** All four benchmarks — baselines, optimizations, and evaluations — used ~3,600 Flash API calls totalling ~7.9M input and ~4.6M output tokens, for a cost of ~$3.42 on AI Studio pricing. The early Gemini 2.5 Pro experiments added ~$12.71. A single MIPROv2 medium run costs roughly $1–2 per benchmark.
 
 ## Issues Encountered
 
