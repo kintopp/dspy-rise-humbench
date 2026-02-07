@@ -203,6 +203,36 @@ def refine_reward_fn(example, prediction, trace=None) -> float:
     return 1.0
 
 
+def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
+    """GEPA-compatible metric returning score + textual feedback.
+
+    GEPA passes 5 args: (gold, pred, trace, pred_name, pred_trace) and expects
+    a dict with ``{"score": float, "feedback": str}``.
+    """
+    pred_dict = _parse_prediction_document(pred)
+    gt_dict = _parse_gt_document(gold)
+
+    if pred_dict is None or gt_dict is None:
+        return {"score": 0.0, "feedback": "Failed to parse JSON output"}
+
+    scores = score_single_prediction(pred_dict, gt_dict)
+    f1 = scores["f1_score"]
+
+    if f1 >= 1.0:
+        return {"score": f1, "feedback": "Perfect score"}
+
+    # Build field-level feedback for low-scoring fields
+    low_fields = []
+    for key, info in scores["field_scores"].items():
+        if info["score"] < MATCH_THRESHOLD:
+            low_fields.append(
+                f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
+            )
+
+    feedback = f"f1={f1:.3f}. Low-scoring fields:\n" + "\n".join(low_fields) if low_fields else f"f1={f1:.3f}"
+    return {"score": f1, "feedback": feedback}
+
+
 def dspy_metric(example, prediction, trace=None) -> float | bool:
     """DSPy-compatible metric.
 
