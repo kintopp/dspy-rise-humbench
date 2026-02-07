@@ -191,6 +191,8 @@ Available presets: `gpt-4o`, `gpt-4o-mini`, `gemini-3-pro-preview`, `gemini-2.5-
 
 The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. A model scoring 85% at $0.003/call is more useful than one scoring 89% at $0.04/call if you need to process tens of thousands of documents. Our experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
 
+All four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). The Library Cards benchmark also includes early comparison experiments with Gemini 2.5 Pro to establish an upper bound.
+
 ---
 
 ### Library Cards
@@ -213,7 +215,7 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 
 #### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
 
-MIPROv2 light with Gemini 2.5 Pro achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best hand-crafted prompt scores (Gemini 3 Pro preview: 89.1, GPT-5: 87.9). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules.
+MIPROv2 light with Gemini 2.5 Pro achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best hand-crafted prompt scores (GPT-5: 89.5, GPT-4.1: 89.4). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules.
 
 This established the target. The question became: how close can a model that costs ~10-15x less get to this ceiling?
 
@@ -243,7 +245,7 @@ The different optimizers revealed different improvement strategies. SIMBA's mini
 #### Key findings
 
 - **Optimization is most impactful on cheaper models.** The absolute uplift on Flash (+14.3 points) far exceeds the uplift on Pro (+7.4 points). Weaker models have more room for optimization to add value — and the per-call savings compound across large-scale deployments.
-- **Optimized Flash exceeds both optimized Pro and the benchmark leaderboard.** f1_macro=0.9017 surpasses Gemini 2.5 Pro's optimized score (0.8912) and the leaderboard's top hand-crafted prompt result (Gemini 3 Pro preview: 89.1), despite evaluating on a held-out 70% subset rather than the full dataset.
+- **Optimized Flash exceeds both optimized Pro and the benchmark leaderboard.** f1_macro=0.9017 surpasses Gemini 2.5 Pro's optimized score (0.8912) and the leaderboard's top hand-crafted prompt result (GPT-5: 89.5), despite evaluating on a held-out 70% subset rather than the full dataset.
 - **ChainOfThought is a double-edged sword.** It hurts unoptimized Flash (-5.5 points) but enables the largest optimization gains (+14.3 points with MIPROv2 medium). CoT's value is not in reasoning per se, but in giving optimizers more degrees of freedom.
 - **Optimized programs partially transfer across models.** Pro-optimized instructions and demos scored 0.8743 on Flash — only 1.7 points below the Pro result. But per-model optimization beats transfer by +2.7 points, and is cheap enough to be worthwhile.
 - **Optimizer search budget matters.** MIPROv2 medium (12 trials) found a configuration that light (6 trials) would have missed. When the model is cheap, the cost of a broader search is negligible compared to the gains.
@@ -317,7 +319,7 @@ An ID-aware scoring approach — matching entries by their `id` field rather tha
 - **Optimization gains scale with dataset size.** MIPROv2's +4.3 point uplift on 5 images is roughly 3x smaller than its +14.3 point uplift on Library Cards' 263 images. The optimizer simply has too little signal — 2 training images where the model already scores 0.90+ provide almost no failures to learn from.
 - **LOO didn't solve data scarcity.** Despite 50% more training data per fold, the aggregate didn't improve. The bottleneck isn't training data quantity but structural complexity (nested entries, page continuations) that prompt optimization can't address.
 - **Ground truth quality was a hidden ceiling.** Two normalization rounds were required before scores became meaningful. Annotation inconsistencies in key formatting and type values created systematic scoring errors that no optimizer could overcome. Always audit GT consistency before optimizing.
-- **Competitive with the leaderboard on a cheaper model.** MIPROv2 medium at 0.7059 with Gemini 2.0 Flash matches the leaderboard top of ~70.2% (Gemini 2.5 Flash Preview), continuing the Library Cards pattern of optimized-cheap matching unoptimized-expensive.
+- **Competitive with the leaderboard on a cheaper model.** MIPROv2 medium at 0.7059 with Gemini 2.0 Flash is within 1 point of the leaderboard top (GPT-4o: 71.4), continuing the Library Cards pattern of optimized-cheap approaching unoptimized-expensive.
 
 ---
 
@@ -341,7 +343,7 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 | CoT baseline (unoptimized) | 0.7983 | 0.8415 | 0.8142 | 0.8706 | +0.1687 |
 | Predict baseline (unoptimized) | 0.6296 | 0.7497 | 0.8420 | 0.6756 | — |
 
-**MIPROv2 medium-CoT achieved 0.8858 f1_macro — a +25.6 point lift over the predict baseline**, the largest absolute improvement across all four benchmarks. The optimized program exceeds the leaderboard top score (~79.0) by nearly 10 points using a model that costs a fraction of Gemini 2.5 Pro.
+**MIPROv2 medium-CoT achieved 0.8858 f1_macro — a +25.6 point lift over the predict baseline**, the largest absolute improvement across all four benchmarks. Using Gemini 2.0 Flash, the optimized program exceeds the previously reported leaderboard top (~79.0) by nearly 10 points — using a model that costs a fraction of Gemini 2.5 Pro.
 
 #### Key findings
 
@@ -380,7 +382,7 @@ This benchmark has a unique scoring characteristic: person names must exactly ma
 | CoT baseline (unoptimized) | 0.4713 | 0.4636 | 0.4286 | 0.5050 | +0.0148 |
 | Predict baseline (unoptimized) | 0.4565 | 0.4734 | 0.4623 | 0.4851 | — |
 
-**MIPROv2 medium-CoT achieved 0.6378 f1_macro — a +18.1 point lift over the predict baseline.** The few-shot demonstrations were critical: they provided concrete examples of the correct "First Last" name format that the alias table requires, lifting person matching from near-zero.
+**MIPROv2 medium-CoT on Gemini 2.0 Flash achieved 0.6378 f1_macro — a +18.1 point lift over the predict baseline.** The few-shot demonstrations were critical: they provided concrete examples of the correct "First Last" name format that the alias table requires, lifting person matching from near-zero.
 
 #### Key findings
 
@@ -410,7 +412,7 @@ Results across all four RISE benchmarks — spanning dataset sizes from 5 to 263
 
 **Few-shot demonstrations outperform verbose instructions.** Across all benchmarks, the winning configurations use concise instructions with 2-4 worked examples, rather than the benchmark's detailed multi-paragraph prompts. Demonstrations implicitly teach extraction rules (name formats, JSON structure, field semantics) that are hard to articulate in instructions alone. This is especially pronounced for Business Letters, where name format examples were the primary improvement driver.
 
-**Optimized Flash matches or beats expensive models on every benchmark.** Gemini 2.0 Flash with MIPROv2 optimization exceeded the RISE leaderboard top scores on Library Cards (0.9017 vs 89.1), Personnel Cards (0.8858 vs ~79.0), and matched the leaderboard on Bibliographic Data (0.7059 vs ~70.2) and Business Letters (0.6378 vs ~67.8 when accounting for the 70% test subset). For large-scale archival deployments where inference cost matters, this is the key practical finding.
+**Optimized Flash competes with expensive models.** Gemini 2.0 Flash with MIPROv2 optimization exceeded the RISE leaderboard top on Library Cards (90.17 vs 89.5) and Personnel Cards (88.58 vs ~79.0), and came within 1 point on Bibliographic Data (70.59 vs 71.4) — despite evaluating on held-out subsets rather than the full datasets. Business Letters was the exception: optimized Flash (63.78) fell well short of GPT-5's 77.0, likely because the exact-match alias lookup rewards models with stronger entity recognition that few-shot optimization alone cannot fully compensate for. On three of four benchmarks, a model costing ~10x less matched or exceeded the leaderboard leaders — for large-scale archival deployments where inference cost matters, this remains the key practical finding.
 
 **Small dev sets cause overfitting.** Business Letters showed the largest dev-test gap: 89.58 dev → 63.78 test with only 8 dev letters. Personnel Cards (9 dev) showed a smaller gap: 85.16 dev → 88.58 test. Library Cards (39 dev) showed minimal gap. When the dev set is small, MIPROv2's Bayesian search can lock onto configurations that work well on a few specific examples without generalising. The test improvement is still substantial, but practitioners should expect dev scores to overestimate test performance on small datasets.
 
