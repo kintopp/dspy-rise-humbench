@@ -185,11 +185,21 @@ The pipeline supports multiple LLM providers via [litellm](https://docs.litellm.
 
 Available presets: `gpt-4o`, `gpt-4o-mini`, `gemini-3-pro-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `claude-sonnet`, `claude-haiku`, and OpenRouter variants (`or-gemini-2.5-pro`, `or-claude-sonnet`, `or-gpt-4o`). Any full litellm model string also works.
 
+### Adapting to Other Benchmarks
+
+To apply this pipeline to a different RISE benchmark task, create a new package under `benchmarks/` with the standard interface:
+
+1. Create `benchmarks/{task_name}/` with `schema.py`, `signature.py`, `data.py`, `module.py`, `scoring.py`
+2. Symlink data into `data/{task_name}/images` and `data/{task_name}/ground_truths`
+3. Export the standard interface: `Extractor`, `load_and_split`, `dspy_metric`, `score_single_prediction`, `compute_aggregate_scores`, etc.
+
+No changes to any scripts are needed — just pass `--benchmark {task_name}`.
+
 ## Results
 
 ### The cost-performance question
 
-The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. A model scoring 85% at $0.003/call is more useful than one scoring 89% at $0.04/call if you need to process tens of thousands of documents. Our experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
+The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. A model scoring 85% at $0.003/call is more useful than one scoring 89% at $0.04/call if you need to process tens of thousands of documents. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
 
 All four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). The Library Cards benchmark also includes early comparison experiments with Gemini 2.5 Pro to establish an upper bound.
 
@@ -215,9 +225,7 @@ All four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, in
 
 #### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
 
-MIPROv2 light with Gemini 2.5 Pro achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best hand-crafted prompt scores (GPT-5: 89.5, GPT-4.1: 89.4). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules.
-
-This established the target. The question became: how close can a model that costs ~10-15x less get to this ceiling?
+MIPROv2 light was initially tested with Gemini 2.5 Pro (GPT-5 results were not yet available) and achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best hand-crafted prompt scores (GPT-5: 89.5, GPT-4.1: 89.4). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules. Between the start 
 
 #### Phase 2: Uplifting Gemini 2.0 Flash
 
@@ -232,7 +240,7 @@ We ran the full experiment matrix on Flash — baselines, three optimizers, cros
 | Predict baseline (unoptimized) | 0.8134 | 0.8207 | 0.8773 | 0.7709 | — |
 | CoT baseline (unoptimized) | 0.7583 | 0.8192 | 0.8662 | 0.7770 | -0.0551 |
 
-**Optimized Flash (0.9017) surpasses optimized Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium's Bayesian search over 12 candidate instruction/demo combinations found a configuration that lifted Flash by +14.3 points from its unoptimized CoT baseline, producing a well-balanced extractor with nearly equal precision (0.9083) and recall (0.9057).
+**Optimized Flash (0.9017) surpasses optimized Gemini 2.5 Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium's Bayesian search over 12 candidate instruction/demo combinations found a configuration that lifted Flash by +14.3 points from its unoptimized CoT baseline, producing a well-balanced extractor with nearly equal precision (0.9083) and recall (0.9057).
 
 An unexpected finding: **ChainOfThought hurts unoptimized Flash** (0.7583 vs Predict's 0.8134). Without optimized instructions to guide it, the reasoning step introduces errors rather than preventing them. But CoT becomes essential once optimization is applied — it creates a wider "optimization surface" that MIPROv2 can exploit. The optimized CoT program (0.9017) far exceeds what any Predict-based optimization achieved, including the Pro result (0.8912). This suggests that CoT's value lies not in reasoning per se, but in giving the optimizer more freedom to shape model behaviour through instructions and demonstrations.
 
@@ -350,7 +358,7 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 - **CoT helped the unoptimized baseline** — unlike Library Cards, where CoT hurt by -5.5 points. Here, CoT improved the unoptimized baseline by +16.9 points (0.6296 → 0.7983). The difference: Personnel Cards' biggest problem was JSON parse failures (8/43 cards scoring 0.0 in the predict baseline), and CoT's reasoning step helped the model structure its output more carefully before committing to JSON.
 - **False positives dropped by 75%.** FP went from 376 (predict baseline) to 94 (optimized). The few-shot demonstrations taught the model precisely what constitutes a valid row entry, eliminating hallucinated fields.
 - **Recall jumped from 0.676 to 0.914.** The model now finds 91% of all fields, up from 68%. CoT reasoning + optimized instructions help the model systematically process each column rather than skipping entries.
-- **3/43 cards still score 0.0** (down from 8/43 in predict baseline). These likely contain unusual layouts that even few-shot demonstrations cannot fully address.
+- **3/43 cards still score 0.0** (down from 8/43 in predict baseline). These may contain unusual layouts that even few-shot demonstrations cannot fully address.
 
 ---
 
@@ -404,7 +412,7 @@ Results across all four RISE benchmarks — spanning dataset sizes from 5 to 263
 | Personnel Cards (61 imgs) | 0.6296 | 0.7983 | **0.8858** | +25.6 pts |
 | Business Letters (57 letters) | 0.4565 | 0.4713 | **0.6378** | +18.1 pts |
 
-**MIPROv2 medium + CoT is the universal winner.** Across all four benchmarks, the same configuration — MIPROv2 with medium search budget (12 candidates, 18 trials) and ChainOfThought — produced the best results. No other optimizer or module combination beat it on any benchmark. This is a remarkably consistent finding given the diversity of tasks.
+**MIPROv2 medium + CoT is the universal winner.** Across all four benchmarks, the same configuration — MIPROv2 with medium search budget (12 candidates, 18 trials) and ChainOfThought — produced the best results. No other optimizer or module combination beat it on any benchmark. This is a remarkably consistent given the diversity of tasks.
 
 **ChainOfThought as optimizer amplifier.** Unoptimized CoT can help or hurt depending on the task: it hurt Library Cards (-5.5 pts) and Bibliographic Data (-0.55 pts) but helped Personnel Cards (+16.9 pts) and Business Letters (+1.5 pts). The pattern: CoT helps unoptimized baselines when the main failure mode is output formatting (JSON parse failures in Personnel Cards), but hurts when the model is already producing well-formed output. Once optimization is applied, CoT consistently produces the best results regardless — it widens the optimization surface by giving MIPROv2 more degrees of freedom to search over.
 
@@ -432,16 +440,6 @@ Results across all four RISE benchmarks — spanning dataset sizes from 5 to 263
 **GEPA metric compatibility:** DSPy's parallelizer calls `sum()` on metric results for progress tracking, but GEPA expects a dict with `{"score", "feedback"}` keys. The `FeedbackScore` class in `benchmarks/shared/scoring_helpers.py` bridges this by being a dict subclass that also supports arithmetic operations.
 
 **Recommendation:** Use GA (generally available) models with high rate limits for optimization. Preview/experimental models typically have restrictive quotas unsuitable for parallel evaluation strategies. Use `scripts/check_rate_limits.py` to verify provider limits before running optimization.
-
-## Adapting to Other Benchmarks
-
-To apply this pipeline to a different RISE benchmark task, create a new package under `benchmarks/` with the standard interface:
-
-1. Create `benchmarks/{task_name}/` with `schema.py`, `signature.py`, `data.py`, `module.py`, `scoring.py`
-2. Symlink data into `data/{task_name}/images` and `data/{task_name}/ground_truths`
-3. Export the standard interface: `Extractor`, `load_and_split`, `dspy_metric`, `score_single_prediction`, `compute_aggregate_scores`, etc.
-
-No changes to any scripts are needed — just pass `--benchmark {task_name}`.
 
 ### Other RISE benchmarks
 
