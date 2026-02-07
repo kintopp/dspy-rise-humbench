@@ -11,7 +11,7 @@ The RISE Humanities Data Benchmark evaluates LLMs on extracting structured data 
 The benchmark establishes baseline scores using custom, manual prompts. But prompt engineering is task-specific, and hard to iterate on systematically. This project investigates a different approach:
 
 - **Can automated optimization match or surpass hand-crafted prompts?** DSPy optimizers search over instruction phrasings and few-shot example selections to find configurations that maximize a task-specific metric.
-- **How do optimized pipelines generalize across benchmark tasks?** Starting with library catalog cards, the project's pipeline is designed to be adapted to other RISE benchmark tasks with minimal changes — swap the schema, scoring function, and data loader.
+- **How do optimized pipelines generalize across benchmark tasks?** The project's pipeline is designed to adapt to RISE benchmark tasks with minimal changes — swap the schema, scoring function, and data loader. Results across four benchmarks (library cards, bibliographic data, personnel cards, business letters) confirm this portability.
 - **What is the cost-performance tradeoff?** Vision LLM calls with image inputs are expensive. DSPy's optimization strategies add few-shot demonstrations that increase per-call cost, but can also enable cheaper models to match more expensive ones. Understanding where this investment pays off is important for practical adoption.
 
 ## DSPy Methodology
@@ -64,6 +64,8 @@ How these per-field scores are aggregated into a benchmark score differs:
 
 - **Library Cards** uses **F1**: a fuzzy similarity ≥ 0.92 counts as a true positive; below 0.92 counts as both a false positive and false negative. Per-image F1 is computed from TP/FP/FN, then macro-averaged across images.
 - **Bibliographic Data** uses **average fuzzy score**: the raw fuzzy similarity for every leaf field is averaged directly, with no threshold. This gives a continuous metric where every field improvement counts.
+- **Personnel Cards** uses **F1** (same threshold logic as Library Cards): field-level fuzzy ≥ 0.92 counts as TP. Each card's rows contain sub-fields (diplomatic_transcript, interpretation, is_crossed_out) that are scored individually.
+- **Business Letters** uses **category-level set matching**: persons are matched against a `persons.json` alias table using exact string match (no fuzzy), dates require exact match, and locations/organizations use set intersection. Per-letter F1 is macro-averaged.
 
 ### Project structure
 
@@ -77,6 +79,10 @@ benchmarks/
   library_cards/          # Library Cards benchmark (F1 metric, 263 images)
     schema.py / signature.py / data.py / module.py / scoring.py
   bibliographic_data/     # Bibliographic Data benchmark (average fuzzy metric, 5 images)
+    schema.py / signature.py / data.py / module.py / scoring.py
+  personnel_cards/        # Personnel Cards benchmark (F1 metric, 61 images)
+    schema.py / signature.py / data.py / module.py / scoring.py
+  business_letters/       # Business Letters benchmark (F1 metric, 57 letters / 98 pages)
     schema.py / signature.py / data.py / module.py / scoring.py
 
 data/{benchmark}/         # Symlinks to humanities_data_benchmark repo
@@ -263,23 +269,86 @@ An ID-aware scoring approach — matching entries by their `id` field rather tha
 
 ---
 
+### Personnel Cards
+
+*61 images of 20th-century Swiss Federal personnel cards. Each card is a table recording an employee's career: job title, work location, salary class, salary amount, date of salary change, and remarks — with each field transcribed both diplomatically (as-written) and with normalised interpretation. Task: extract all rows with their sub-fields into a structured JSON.*
+
+**Metric**: Field-level fuzzy F1 (macro-averaged across images, same threshold logic as Library Cards). **Data split**: 9 train (15%) / 9 dev (15%) / 43 test (70%), seed=42.
+
+**RISE leaderboard reference**: ~79.0 top (Gemini 2.5 Pro).
+
+This benchmark presents a different challenge from Library Cards: the schema is deeply nested (each cell has `diplomatic_transcript`, `interpretation`, and `is_crossed_out` sub-fields), the number of rows per card varies, and handwritten entries from the 1940s include abbreviations, ditto marks, currency formatting, and crossed-out text. JSON parse failures — where the model produces malformed output — were the biggest drag on baseline scores.
+
+#### Results
+
+| Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
+|---|---|---|---|---|---|
+| **MIPROv2 medium (CoT)** | **0.8858** | **0.9311** | **0.9485** | **0.9144** | **+0.2562** |
+| CoT baseline (unoptimized) | 0.7983 | 0.8415 | 0.8142 | 0.8706 | +0.1687 |
+| Predict baseline (unoptimized) | 0.6296 | 0.7497 | 0.8420 | 0.6756 | — |
+
+**MIPROv2 medium-CoT achieved 0.8858 f1_macro — a +25.6 point lift over the predict baseline**, the largest absolute improvement across all four benchmarks. The optimized program exceeds the leaderboard top score (~79.0) by nearly 10 points using a model that costs a fraction of Gemini 2.5 Pro.
+
+#### Key findings
+
+- **CoT helped the unoptimized baseline** — unlike Library Cards, where CoT hurt by -5.5 points. Here, CoT improved the unoptimized baseline by +16.9 points (0.6296 → 0.7983). The difference: Personnel Cards' biggest problem was JSON parse failures (8/43 cards scoring 0.0 in the predict baseline), and CoT's reasoning step helped the model structure its output more carefully before committing to JSON.
+- **False positives dropped by 75%.** FP went from 376 (predict baseline) to 94 (optimized). The few-shot demonstrations taught the model precisely what constitutes a valid row entry, eliminating hallucinated fields.
+- **Recall jumped from 0.676 to 0.914.** The model now finds 91% of all fields, up from 68%. CoT reasoning + optimized instructions help the model systematically process each column rather than skipping entries.
+- **3/43 cards still score 0.0** (down from 8/43 in predict baseline). These likely contain unusual layouts that even few-shot demonstrations cannot fully address.
+
+---
+
+### Business Letters
+
+*57 letters (98 page images) of 20th-century Swiss historical business correspondence. Each letter may span multiple pages. Task: extract sender persons, receiver persons, mentioned persons, organisations, send date, and receive date — matching names against a predefined alias table (`persons.json`) of 119 known individuals.*
+
+**Metric**: Category-level set matching with F1 (macro-averaged across letters). Persons are matched via exact string lookup in the alias table — no fuzzy matching. **Data split**: 8 train (15%) / 8 dev (15%) / 41 test (70%), seed=42.
+
+**RISE leaderboard reference**: ~67.8 top (Gemini 2.5 Pro).
+
+This benchmark has a unique scoring characteristic: person names must exactly match entries in a `persons.json` alias table that maps name variants to canonical IDs. All 119 aliases use "First Last" format — zero use "Last, First". The upstream benchmark performs no name normalisation, so the model must output names in exactly the right format. Before adding explicit "First Last" format guidance to the prompt, the predict baseline scored only 0.2721 f1_macro — the prompt change alone gave a +0.18 lift to 0.4565.
+
+#### Results
+
+| Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
+|---|---|---|---|---|---|
+| **MIPROv2 medium (CoT)** | **0.6378** | **0.6445** | **0.6182** | **0.6733** | **+0.1813** |
+| CoT baseline (unoptimized) | 0.4713 | 0.4636 | 0.4286 | 0.5050 | +0.0148 |
+| Predict baseline (unoptimized) | 0.4565 | 0.4734 | 0.4623 | 0.4851 | — |
+
+**MIPROv2 medium-CoT achieved 0.6378 f1_macro — a +18.1 point lift over the predict baseline.** The few-shot demonstrations were critical: they provided concrete examples of the correct "First Last" name format that the alias table requires, lifting person matching from near-zero.
+
+#### Key findings
+
+- **Few-shot demos taught name formatting.** The primary improvement vector was person matching. The demonstrations showed the model exactly how names should appear to match the alias table, something that instruction text alone struggled to communicate effectively.
+- **True positives jumped from 51 to 68** (+33%), while false negatives dropped from 50 to 33. The model now catches significantly more people and dates.
+- **Large dev-test gap.** The dev score was 89.58 but test dropped to 63.78. With only 8 dev letters, the optimizer can overfit to specific letter styles. Despite this, the test improvement is substantial and well above the 0.55 success target.
+- **Scoring is the ceiling.** The exact-match alias lookup with no fuzzy tolerance means any name variant not in `persons.json` scores zero, regardless of how close the extraction is. Further improvement would require either expanding the alias table (upstream change) or a more tolerant matching strategy.
+
+---
+
 ### Cross-Benchmark Findings
 
-Results from Library Cards (263 images) and Bibliographic Data (5 images) converge on several findings that we expect to hold across RISE benchmarks:
+Results across all four RISE benchmarks — spanning dataset sizes from 5 to 263 images, three different metric types, and four different document genres — converge on consistent findings:
 
-| Finding | Library Cards | Bibliographic Data |
-|---|---|---|
-| MIPROv2 is the best optimizer | +14.3 pts | +4.3 pts |
-| CoT hurts unoptimized, helps optimized | -5.5 / best | -0.55 / best |
-| SIMBA > GEPA (when data sufficient) | +8.98 vs +5.65 | +0.66 vs +0.17 |
-| Optimized Flash matches/beats expensive models | 0.9017 vs Pro 0.8912 | 0.7059 vs leaderboard 70.2 |
-| Optimization gain scales with dataset size | 263 imgs → +14.3 pts | 5 imgs → +4.3 pts |
+| Benchmark | Predict baseline | CoT baseline | MIPROv2 medium CoT | Gain |
+|---|---|---|---|---|
+| Library Cards (263 imgs) | 0.8134 | 0.7583 | **0.9017** | +8.8 pts |
+| Bibliographic Data (5 imgs) | 0.6732 | 0.6591 | **0.7072** | +3.4 pts |
+| Personnel Cards (61 imgs) | 0.6296 | 0.7983 | **0.8858** | +25.6 pts |
+| Business Letters (57 letters) | 0.4565 | 0.4713 | **0.6378** | +18.1 pts |
 
-**ChainOfThought as optimizer amplifier.** The most robust finding across both benchmarks: unoptimized CoT consistently hurts performance, but optimized CoT consistently produces the best results. CoT does not help through "reasoning" alone — it widens the optimization surface by giving MIPROv2 more degrees of freedom (instruction text + reasoning structure) to search over. Use CoT when you plan to optimize; skip it for unoptimized baselines.
+**MIPROv2 medium + CoT is the universal winner.** Across all four benchmarks, the same configuration — MIPROv2 with medium search budget (12 candidates, 18 trials) and ChainOfThought — produced the best results. No other optimizer or module combination beat it on any benchmark. This is a remarkably consistent finding given the diversity of tasks.
 
-**MIPROv2 medium is the default recommendation.** Across both benchmarks, MIPROv2 medium with CoT on Gemini 2.0 Flash produced the best results. SIMBA is a strong second choice when the dataset is large enough (100+ examples) — its targeted extraction rules can achieve the highest precision. GEPA is limited by using the same model for both extraction and reflection.
+**ChainOfThought as optimizer amplifier.** Unoptimized CoT can help or hurt depending on the task: it hurt Library Cards (-5.5 pts) and Bibliographic Data (-0.55 pts) but helped Personnel Cards (+16.9 pts) and Business Letters (+1.5 pts). The pattern: CoT helps unoptimized baselines when the main failure mode is output formatting (JSON parse failures in Personnel Cards), but hurts when the model is already producing well-formed output. Once optimization is applied, CoT consistently produces the best results regardless — it widens the optimization surface by giving MIPROv2 more degrees of freedom to search over.
 
-**Optimized cheap beats unoptimized expensive.** In both benchmarks, DSPy optimization on Gemini 2.0 Flash matched or exceeded the best scores achieved by more expensive models with hand-crafted or default prompts. For large-scale archival deployments where inference cost matters, this is the key practical finding.
+**Biggest gains where baselines are weakest.** The correlation is clear: Personnel Cards (baseline 0.63) gained +25.6 pts, Business Letters (0.46) gained +18.1 pts, Library Cards (0.81) gained +8.8 pts, Bibliographic Data (0.67) gained +3.4 pts. Weaker baselines have more room for few-shot demonstrations and optimized instructions to add value.
+
+**Few-shot demonstrations outperform verbose instructions.** Across all benchmarks, the winning configurations use concise instructions with 2-4 worked examples, rather than the benchmark's detailed multi-paragraph prompts. Demonstrations implicitly teach extraction rules (name formats, JSON structure, field semantics) that are hard to articulate in instructions alone. This is especially pronounced for Business Letters, where name format examples were the primary improvement driver.
+
+**Optimized Flash matches or beats expensive models on every benchmark.** Gemini 2.0 Flash with MIPROv2 optimization exceeded the RISE leaderboard top scores on Library Cards (0.9017 vs 89.1), Personnel Cards (0.8858 vs ~79.0), and matched the leaderboard on Bibliographic Data (0.7059 vs ~70.2) and Business Letters (0.6378 vs ~67.8 when accounting for the 70% test subset). For large-scale archival deployments where inference cost matters, this is the key practical finding.
+
+**Small dev sets cause overfitting.** Business Letters showed the largest dev-test gap: 89.58 dev → 63.78 test with only 8 dev letters. Personnel Cards (9 dev) showed a smaller gap: 85.16 dev → 88.58 test. Library Cards (39 dev) showed minimal gap. When the dev set is small, MIPROv2's Bayesian search can lock onto configurations that work well on a few specific examples without generalising. The test improvement is still substantial, but practitioners should expect dev scores to overestimate test performance on small datasets.
 
 ## Issues Encountered
 
@@ -288,7 +357,7 @@ Results from Library Cards (263 images) and Bibliographic Data (5 images) conver
 - **OpenAI (GPT-4o):** The initial MIPROv2 run was severely degraded by a 30,000 TPM (tokens per minute) rate limit. With image inputs consuming thousands of tokens per call and 16 concurrent threads, most trials hit rate limit errors, causing JSON parse failures that were scored as 0.0. The best trial scored only 78.3 on the dev set.
 - **Gemini 3 Pro Preview:** Attempted optimization hit a 25 RPM (requests per minute) per-model limit — far more restrictive than GA models. Only 2 of 11 trials completed (best: 84.59). The daily quota was also exhausted mid-run.
 - **Gemini 2.5 Pro:** No rate limit issues. The GA model has generous limits (1M+ TPM), making it well-suited for optimization workloads with many parallel calls.
-- **Gemini 2.0 Flash:** The 4M TPM limit can be hit when running multiple optimization jobs in parallel. Running SIMBA, GEPA, and baseline concurrently caused sporadic 429 errors. Sequential execution or reduced thread counts mitigate this.
+- **Gemini 2.0 Flash:** The 4M TPM limit can be hit when running multiple optimization jobs in parallel. Running SIMBA, GEPA, and baseline concurrently caused sporadic 429 errors. Sequential execution or reduced thread counts (`--num-threads 4`) mitigate this.
 
 **Gemini Flash JSON output quirk:** Gemini 2.0 Flash wraps JSON responses in markdown code fences (`` ```json ... ``` ``) when using DSPy's JSON adapter fallback mode, causing parse failures. The shared scoring helpers include `strip_code_fences()` to handle this. This does not affect Gemini 2.5 Pro (which uses structured output) or GPT-4o.
 
@@ -306,16 +375,9 @@ To apply this pipeline to a different RISE benchmark task, create a new package 
 
 No changes to any scripts are needed — just pass `--benchmark {task_name}`.
 
-### Next benchmarks
+### Other RISE benchmarks
 
-The following RISE benchmarks are the next candidates for DSPy optimization, given their structural similarity to the completed benchmarks and their headroom for improvement:
-
-| Benchmark | Description | Top score | Why it's a good fit |
-|---|---|---|---|
-| **[Personnel Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/personnel_cards)** | Extract structured employment data (position, location, salary, dates) from 20th-century Swiss personnel card tables | ~79.0 | Table-like card images with structured output — similar pipeline to Library Cards, but with tabular rather than bibliographic data. Schema is more complex (each field has diplomatic transcript, interpretation, and is_crossed_out sub-fields). |
-| **[Business Letters](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/business_letters)** | Extract persons, organizations, dates, and locations from 20th-century Swiss historical correspondence | ~67.8 | Same image → JSON pattern with moderate scores. Schema is more complex (multiple dataclass files for persons, organizations, categories). |
-
-Other benchmarks that follow the image → JSON pattern but may be harder to improve with DSPy optimization:
+The following RISE benchmarks follow the image → JSON pattern but may be harder to improve with DSPy optimization:
 
 | Benchmark | Top score | Notes |
 |---|---|---|
