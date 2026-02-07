@@ -1,4 +1,4 @@
-"""Configuration: LM setup and path constants."""
+"""Configuration: LM setup, model presets, and path helpers."""
 
 import os
 from pathlib import Path
@@ -9,13 +9,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Paths
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-IMAGES_DIR = PROJECT_ROOT / "images"
-GROUND_TRUTHS_DIR = PROJECT_ROOT / "ground_truths"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DATA_DIR = PROJECT_ROOT / "data"
 RESULTS_DIR = PROJECT_ROOT / "results"
 BENCHMARK_REPO = PROJECT_ROOT.parent / "humanities_data_benchmark"
 
-# Model presets: short name → DSPy model string
+# Model presets: short name -> DSPy model string
 MODEL_PRESETS = {
     # OpenAI
     "gpt-4o": "openai/gpt-4o",
@@ -40,6 +39,11 @@ DEFAULT_MODEL = "gpt-4o"
 def resolve_model(model: str) -> str:
     """Resolve a short preset name or pass through a full model string."""
     return MODEL_PRESETS.get(model, model)
+
+
+def results_dir(benchmark: str) -> Path:
+    """Return the results directory for a given benchmark."""
+    return RESULTS_DIR / benchmark
 
 
 def configure_dspy(model: str = DEFAULT_MODEL, temperature: float = 0.0):

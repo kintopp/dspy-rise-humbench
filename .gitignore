@@ -15,8 +15,9 @@ wheels/
 # Results (regenerated)
 results/
 
-# Symlinks to benchmark data
+# Symlinks to benchmark data (old root-level and new per-benchmark)
 images
 ground_truths
+data/
 
 .DS_Store

@@ -2,6 +2,7 @@
 """Evaluate a saved optimized program on the test set."""
 
 import argparse
+import importlib
 import json
 import logging
 import sys
@@ -9,10 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.config import configure_dspy, resolve_model, RESULTS_DIR
-from src.data import load_matched_samples, split_data, samples_to_examples
-from src.module import LibraryCardExtractor
-from src.scoring import score_single_prediction, compute_aggregate_scores, _parse_prediction_document, refine_reward_fn
+from benchmarks.shared.config import configure_dspy, resolve_model, results_dir
+from benchmarks.shared.scoring_helpers import parse_prediction_document
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -20,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate an optimized program")
+    parser.add_argument("--benchmark", default="library_cards",
+                        help="Benchmark name (e.g. library_cards, bibliographic_data)")
     parser.add_argument(
         "--program",
         type=str,
@@ -32,12 +33,18 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
+    # Dynamic benchmark imports
+    benchmark_pkg = f"benchmarks.{args.benchmark}"
+    data_mod = importlib.import_module(f"{benchmark_pkg}.data")
+    module_mod = importlib.import_module(f"{benchmark_pkg}.module")
+    scoring_mod = importlib.import_module(f"{benchmark_pkg}.scoring")
+
     model_id = resolve_model(args.model)
-    logger.info(f"Using model: {model_id}")
+    logger.info(f"Benchmark: {args.benchmark} | Model: {model_id}")
     configure_dspy(model=args.model)
 
     # Load the optimized program
-    extractor = LibraryCardExtractor(module_type=args.module)
+    extractor = module_mod.Extractor(module_type=args.module)
     extractor.load(args.program)
     logger.info(f"Loaded optimized program from {args.program}")
 
@@ -47,15 +54,19 @@ def main():
         extractor = dspy.Refine(
             module=extractor,
             N=args.refine,
-            reward_fn=refine_reward_fn,
+            reward_fn=scoring_mod.refine_reward_fn,
             threshold=1.0,
         )
         logger.info(f"Wrapped extractor with Refine(N={args.refine}, threshold=1.0)")
 
     # Load test split
-    samples = load_matched_samples()
-    _, _, test_raw = split_data(samples, seed=args.seed)
-    test_examples = samples_to_examples(test_raw)
+    samples = data_mod.load_matched_samples()
+    _, _, test_raw = data_mod.split_data(samples, seed=args.seed)
+    test_examples = data_mod.samples_to_examples(test_raw)
+
+    # Determine input field name from examples
+    input_field = list(test_examples[0].inputs().keys())[0]
+
     logger.info(f"Evaluating on {len(test_examples)} test images...")
 
     all_scores = []
@@ -65,45 +76,36 @@ def main():
         image_id = raw["id"]
         logger.info(f"[{i+1}/{len(test_examples)}] Processing {image_id}...")
         try:
-            prediction = extractor(card_image=example.card_image)
-            pred_dict = _parse_prediction_document(prediction)
+            prediction = extractor(**{input_field: getattr(example, input_field)})
+            pred_dict = parse_prediction_document(prediction)
             if pred_dict is None:
                 logger.warning(f"  Failed to parse prediction for {image_id}")
-                score = {
-                    "f1_score": 0.0, "precision": 0.0, "recall": 0.0,
-                    "true_positives": 0, "false_positives": 0, "false_negatives": 0,
-                    "field_scores": {}, "total_fields": 0,
-                }
+                score = scoring_mod.score_single_prediction({}, raw["ground_truth"])
             else:
-                score = score_single_prediction(pred_dict, raw["ground_truth"])
+                score = scoring_mod.score_single_prediction(pred_dict, raw["ground_truth"])
         except Exception as e:
             logger.error(f"  Error processing {image_id}: {e}")
-            score = {
-                "f1_score": 0.0, "precision": 0.0, "recall": 0.0,
-                "true_positives": 0, "false_positives": 0, "false_negatives": 0,
-                "field_scores": {}, "total_fields": 0,
-            }
+            score = scoring_mod.score_single_prediction({}, raw["ground_truth"])
 
         all_scores.append(score)
         per_image_results.append({"id": image_id, **score})
-        logger.info(f"  f1={score['f1_score']:.4f}")
 
-    aggregate = compute_aggregate_scores(all_scores)
-    logger.info(f"\n=== OPTIMIZED RESULTS ===")
-    logger.info(f"  f1_macro: {aggregate['f1_macro']:.4f}")
-    logger.info(f"  f1_micro: {aggregate['f1_micro']:.4f}")
-    logger.info(f"  precision: {aggregate['micro_precision']:.4f}")
-    logger.info(f"  recall: {aggregate['micro_recall']:.4f}")
-    logger.info(f"  instances: {aggregate['total_instances']}")
-    logger.info(f"  TP={aggregate['total_tp']} FP={aggregate['total_fp']} FN={aggregate['total_fn']}")
+        primary = score.get("f1_score", score.get("fuzzy", 0.0))
+        logger.info(f"  score={primary:.4f}")
+
+    aggregate = scoring_mod.compute_aggregate_scores(all_scores)
+    logger.info(f"\n=== OPTIMIZED RESULTS ({args.benchmark}) ===")
+    for key, val in aggregate.items():
+        logger.info(f"  {key}: {val}")
 
     # Determine output name from program path
     program_name = Path(args.program).stem
     refine_tag = f"_refine{args.refine}" if args.refine > 0 else ""
-    out_dir = RESULTS_DIR / "optimized"
+    out_dir = results_dir(args.benchmark) / "optimized"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     summary = {
+        "benchmark": args.benchmark,
         "program": args.program,
         "module_type": args.module,
         "refine_n": args.refine,

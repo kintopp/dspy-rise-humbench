@@ -2,7 +2,7 @@
 
 import dspy
 
-from src.signature import LibraryCardExtraction
+from benchmarks.library_cards.signature import LibraryCardExtraction
 
 
 class LibraryCardExtractor(dspy.Module):
@@ -19,3 +19,7 @@ class LibraryCardExtractor(dspy.Module):
 
     def forward(self, card_image):
         return self.predict(card_image=card_image)
+
+
+# Canonical alias for script compatibility
+Extractor = LibraryCardExtractor
