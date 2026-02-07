@@ -105,3 +105,66 @@ Generated automatically by the session-end hook.
 
 ---
 
+## Session: 2026-02-07 12:16
+
+**Session ID:** `92f41938`  
+**End Reason:** prompt_input_exit  
+**Insights Captured:** 6
+
+### 1. Insight
+
+**Context:** 
+
+**Experiment dependency chain:** E1 (CoT baseline) is independent and can run immediately. E2 (optimization) is also independent but long-running — MIPROv2 medium searches 12 candidate programs vs 6 for light. E2 eval and E3 both depend on E2's optimized program artifact. The estimated cost is $42-55 across all three experiments, primarily from Gemini 2.5 Pro vision API calls on 263 images across multiple optimization trials.
+
+---
+
+### 2. Insight
+
+**Context:** 
+
+**Why Flash first makes sense:** Gemini 2.0 Flash is significantly cheaper than 2.5 Pro, runs faster, and has generous rate limits. The "uplift" hypothesis is compelling — can optimization close the gap between a cheap model and an expensive one? If SIMBA/GEPA can meaningfully boost Flash performance, that's both a cost-saving finding and validates the optimizers before committing $40+ to Pro experiments.
+
+---
+
+### 3. Insight
+
+**Context:** 
+
+**Parallelizing independent experiments:** Since the baseline evaluation and both optimizations use independent data flows (baseline runs on test set, optimizers run on train/dev sets), they can safely run concurrently without interfering with each other. All three share the same Gemini 2.0 Flash API endpoint, but Flash has generous rate limits (~2000 RPM), so 16 threads x 3 processes should be well within capacity.
+
+---
+
+### 4. Insight
+
+**Context:** 
+
+**Why this didn't affect Gemini 2.5 Pro:** DSPy's JSON adapter first tries "structured output mode" (native JSON mode via the API), which works with 2.5 Pro. For 2.0 Flash, it falls back to "JSON mode" where the model generates text freely. Smaller models like Flash tend to wrap JSON in markdown code fences even when instructed not to — a well-known issue. The fix is to strip fences in the parsing layer, not in the prompt.
+
+**GEPA's metric architecture:** GEPA needs both a numeric score (for optimization) and textual feedback (for reflection). But DSPy's `Evaluate` class assumes metrics return numbers so it can track average score via `sum(vals)/len(vals)`. A dict subclass that supports arithmetic resolves this tension.
+
+---
+
+### 5. Insight
+
+**Context:** 
+
+**SIMBA's optimization strategy:** Notice how SIMBA identifies "buckets" of examples with high variability (max-to-min gap) and applies different strategies per bucket: `append_a_demo_` for examples that need demonstration, and `append_a_rule` for examples where the model needs explicit guidance (like the shelfmark extraction rule). This targeted approach contrasts with MIPROv2's global Bayesian search — SIMBA focuses on fixing specific failure modes.
+
+---
+
+### 6. Insight
+
+**Context:** 
+
+**What the comparison script shows**: The "Deltas vs First Baseline" compares against the GPT-4o predict baseline (0.8172 f1_macro), but for the Flash experiments the proper baseline is `cot_gemini-2.0-flash` (0.7583 f1_macro). So the actual uplift from DSPy optimization on Gemini 2.0 Flash is:
+
+- **SIMBA**: 0.7583 → 0.8481 = **+0.0898 f1_macro** (+11.8% relative)
+- **GEPA**: 0.7583 → 0.8148 = **+0.0565 f1_macro** (+7.5% relative)
+
+**Why SIMBA outperformed GEPA here**: SIMBA's mini-batch approach with self-reflection + demo accumulation generated targeted extraction rules (like "pay close attention to author spelling" and "extract shelfmarks even if abbreviated") that directly addressed the model's weak spots. GEPA's genetic-evolutionary approach optimized instructions but didn't accumulate as many task-specific demos — and it used the same model for both extraction and reflection, limiting its ability to self-improve.
+
+**The precision story is striking**: SIMBA achieved 0.9116 precision (highest of all experiments), meaning it learned to be conservative — producing fewer false positives — while GEPA tracked closer to baseline precision. This suggests SIMBA's rules helped Flash avoid hallucinating fields that aren't on the card.
+
+---
+

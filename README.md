@@ -12,7 +12,7 @@ The benchmark establishes baseline scores using carefully engineered prompts. Bu
 
 - **Can automated optimization match or surpass hand-crafted prompts?** DSPy optimizers search over instruction phrasings and few-shot example selections to find configurations that maximize a task-specific metric.
 - **How do optimized pipelines generalize across benchmark tasks?** Starting with library catalog cards, the pipeline is designed to be adapted to other RISE benchmark tasks with minimal changes — swap the schema, scoring function, and data loader.
-- **What is the cost-performance tradeoff?** Vision LLM calls with image inputs are expensive. DSPy's optimization strategies (MIPROv2, BootstrapFewShot) add few-shot demonstrations that increase per-call cost. Understanding where this investment pays off is important for practical adoption.
+- **What is the cost-performance tradeoff?** Vision LLM calls with image inputs are expensive. DSPy's optimization strategies add few-shot demonstrations that increase per-call cost, but can also enable cheaper models to match more expensive ones. Understanding where this investment pays off is important for practical adoption.
 
 ## DSPy Methodology
 
@@ -39,6 +39,8 @@ The RISE benchmarks are well-suited for DSPy optimization for several reasons:
 ### Optimizers used
 
 - **MIPROv2** (Multiprompt Instruction Proposal Optimizer v2): Jointly optimizes instructions and bootstraps few-shot demonstrations. Uses a Bayesian search over candidate prompts, evaluating each on a validation set. The `auto="light"` setting keeps the search budget small.
+- **SIMBA** (Self-Improving Model-Based Agent): Samples random mini-batches, identifies high-variability examples (ones the model sometimes gets right, sometimes wrong), and uses LLM self-reflection to generate improvement rules and select demonstrations. Does not require a separate validation set.
+- **GEPA** (Genetic-Evolutionary Prompt Adaptation): Evolves instructions through a genetic algorithm guided by textual feedback. Requires a feedback metric that returns both a score and a natural-language explanation of errors. Uses a separate reflection LM to propose instruction improvements.
 - **BootstrapFewShot**: A simpler optimizer that selects demonstrations from the training set by running the model and keeping examples where the metric exceeds a threshold. No instruction optimization — just few-shot selection.
 
 ## Technical Approach
@@ -46,10 +48,10 @@ The RISE benchmarks are well-suited for DSPy optimization for several reasons:
 ### Pipeline architecture
 
 ```
-┌─────────────┐     ┌──────────────────────┐     ┌──────────────┐
-│  Card Image  │ ──> │  LibraryCardExtractor │ ──> │  JSON Output  │
-│  (dspy.Image)│     │  (dspy.Predict)       │     │  (document)   │
-└─────────────┘     └──────────────────────┘     └──────────────┘
+┌─────────────┐     ┌──────────────────────────────┐     ┌──────────────┐
+│  Card Image  │ ──> │  LibraryCardExtractor         │ ──> │  JSON Output  │
+│  (dspy.Image)│     │  (Predict or ChainOfThought)  │     │  (document)   │
+└─────────────┘     └──────────────────────────────┘     └──────────────┘
                               │
                     ┌─────────┴─────────┐
                     │  LibraryCard       │
@@ -61,7 +63,7 @@ The RISE benchmarks are well-suited for DSPy optimization for several reasons:
                     └───────────────────┘
 ```
 
-The module wraps a single `dspy.Predict` call with a signature that specifies the expected JSON schema in its output field description. The LM receives the image and the schema description, and returns a JSON string which is then parsed and scored.
+The module wraps either a `dspy.Predict` or `dspy.ChainOfThought` call (selected via `--module predict|cot`) with a signature that specifies the expected JSON schema in its output field description. ChainOfThought adds a reasoning step before the JSON output, encouraging step-by-step thinking. The LM receives the image and the schema description, and returns a JSON string which is then parsed and scored.
 
 ### Scoring
 
@@ -90,19 +92,19 @@ The 263 matched image/ground-truth pairs are split deterministically (seed=42):
 
 ```
 src/
-  config.py       # LM setup, path constants
+  config.py       # LM setup, model presets, path constants
   schema.py       # Pydantic Document schema (mirrors benchmark)
   data.py         # Data loading, splitting, dspy.Example conversion
   signature.py    # DSPy Signature with schema-guided output description
-  module.py       # DSPy Module wrapping Predict
-  scoring.py      # Field-level fuzzy F1 metric (benchmark-compatible)
+  module.py       # DSPy Module wrapping Predict or ChainOfThought
+  scoring.py      # Field-level fuzzy F1 metric, GEPA feedback metric, code fence handling
 
 scripts/
   check_rate_limits.py     # Check provider API rate limits
   evaluate_baseline.py     # Run unoptimized module on test set
-  optimize.py              # Run MIPROv2 or BootstrapFewShot
-  evaluate_optimized.py    # Evaluate saved optimized program
-  compare_results.py       # Print side-by-side comparison
+  optimize.py              # Run MIPROv2, BootstrapFewShot, SIMBA, or GEPA
+  evaluate_optimized.py    # Evaluate saved optimized program (supports Refine wrapper)
+  compare_results.py       # Print side-by-side comparison (auto-discovers results)
 ```
 
 ### Running the pipeline
@@ -115,14 +117,25 @@ uv sync
 uv run python scripts/check_rate_limits.py
 
 # 1. Evaluate unoptimized baseline
-uv run python scripts/evaluate_baseline.py --model gemini-2.5-pro
+uv run python scripts/evaluate_baseline.py --model gemini-2.0-flash --module cot
 
-# 2. Run optimization (MIPROv2 recommended)
+# 2. Run optimization
+# MIPROv2 (Bayesian search over instructions + demos, needs train + dev sets):
 uv run python scripts/optimize.py --optimizer mipro --auto light --model gemini-2.5-pro --num-threads 16
-# or: uv run python scripts/optimize.py --optimizer bootstrap --model gemini-2.5-pro
+
+# SIMBA (mini-batch self-reflection, works on trainset only):
+uv run python scripts/optimize.py --optimizer simba --model gemini-2.0-flash --module cot --num-threads 8
+
+# GEPA (genetic-evolutionary with feedback, needs train + dev sets + reflection LM):
+uv run python scripts/optimize.py --optimizer gepa --model gemini-2.0-flash --module cot --reflection-model gemini-2.0-flash
+
+# BootstrapFewShot (simple demo selection):
+uv run python scripts/optimize.py --optimizer bootstrap --model gemini-2.5-pro
 
 # 3. Evaluate optimized program on test set
-uv run python scripts/evaluate_optimized.py --program results/optimized/mipro_gemini-2.5-pro_optimized.json --model gemini-2.5-pro
+uv run python scripts/evaluate_optimized.py --program results/optimized/simba-cot_gemini-2.0-flash_optimized.json --model gemini-2.0-flash --module cot
+# With Refine wrapper (inference-time retries for parse failures):
+uv run python scripts/evaluate_optimized.py --program results/optimized/simba-cot_gemini-2.0-flash_optimized.json --model gemini-2.0-flash --module cot --refine 3
 
 # 4. Compare all results
 uv run python scripts/compare_results.py
@@ -130,13 +143,7 @@ uv run python scripts/compare_results.py
 
 ### Multi-provider support
 
-The pipeline supports multiple LLM providers via [litellm](https://docs.litellm.ai/). Configure API keys in `.env` and select a model with `--model`:
-
-```bash
-uv run python scripts/optimize.py --optimizer mipro --model gemini-2.5-pro --num-threads 16
-uv run python scripts/evaluate_baseline.py --model gemini-2.5-pro
-uv run python scripts/check_rate_limits.py  # check provider rate limits
-```
+The pipeline supports multiple LLM providers via [litellm](https://docs.litellm.ai/). Configure API keys in `.env` and select a model with `--model`.
 
 Available presets: `gpt-4o`, `gpt-4o-mini`, `gemini-3-pro-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `claude-sonnet`, `claude-haiku`, and OpenRouter variants (`or-gemini-2.5-pro`, `or-claude-sonnet`, `or-gpt-4o`). Any full litellm model string also works.
 
@@ -154,22 +161,40 @@ Top scores on the Library Cards benchmark from the [RISE dashboard](https://rise
 
 ## Results
 
-### MIPROv2 + Gemini 2.5 Pro (test split, 185 images)
+All results are evaluated on the held-out test set (185 images, 70% of data).
+
+### MIPROv2 + Gemini 2.5 Pro
 
 | Configuration | f1_macro | f1_micro | Precision | Recall |
 |---|---|---|---|---|
 | **MIPROv2 optimized** | **0.8912** | **0.8965** | 0.8852 | 0.9080 |
-| DSPy baseline (GPT-4o) | 0.8172 | 0.8237 | 0.8608 | 0.7897 |
+| DSPy baseline (GPT-4o, Predict) | 0.8172 | 0.8237 | 0.8608 | 0.7897 |
 
-The MIPROv2-optimized pipeline with Gemini 2.5 Pro achieves **f1_macro=0.8912** on the held-out test set (185 images), a **+7.4 point improvement** over the unoptimized DSPy baseline with GPT-4o. This result is on par with the benchmark's best hand-crafted prompt scores — and notably exceeds Gemini 2.5 Pro's own benchmark score (87.2) by +1.7 points.
+The MIPROv2-optimized pipeline with Gemini 2.5 Pro achieves **f1_macro=0.8912**, a **+7.4 point improvement** over the unoptimized DSPy baseline with GPT-4o. This result is on par with the benchmark's best hand-crafted prompt scores — and notably exceeds Gemini 2.5 Pro's own benchmark score (87.2) by +1.7 points.
 
 The optimization discovered an effective instruction + 2 few-shot demonstration combination. The optimized instruction emphasizes role-framing and OCR accuracy, while the bootstrapped demonstrations implicitly teach the extraction schema through worked examples rather than explicit field-by-field rules.
+
+### SIMBA & GEPA + Gemini 2.0 Flash (CoT)
+
+Can cheaper optimization on a weaker model close the gap to MIPROv2 + Gemini 2.5 Pro?
+
+| Configuration | f1_macro | f1_micro | Precision | Recall | vs Baseline |
+|---|---|---|---|---|---|
+| **SIMBA-CoT optimized** | **0.8481** | **0.8543** | **0.9116** | 0.8037 | **+0.0898** |
+| GEPA-CoT optimized | 0.8148 | 0.8217 | 0.8598 | 0.7868 | +0.0565 |
+| CoT baseline (Flash, unoptimized) | 0.7583 | 0.8192 | 0.8662 | 0.7770 | — |
+
+SIMBA is the clear winner for Flash uplift — it closed ~60% of the gap between unoptimized Flash (0.7583) and MIPROv2 + Gemini 2.5 Pro (0.8912), at a fraction of the inference cost. SIMBA's mini-batch self-reflection generated task-specific extraction rules (e.g., "pay close attention to author spelling", "extract shelfmarks even if abbreviated") and accumulated targeted demonstrations. It also achieved the highest precision (0.9116) of any experiment, suggesting it taught Flash to avoid hallucinating fields that aren't on the card.
+
+GEPA's improvement was more modest (+0.0565). Using the same model (Flash) for both task execution and reflection likely limited its ability to self-improve — a stronger reflection model (e.g., Gemini 2.5 Pro) could improve GEPA's instruction evolution.
 
 ### Key findings
 
 - **Automated optimization matches hand-crafted prompts.** MIPROv2's f1_macro (0.8912) is competitive with the benchmark leaderboard's top scores (Gemini 3 Pro preview: 89.1, GPT-5: 87.9, GPT-4o: 85.7), despite evaluating on a held-out 70% test subset rather than the full 263-image dataset.
-- **Recall is the main driver of improvement.** The optimized pipeline achieves 0.9080 recall vs the baseline's 0.7897 — the model extracts more fields correctly, largely thanks to few-shot demonstrations that clarify the expected output structure.
-- **Few-shot demos matter more than verbose instructions.** MIPROv2's best instruction is concise (2 sentences of role-framing) compared to the benchmark's detailed multi-paragraph prompt. The 2 bootstrapped demonstrations do the heavy lifting.
+- **Optimization substantially uplifts cheaper models.** SIMBA brought Gemini 2.0 Flash from 0.7583 to 0.8481 f1_macro — a +11.8% relative improvement — making a cheap, fast model competitive with much more expensive alternatives.
+- **Recall is the main driver of improvement for MIPROv2; precision for SIMBA.** MIPROv2 achieved 0.9080 recall vs the baseline's 0.7897 — it extracts more fields. SIMBA instead improved precision to 0.9116, reducing false positives while modestly improving recall.
+- **Few-shot demos matter more than verbose instructions.** MIPROv2's best instruction is concise (2 sentences of role-framing) compared to the benchmark's detailed multi-paragraph prompt. The bootstrapped demonstrations do the heavy lifting. SIMBA similarly accumulated task-specific demos alongside improvement rules.
+- **Optimizer choice matters.** SIMBA's mini-batch self-reflection outperformed GEPA's genetic-evolutionary approach on this task (+0.0898 vs +0.0565), likely because SIMBA directly addresses high-variability examples while GEPA's instruction evolution was limited by using Flash as its own reflection model.
 
 ### Issues encountered
 
@@ -178,8 +203,13 @@ The optimization discovered an effective instruction + 2 few-shot demonstration 
 - **OpenAI (GPT-4o):** The initial MIPROv2 run was severely degraded by a 30,000 TPM (tokens per minute) rate limit. With image inputs consuming thousands of tokens per call and 16 concurrent threads, most trials hit rate limit errors, causing JSON parse failures that were scored as 0.0. The best trial scored only 78.3 on the dev set.
 - **Gemini 3 Pro Preview:** Attempted optimization hit a 25 RPM (requests per minute) per-model limit — far more restrictive than GA models. Only 2 of 11 trials completed (best: 84.59). The daily quota was also exhausted mid-run.
 - **Gemini 2.5 Pro:** No rate limit issues. The GA model has generous limits (1M+ TPM), making it well-suited for optimization workloads with many parallel calls.
+- **Gemini 2.0 Flash:** The 4M TPM limit can be hit when running multiple optimization jobs in parallel. Running SIMBA, GEPA, and baseline concurrently caused sporadic 429 errors. Sequential execution or reduced thread counts mitigate this.
 
-**Recommendation:** Use GA (generally available) models with high rate limits for optimization. Preview/experimental models typically have restrictive quotas unsuitable for MIPROv2's parallel evaluation strategy. Use `scripts/check_rate_limits.py` to verify provider limits before running optimization.
+**Gemini Flash JSON output quirk:** Gemini 2.0 Flash wraps JSON responses in markdown code fences (`` ```json ... ``` ``) when using DSPy's JSON adapter fallback mode, causing parse failures. The scoring module includes `_strip_code_fences()` to handle this. This does not affect Gemini 2.5 Pro (which uses structured output) or GPT-4o.
+
+**GEPA metric compatibility:** DSPy's parallelizer calls `sum()` on metric results for progress tracking, but GEPA expects a dict with `{"score", "feedback"}` keys. The `FeedbackScore` class in `scoring.py` bridges this by being a dict subclass that also supports arithmetic operations.
+
+**Recommendation:** Use GA (generally available) models with high rate limits for optimization. Preview/experimental models typically have restrictive quotas unsuitable for parallel evaluation strategies. Use `scripts/check_rate_limits.py` to verify provider limits before running optimization.
 
 ## Adapting to other RISE benchmarks
 
