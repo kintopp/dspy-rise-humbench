@@ -2,16 +2,16 @@
 
 This project applies [DSPy](https://dspy.ai/) — a framework for programming and optimizing language model pipelines — to the [RISE Humanities Data Benchmark](https://github.com/rise-unibas/humanities_data_benchmark), a suite of structured information extraction tasks over digitised historical documents.
 
-The aim is to explore whether automated prompt optimization and few-shot example selection can improve LLM performance on document understanding tasks that are central to digital humanities research, compared to the hand-crafted prompts used in the benchmark.
+The aim is to explore whether automated prompt optimization and few-shot example selection can improve LLM performance on document understanding tasks over the manual prompts used in the benchmark.
 
 ## Aims
 
 The RISE Humanities Data Benchmark evaluates LLMs on extracting structured data from historical documents — library catalog cards, personnel records, medieval manuscripts, business letters, and more. Each task involves reading a scanned document image and producing a structured JSON output that matches a ground-truth annotation.
 
-The benchmark establishes baseline scores using carefully engineered prompts. But prompt engineering is manual, task-specific, and hard to iterate on systematically. This project investigates a different approach:
+The benchmark establishes baseline scores using custom, manual prompts. But prompt engineering is task-specific, and hard to iterate on systematically. This project investigates a different approach:
 
 - **Can automated optimization match or surpass hand-crafted prompts?** DSPy optimizers search over instruction phrasings and few-shot example selections to find configurations that maximize a task-specific metric.
-- **How do optimized pipelines generalize across benchmark tasks?** Starting with library catalog cards, the pipeline is designed to be adapted to other RISE benchmark tasks with minimal changes — swap the schema, scoring function, and data loader.
+- **How do optimized pipelines generalize across benchmark tasks?** Starting with library catalog cards, the project’s pipeline is designed to be adapted to other RISE benchmark tasks with minimal changes — swap the schema, scoring function, and data loader.
 - **What is the cost-performance tradeoff?** Vision LLM calls with image inputs are expensive. DSPy's optimization strategies add few-shot demonstrations that increase per-call cost, but can also enable cheaper models to match more expensive ones. Understanding where this investment pays off is important for practical adoption.
 
 ## DSPy Methodology
@@ -34,9 +34,9 @@ The RISE benchmarks are well-suited for DSPy optimization for several reasons:
 - **Structured output with clear metrics.** Each benchmark has a well-defined JSON schema and a quantitative scoring function (field-level fuzzy F1). This gives DSPy's optimizers a concrete signal to optimize against.
 - **Consistent task structure.** Every benchmark follows the same pattern: read a document image, extract structured data. This means a single DSPy pipeline architecture (image → structured JSON) can be reused across tasks.
 - **Room for improvement via demonstrations.** The benchmark's hand-crafted prompts describe the extraction rules in natural language. But some extraction decisions (e.g., distinguishing "Dissertation or thesis" from "Reference" based on a subtle "s." marker) might be better communicated through worked examples than through instructions alone.
-- **Cost-constrained optimization.** With ~263 images per task and vision API calls costing $0.01–0.03 each, the dataset is small enough that optimization runs remain affordable while being large enough for meaningful held-out evaluation.
+- **Cost-constrained optimization.** With unto several hundred images per task and vision API calls costing $0.01–0.03 each, the datasets tested here are small enough that optimization runs remain affordable while large enough for meaningful held-out evaluation.
 
-### Optimizers used
+### DSPy Optimizers used
 
 - **MIPROv2** (Multiprompt Instruction Proposal Optimizer v2): Jointly optimizes instructions and bootstraps few-shot demonstrations. Uses a Bayesian search over candidate prompts, evaluating each on a validation set. The `auto="light"` setting keeps the search budget small.
 - **SIMBA** (Self-Improving Model-Based Agent): Samples random mini-batches, identifies high-variability examples (ones the model sometimes gets right, sometimes wrong), and uses LLM self-reflection to generate improvement rules and select demonstrations. Does not require a separate validation set.
@@ -45,7 +45,10 @@ The RISE benchmarks are well-suited for DSPy optimization for several reasons:
 
 ## Technical Approach
 
+N.B. The section below use the `Library Cards` benchmark as an paradigmatic example.
+
 ### Pipeline architecture
+
 
 ```
 ┌─────────────┐     ┌──────────────────────────────┐     ┌──────────────┐
@@ -159,7 +162,7 @@ Top scores on the Library Cards benchmark from the [RISE dashboard](https://rise
 
 ## Results
 
-All results are evaluated on the held-out test set (185 images, 70% of data).
+All results are evaluated on the held-out test set for the Library Cards benchmark (185 images, 70% of data).
 
 ### The cost-performance question
 
@@ -178,30 +181,35 @@ This established the target. The question became: how close can a model that cos
 
 ### Phase 2: Uplifting Gemini 2.0 Flash
 
-We tested four optimization strategies on Flash, all using ChainOfThought for step-by-step reasoning:
+We ran the full experiment matrix on Flash — baselines, three optimizers, cross-model transfer, and an inference-time retry wrapper:
 
-| Configuration | f1_macro | f1_micro | Precision | Recall | vs Flash baseline |
+| Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
 |---|---|---|---|---|---|
-| **MIPROv2 medium (CoT)** | **0.9017** | **0.9070** | 0.9083 | **0.9057** | **+0.1434** |
-| SIMBA (CoT) | 0.8481 | 0.8543 | **0.9116** | 0.8037 | +0.0898 |
-| GEPA light (CoT) | 0.8148 | 0.8217 | 0.8598 | 0.7868 | +0.0565 |
-| CoT baseline (unoptimized) | 0.7583 | 0.8192 | 0.8662 | 0.7770 | — |
+| **MIPROv2 medium (CoT)** | **0.9017** | **0.9070** | 0.9083 | **0.9057** | **+0.0883** |
+| Transfer Pro program (Predict) | 0.8743 | 0.8797 | 0.8855 | 0.8740 | +0.0609 |
+| SIMBA (CoT) | 0.8481 | 0.8543 | **0.9116** | 0.8037 | +0.0347 |
+| GEPA light (CoT) | 0.8148 | 0.8217 | 0.8598 | 0.7868 | +0.0014 |
+| Predict baseline (unoptimized) | 0.8134 | 0.8207 | 0.8773 | 0.7709 | — |
+| CoT baseline (unoptimized) | 0.7583 | 0.8192 | 0.8662 | 0.7770 | -0.0551 |
 
-**Optimized Flash (0.9017) surpasses optimized Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium's Bayesian search over 12 candidate instruction/demo combinations found a configuration that lifted Flash by +14.3 points from its unoptimized baseline, producing a well-balanced extractor with nearly equal precision (0.9083) and recall (0.9057).
+**Optimized Flash (0.9017) surpasses optimized Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium's Bayesian search over 12 candidate instruction/demo combinations found a configuration that lifted Flash by +14.3 points from its unoptimized CoT baseline, producing a well-balanced extractor with nearly equal precision (0.9083) and recall (0.9057).
 
-The optimizer search budget was critical here: MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have stopped at a dev score of ~85.9 — good, but not enough to beat Pro. This illustrates a general principle: when optimization is cheap (as it is with Flash), investing in a broader search pays off.
+An unexpected finding: **ChainOfThought hurts unoptimized Flash** (0.7583 vs Predict's 0.8134). Without optimized instructions to guide it, the reasoning step introduces errors rather than preventing them. But CoT becomes essential once optimization is applied — it creates a wider "optimization surface" that MIPROv2 can exploit. The optimized CoT program (0.9017) far exceeds what any Predict-based optimization achieved, including the Pro result (0.8912). This suggests that CoT's value lies not in reasoning per se, but in giving the optimizer more degrees of freedom to shape model behaviour through instructions and demonstrations.
 
-The different optimizers also revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g., "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. GEPA's genetic-evolutionary approach was limited by using Flash as its own reflection model — the model struggled to diagnose its own failures.
+We also tested cross-model transfer: running the Pro-optimized program (MIPROv2 light, Predict) directly on Flash without re-optimization. This scored 0.8743 — a remarkably good result that loses only 1.7 points from the Pro score. Instructions and few-shot demonstrations partially transfer across models. But Flash-native optimization (0.9017) still beats the transfer by +2.7 points, confirming that per-model optimization is worth the small additional cost when the target model is cheap.
 
-We also tested a Refine wrapper (inference-time retries on parse failures) on the SIMBA-CoT program, but it slightly hurt performance (0.8481 → 0.8396). Refine forces temperature=1.0 for diversity on retries, which introduced noise into an already-robust program that rarely produced parse failures. The lesson: Refine is a safety net for fragile outputs, not a general booster.
+The optimizer search budget was critical: MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have stopped at a dev score of ~85.9 — good, but not enough to beat Pro. When the model is cheap, investing in a broader search pays off.
+
+The different optimizers revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g., "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. GEPA's genetic-evolutionary approach was limited by using Flash as its own reflection model — the model struggled to diagnose its own failures.
 
 ### Key findings
 
-- **Optimization is most impactful on cheaper models.** The absolute uplift on Flash (+14.3 points from 0.7583 to 0.9017) far exceeds the uplift on Pro (+7.4 points from the GPT-4o baseline to 0.8912). Weaker models have more room for optimization to add value — and the per-call savings compound across large-scale deployments.
+- **Optimization is most impactful on cheaper models.** The absolute uplift on Flash (+14.3 points) far exceeds the uplift on Pro (+7.4 points). Weaker models have more room for optimization to add value — and the per-call savings compound across large-scale deployments.
 - **Optimized Flash exceeds both optimized Pro and the benchmark leaderboard.** f1_macro=0.9017 surpasses Gemini 2.5 Pro's optimized score (0.8912) and the leaderboard's top hand-crafted prompt result (Gemini 3 Pro preview: 89.1), despite evaluating on a held-out 70% subset rather than the full dataset.
+- **ChainOfThought is a double-edged sword.** It hurts unoptimized Flash (-5.5 points) but enables the largest optimization gains (+14.3 points with MIPROv2 medium). CoT's value is not in reasoning per se, but in giving optimizers more degrees of freedom.
+- **Optimized programs partially transfer across models.** Pro-optimized instructions and demos scored 0.8743 on Flash — only 1.7 points below the Pro result. But per-model optimization beats transfer by +2.7 points, and is cheap enough to be worthwhile.
 - **Optimizer search budget matters.** MIPROv2 medium (12 trials) found a configuration that light (6 trials) would have missed. When the model is cheap, the cost of a broader search is negligible compared to the gains.
-- **Few-shot demos matter more than verbose instructions.** Across all optimizers, the best-performing configurations use concise instructions with 2-4 worked examples, rather than the benchmark's detailed multi-paragraph prompt. Demonstrations implicitly communicate extraction rules that are hard to articulate in words.
-- **Different optimizers improve different aspects.** SIMBA improved precision (fewer hallucinated fields) while MIPROv2 improved both precision and recall evenly. Choosing an optimizer depends on whether the priority is avoiding false positives or maximising coverage.
+- **Few-shot demos matter more than verbose instructions.** Across all optimizers, the best configurations use concise instructions with 2-4 worked examples, rather than the benchmark's detailed multi-paragraph prompt. Demonstrations implicitly communicate extraction rules that are hard to articulate in words.
 
 ### Issues encountered
 
