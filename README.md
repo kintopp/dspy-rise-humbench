@@ -8,7 +8,7 @@ The aim is to explore whether automated prompt optimization and few-shot example
 
 The RISE Humanities Data Benchmark evaluates LLMs on extracting structured data from historical documents — library catalog cards, personnel records, medieval manuscripts, business letters, and more. Each task involves reading a scanned document image and producing a structured JSON output that matches a ground-truth annotation.
 
-The benchmark establishes baseline scores using carefully engineered prompts with models like GPT-4o. But prompt engineering is manual, task-specific, and hard to iterate on systematically. This project investigates a different approach:
+The benchmark establishes baseline scores using carefully engineered prompts. But prompt engineering is manual, task-specific, and hard to iterate on systematically. This project investigates a different approach:
 
 - **Can automated optimization match or surpass hand-crafted prompts?** DSPy optimizers search over instruction phrasings and few-shot example selections to find configurations that maximize a task-specific metric.
 - **How do optimized pipelines generalize across benchmark tasks?** Starting with library catalog cards, the pipeline is designed to be adapted to other RISE benchmark tasks with minimal changes — swap the schema, scoring function, and data loader.
@@ -167,7 +167,7 @@ The optimization discovered an effective instruction + 2 few-shot demonstration 
 
 ### Key findings
 
-- **Automated optimization matches hand-crafted prompts.** MIPROv2's f1_micro (0.8965) slightly exceeds the benchmark's GPT-4o reference (0.8961), despite using a different model and evaluating on a 70% test subset rather than the full dataset.
+- **Automated optimization matches hand-crafted prompts.** MIPROv2's f1_macro (0.8912) is competitive with the benchmark leaderboard's top scores (Gemini 3 Pro preview: 89.1, GPT-5: 87.9, GPT-4o: 85.7), despite evaluating on a held-out 70% test subset rather than the full 263-image dataset.
 - **Recall is the main driver of improvement.** The optimized pipeline achieves 0.9080 recall vs the baseline's 0.7897 — the model extracts more fields correctly, largely thanks to few-shot demonstrations that clarify the expected output structure.
 - **Few-shot demos matter more than verbose instructions.** MIPROv2's best instruction is concise (2 sentences of role-framing) compared to the benchmark's detailed multi-paragraph prompt. The 2 bootstrapped demonstrations do the heavy lifting.
 
