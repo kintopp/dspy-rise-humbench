@@ -469,3 +469,208 @@ The heavy search budget (27 trials vs 18 for medium) found a configuration with 
 
 ---
 
+## Session: 2026-02-07 17:16
+
+**Session ID:** `6690dc58`  
+**End Reason:** prompt_input_exit  
+**Insights Captured:** 2
+
+### 1. Insight
+
+**Context:** 
+
+This is a classic **alignment error** in sequence extraction tasks. The model's per-field accuracy is high, but because scoring works positionally (entries[0] vs entries[0], entries[1] vs entries[1]), a single insertion or skip at the beginning destroys scores for all downstream entries. An alignment-aware scoring approach (e.g., matching by ID rather than position) would give a much more accurate picture of the model's true capabilities.
+
+---
+
+### 2. Insight
+
+**Context:** 
+
+The restructuring follows a key documentation principle: **separate the general from the specific**. The Technical Approach section now describes what's shared across all benchmarks (pipeline architecture, scoring methodology, project structure), while each benchmark's Results subsection contains its own context (dataset size, metric variant, data split, leaderboard reference). This means adding Personnel Cards or Business Letters later is just adding another `### Benchmark Name` subsection under Results — no restructuring needed. The Cross-Benchmark Findings section acts as the synthesis layer that grows richer with each new benchmark added.
+
+---
+
+## Session: 2026-02-07 17:37
+
+**Session ID:** `9b488297`  
+**End Reason:** clear  
+**Insights Captured:** 1
+
+### 1. Insight
+
+**Context:** 
+
+- **Personnel Cards** is a straightforward extension of the existing pattern — same metric family (F1), single image input, field-level fuzzy scoring. The main novelty is the variable-length `rows` array and the 3-sub-field structure per column.
+- **Business Letters** requires significant architectural work: (1) DSPy needs to receive *multiple images* per example, (2) scoring is category-based set matching rather than field-level fuzzy matching, and (3) person name resolution requires the external `persons.json` alias table. This makes it the most interesting adaptation but also the riskiest.
+- The plugin architecture was designed exactly for this expansion — the scripts are fully generic and won't need changes. All the work is in the 5 new files per benchmark.
+
+---
+
+## Session: 2026-02-07 18:00
+
+**Session ID:** `910ee2e6`  
+**End Reason:** prompt_input_exit  
+**Insights Captured:** 3
+
+### 1. Insight
+
+**Context:** 
+
+Google has two distinct Gemini API paths:
+- **AI Studio** (API key like `AIza...`) — usage visible only in the web dashboard, no programmatic billing API
+- **Vertex AI** (service account + `gcloud`) — has full Cloud Billing APIs for programmatic queries
+
+Since you're on AI Studio, there's no REST endpoint I can hit with your API key to pull costs.
+
+---
+
+### 2. Insight
+
+**Context:** 
+
+- **~85% of your API calls were to Flash, but ~80% of your cost came from Pro models.** This perfectly validates your own experimental finding: "optimized cheap model matches/beats expensive models with default prompts" — and the billing proves it too.
+- The 2.5 Pro output tokens ($10/1M) are **25x** more expensive than Flash output ($0.40/1M), which is why ~385 Pro calls cost more than ~2,554 Flash calls.
+
+---
+
+### 3. Insight
+
+**Context:** 
+
+- Vertex AI is only ~$1.37 more expensive overall because the **Pro model pricing is identical** across both platforms. The difference comes entirely from Flash: Vertex AI charges 50% more for Flash ($0.15/$0.60 vs $0.10/$0.40).
+- For a project dominated by Pro model costs like this one, the choice between AI Studio and Vertex AI is almost irrelevant price-wise — but Vertex AI gives you programmatic billing APIs, IAM, and audit logs that AI Studio lacks.
+
+---
+
+## Session: 2026-02-07 19:14
+
+**Session ID:** `29d47e9c`  
+**End Reason:** clear  
+**Insights Captured:** 9
+
+### 1. Insight
+
+**Context:** 
+
+**Personnel Cards architecture:** This benchmark closely mirrors Library Cards — same F1 scoring with 0.92 fuzzy threshold — but the data structure is fundamentally different: instead of flat bibliographic fields, it's a variable-length table of employment rows, each with 6 columns × 3 sub-fields (diplomatic_transcript, interpretation, is_crossed_out). This means the `get_all_keys` traversal will generate paths like `rows[0].dienstliche_stellung.diplomatic_transcript`, and we skip only `row_number` (structural) rather than `examination.*` fields.
+
+---
+
+### 2. Business Letters is architecturally novel in two ways:
+
+**Context:** 
+
+1. **Multi-image input** — Letters span 1–6 pages, so the DSPy signature takes `list[dspy.Image]` rather than a single `dspy.Image`. This is the first benchmark in this project to use list-typed inputs.
+2. **Category-level set matching** — Instead of comparing individual fields with fuzzy thresholds (like Library/Personnel Cards), scoring uses set intersection/difference across 3 categories (send_date, sender_persons, receiver_persons). Person matching uses an alias table (`persons.json`) to resolve alternate name forms to canonical names.
+
+---
+
+### 3. Insight
+
+**Context:** 
+
+**Business Letters scoring is fundamentally different from the other benchmarks.** Instead of per-field fuzzy matching, it uses category-level set operations:
+- Each letter yields TP/FP/FN for 3 categories: `send_date`, `sender_persons`, `receiver_persons`
+- Person matching resolves names via `persons.json` — if a model predicts "Herr Stauffacher" and the GT says "Stauffacher, Werner", the alias table maps both to the same canonical name
+- Aggregate F1 macro = average of the 3 per-category F1 scores (each computed from summed TP/FP/FN across all letters), NOT average of per-letter F1s. This is a crucial distinction from Library/Personnel Cards.
+
+---
+
+### 4. Insight
+
+**Context:** 
+
+**Personnel Cards baseline: f1_macro=0.6296, f1_micro=0.7497** (Gemini 2.0 Flash, predict mode)
+
+Key observations:
+- **Precision (0.842) is much higher than recall (0.676)** — the model is accurate when it extracts something, but misses many fields. This is typical for complex tabular extraction where the model may omit rows or sub-fields.
+- **8 out of 43 cards (19%) scored 0.0** due to JSON parse failures — the model sometimes returns malformed output (likely incomplete JSON for cards with many rows, or extraneous text). This is the single biggest drag on the macro score.
+- Cards that parse correctly typically score 0.78–0.98, suggesting the actual extraction quality is solid and the main optimization target is output format reliability.
+- The leaderboard top is ~79% (f1_micro), so this 0.75 baseline is a reasonable starting point with clear room for improvement via prompt optimization.
+
+---
+
+### 5. Insight
+
+**Context:** 
+
+**Business Letters baseline: f1_macro=0.2721, f1_micro=0.3204** — significantly lower than expected (~0.55–0.70 anticipated). The scores are uniformly low (most letters score 0.33), which strongly suggests a **person name matching problem** rather than a model capability issue:
+
+1. **The model is likely extracting correct names but in a different format** than the GT canonical names (e.g. "Louis Groschupf-Jaeger" vs "Groschupf-Jaeger, Louis"). The alias table only matches if the predicted name appears verbatim in `alternateName` — format variations not in the table fail silently.
+2. **send_date scoring seems to be the main TP source** — 0.33 F1 per letter is consistent with getting 1 out of 3 categories right (dates are exact-match friendly).
+3. **8 letters scored 0.0** — likely cases where the model wraps output differently or the GT has inferred persons (excluded by default) leaving 0 GT entries to match.
+
+The fix would be to investigate whether the predicted person names are close but not exact matches to any `alternateName` entries. This is a scoring calibration issue, not a fundamental extraction failure.
+
+---
+
+### 6. Three distinct failure modes identified:
+
+**Context:** 
+
+1. **Format mismatch** (fixable): Model says "Vischer, Max" / "Leupold, R." but alias table only has "Max Vischer" / "Rudolf Leupold". The alias table stores "First Last" format; the model often outputs "Last, First" — a normalization step could fix this.
+2. **Wrong person** (model error): Model says "Mann, W." for letter04 but the sender is "Krasting, Wilhelm" — the model misread the handwriting entirely.
+3. **Inferred persons excluded**: 14/41 letters have inferred senders (marked `<<>>` or `<>`) excluded from scoring, which means 15 letters have 0 GT senders. When the model correctly extracts these persons, they count as FP.
+
+---
+
+### 7. Insight
+
+**Context:** 
+
+**The date extraction actually works well (78% exact match)** — this confirms the model reads the letters correctly. The person matching is the sole bottleneck, and it's primarily a **scoring/normalization issue** rather than a model capability issue. A name normalization step (converting "Last, First" to "First Last" before alias lookup, or adding fuzzy matching to the alias table) would likely lift the baseline from ~0.27 to ~0.55+ without changing the model at all. This is analogous to the position-based scoring issue found in the Bibliographic Data benchmark.
+
+---
+
+### 8. The "right" fix depends on what you want to measure:
+
+**Context:** 
+
+- **If you want leaderboard-comparable scores:** Don't touch the scoring. Instead, improve the prompt to tell the model to output names in "First Last" format (matching alias table conventions), or let DSPy optimization learn the right format from training examples.
+- **If you want to measure actual extraction quality:** Add normalization, but document clearly that scores aren't comparable to the upstream leaderboard. This is the same class of issue as the position-based scoring problem found in bibliographic data ([#92](https://github.com/RISE-UNIBAS/humanities_data_benchmark/issues/92)).
+
+The leaderboard models likely get ~68% because they too hit name format mismatches — they just hit fewer of them (perhaps by outputting names without commas more often, or by having been fine-tuned on examples that matched the alias table).
+
+---
+
+### 9. Insight
+
+**Context:** 
+
+**A +68% improvement from a single prompt change** demonstrates why understanding the scoring mechanism is critical before optimizing. The model was extracting correct information all along — it was just formatting names in a way the alias table couldn't match. This is a common pattern in benchmark evaluation: apparent model failures are often scoring misalignments. By keeping our scoring identical to upstream, we ensure our optimized results will be directly comparable to the leaderboard, while still achieving meaningful gains through prompt engineering and DSPy optimization.
+
+---
+
+## Session: 2026-02-07 20:01
+
+**Session ID:** `5b834841`  
+**End Reason:** prompt_input_exit  
+**Insights Captured:** 3
+
+### 1. Insight
+
+**Context:** 
+
+The current ASCII diagram has alignment issues — the box for "Benchmark Signature" dangles from the Extractor with a misaligned connector, and the box widths are inconsistent. A Mermaid flowchart will render cleanly on GitHub (which has native Mermaid support in markdown code blocks) and is much easier to maintain.
+
+---
+
+### 2. Insight
+
+**Context:** 
+
+- **GitHub native Mermaid**: Since ~2022, GitHub renders ` ```mermaid ` blocks directly in markdown — no external service or image file needed. This means the diagram stays version-controlled as text and renders automatically.
+- **`-.->` (dotted arrow)**: The Benchmark Signature feeds *into* the Extractor but isn't part of the main data flow, so a dotted line distinguishes configuration from data flow (`-->` solid = data, `-.->` dotted = configuration/wiring).
+- **`\n` in labels**: Mermaid supports newlines inside `"quoted labels"`, keeping multi-line node text readable without needing separate sub-nodes.
+
+---
+
+### 3. Insight
+
+**Context:** 
+
+The problem: the SVG has `width="100%"` with a `max-width: 702px` style. GitHub's markdown renderer places the `<img>` in a container that can be wider than 702px, so the SVG stretches to fill it. Since SVGs are vector graphics, scaling up makes everything look the same size — the smaller font/viewBox is invisible to the user. The fix is to set an explicit pixel width instead of `100%`.
+
+---
+
