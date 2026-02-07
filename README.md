@@ -120,22 +120,20 @@ uv run python scripts/check_rate_limits.py
 uv run python scripts/evaluate_baseline.py --model gemini-2.0-flash --module cot
 
 # 2. Run optimization
-# MIPROv2 (Bayesian search over instructions + demos, needs train + dev sets):
-uv run python scripts/optimize.py --optimizer mipro --auto light --model gemini-2.5-pro --num-threads 16
+# MIPROv2 medium (best result — Bayesian search, 12 candidates, needs train + dev):
+uv run python scripts/optimize.py --optimizer mipro --auto medium --model gemini-2.0-flash --module cot --num-threads 8
 
 # SIMBA (mini-batch self-reflection, works on trainset only):
 uv run python scripts/optimize.py --optimizer simba --model gemini-2.0-flash --module cot --num-threads 8
 
-# GEPA (genetic-evolutionary with feedback, needs train + dev sets + reflection LM):
+# GEPA (genetic-evolutionary with feedback, needs train + dev + reflection LM):
 uv run python scripts/optimize.py --optimizer gepa --model gemini-2.0-flash --module cot --reflection-model gemini-2.0-flash
 
 # BootstrapFewShot (simple demo selection):
 uv run python scripts/optimize.py --optimizer bootstrap --model gemini-2.5-pro
 
 # 3. Evaluate optimized program on test set
-uv run python scripts/evaluate_optimized.py --program results/optimized/simba-cot_gemini-2.0-flash_optimized.json --model gemini-2.0-flash --module cot
-# With Refine wrapper (inference-time retries for parse failures):
-uv run python scripts/evaluate_optimized.py --program results/optimized/simba-cot_gemini-2.0-flash_optimized.json --model gemini-2.0-flash --module cot --refine 3
+uv run python scripts/evaluate_optimized.py --program results/optimized/mipro-cot_gemini-2.0-flash_optimized.json --model gemini-2.0-flash --module cot
 
 # 4. Compare all results
 uv run python scripts/compare_results.py
@@ -163,38 +161,47 @@ Top scores on the Library Cards benchmark from the [RISE dashboard](https://rise
 
 All results are evaluated on the held-out test set (185 images, 70% of data).
 
-### MIPROv2 + Gemini 2.5 Pro
+### The cost-performance question
+
+The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. A model scoring 85% at $0.003/call is more useful than one scoring 89% at $0.04/call if you need to process tens of thousands of documents. Our experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
+
+### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
 
 | Configuration | f1_macro | f1_micro | Precision | Recall |
 |---|---|---|---|---|
-| **MIPROv2 optimized** | **0.8912** | **0.8965** | 0.8852 | 0.9080 |
+| **MIPROv2 light + Pro (Predict)** | **0.8912** | **0.8965** | 0.8852 | 0.9080 |
 | DSPy baseline (GPT-4o, Predict) | 0.8172 | 0.8237 | 0.8608 | 0.7897 |
 
-The MIPROv2-optimized pipeline with Gemini 2.5 Pro achieves **f1_macro=0.8912**, a **+7.4 point improvement** over the unoptimized DSPy baseline with GPT-4o. This result is on par with the benchmark's best hand-crafted prompt scores — and notably exceeds Gemini 2.5 Pro's own benchmark score (87.2) by +1.7 points.
+MIPROv2 light with Gemini 2.5 Pro achieved f1_macro=0.8912, a +7.4 point improvement over the unoptimized baseline and competitive with the benchmark leaderboard's best hand-crafted prompt scores (Gemini 3 Pro preview: 89.1, GPT-5: 87.9). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules.
 
-The optimization discovered an effective instruction + 2 few-shot demonstration combination. The optimized instruction emphasizes role-framing and OCR accuracy, while the bootstrapped demonstrations implicitly teach the extraction schema through worked examples rather than explicit field-by-field rules.
+This established the target. The question became: how close can a model that costs ~10-15x less get to this ceiling?
 
-### SIMBA & GEPA + Gemini 2.0 Flash (CoT)
+### Phase 2: Uplifting Gemini 2.0 Flash
 
-Can cheaper optimization on a weaker model close the gap to MIPROv2 + Gemini 2.5 Pro?
+We tested four optimization strategies on Flash, all using ChainOfThought for step-by-step reasoning:
 
-| Configuration | f1_macro | f1_micro | Precision | Recall | vs Baseline |
+| Configuration | f1_macro | f1_micro | Precision | Recall | vs Flash baseline |
 |---|---|---|---|---|---|
-| **SIMBA-CoT optimized** | **0.8481** | **0.8543** | **0.9116** | 0.8037 | **+0.0898** |
-| GEPA-CoT optimized | 0.8148 | 0.8217 | 0.8598 | 0.7868 | +0.0565 |
-| CoT baseline (Flash, unoptimized) | 0.7583 | 0.8192 | 0.8662 | 0.7770 | — |
+| **MIPROv2 medium (CoT)** | **0.9017** | **0.9070** | 0.9083 | **0.9057** | **+0.1434** |
+| SIMBA (CoT) | 0.8481 | 0.8543 | **0.9116** | 0.8037 | +0.0898 |
+| GEPA light (CoT) | 0.8148 | 0.8217 | 0.8598 | 0.7868 | +0.0565 |
+| CoT baseline (unoptimized) | 0.7583 | 0.8192 | 0.8662 | 0.7770 | — |
 
-SIMBA is the clear winner for Flash uplift — it closed ~60% of the gap between unoptimized Flash (0.7583) and MIPROv2 + Gemini 2.5 Pro (0.8912), at a fraction of the inference cost. SIMBA's mini-batch self-reflection generated task-specific extraction rules (e.g., "pay close attention to author spelling", "extract shelfmarks even if abbreviated") and accumulated targeted demonstrations. It also achieved the highest precision (0.9116) of any experiment, suggesting it taught Flash to avoid hallucinating fields that aren't on the card.
+**Optimized Flash (0.9017) surpasses optimized Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium's Bayesian search over 12 candidate instruction/demo combinations found a configuration that lifted Flash by +14.3 points from its unoptimized baseline, producing a well-balanced extractor with nearly equal precision (0.9083) and recall (0.9057).
 
-GEPA's improvement was more modest (+0.0565). Using the same model (Flash) for both task execution and reflection likely limited its ability to self-improve — a stronger reflection model (e.g., Gemini 2.5 Pro) could improve GEPA's instruction evolution.
+The optimizer search budget was critical here: MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have stopped at a dev score of ~85.9 — good, but not enough to beat Pro. This illustrates a general principle: when optimization is cheap (as it is with Flash), investing in a broader search pays off.
+
+The different optimizers also revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g., "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. GEPA's genetic-evolutionary approach was limited by using Flash as its own reflection model — the model struggled to diagnose its own failures.
+
+We also tested a Refine wrapper (inference-time retries on parse failures) on the SIMBA-CoT program, but it slightly hurt performance (0.8481 → 0.8396). Refine forces temperature=1.0 for diversity on retries, which introduced noise into an already-robust program that rarely produced parse failures. The lesson: Refine is a safety net for fragile outputs, not a general booster.
 
 ### Key findings
 
-- **Automated optimization matches hand-crafted prompts.** MIPROv2's f1_macro (0.8912) is competitive with the benchmark leaderboard's top scores (Gemini 3 Pro preview: 89.1, GPT-5: 87.9, GPT-4o: 85.7), despite evaluating on a held-out 70% test subset rather than the full 263-image dataset.
-- **Optimization substantially uplifts cheaper models.** SIMBA brought Gemini 2.0 Flash from 0.7583 to 0.8481 f1_macro — a +11.8% relative improvement — making a cheap, fast model competitive with much more expensive alternatives.
-- **Recall is the main driver of improvement for MIPROv2; precision for SIMBA.** MIPROv2 achieved 0.9080 recall vs the baseline's 0.7897 — it extracts more fields. SIMBA instead improved precision to 0.9116, reducing false positives while modestly improving recall.
-- **Few-shot demos matter more than verbose instructions.** MIPROv2's best instruction is concise (2 sentences of role-framing) compared to the benchmark's detailed multi-paragraph prompt. The bootstrapped demonstrations do the heavy lifting. SIMBA similarly accumulated task-specific demos alongside improvement rules.
-- **Optimizer choice matters.** SIMBA's mini-batch self-reflection outperformed GEPA's genetic-evolutionary approach on this task (+0.0898 vs +0.0565), likely because SIMBA directly addresses high-variability examples while GEPA's instruction evolution was limited by using Flash as its own reflection model.
+- **Optimization is most impactful on cheaper models.** The absolute uplift on Flash (+14.3 points from 0.7583 to 0.9017) far exceeds the uplift on Pro (+7.4 points from the GPT-4o baseline to 0.8912). Weaker models have more room for optimization to add value — and the per-call savings compound across large-scale deployments.
+- **Optimized Flash exceeds both optimized Pro and the benchmark leaderboard.** f1_macro=0.9017 surpasses Gemini 2.5 Pro's optimized score (0.8912) and the leaderboard's top hand-crafted prompt result (Gemini 3 Pro preview: 89.1), despite evaluating on a held-out 70% subset rather than the full dataset.
+- **Optimizer search budget matters.** MIPROv2 medium (12 trials) found a configuration that light (6 trials) would have missed. When the model is cheap, the cost of a broader search is negligible compared to the gains.
+- **Few-shot demos matter more than verbose instructions.** Across all optimizers, the best-performing configurations use concise instructions with 2-4 worked examples, rather than the benchmark's detailed multi-paragraph prompt. Demonstrations implicitly communicate extraction rules that are hard to articulate in words.
+- **Different optimizers improve different aspects.** SIMBA improved precision (fewer hallucinated fields) while MIPROv2 improved both precision and recall evenly. Choosing an optimizer depends on whether the priority is avoiding false positives or maximising coverage.
 
 ### Issues encountered
 
