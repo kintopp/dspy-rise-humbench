@@ -452,7 +452,7 @@ The following RISE benchmarks follow the image → JSON pattern but may be harde
 
 The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manuscripts) use different task types (text-to-XML, OCR transcription, page segmentation) that would require a different pipeline architecture rather than the image → structured JSON approach used here.
 
-## Possible Future Directions
+## Potential Future Work
 
 ### Optimizing stronger models
 
