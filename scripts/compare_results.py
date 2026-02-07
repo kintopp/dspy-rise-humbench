@@ -9,14 +9,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.config import RESULTS_DIR
 
-# Reference benchmark scores (gpt-4o T0066, full 263 images)
-BENCHMARK_REF = {
-    "f1_macro": 0.8936,
-    "f1_micro": 0.8961,
-    "micro_precision": 0.9128,
-    "micro_recall": 0.8799,
-}
-
 
 def load_scores(path: Path) -> dict | None:
     if not path.exists():
@@ -45,10 +37,6 @@ def main():
     print("=" * 100)
     print("LIBRARY CARDS — RESULTS COMPARISON")
     print("=" * 100)
-
-    # Benchmark reference
-    print("\n--- Benchmark Reference (full 263 images) ---")
-    print_row("gpt-4o (T0066)", BENCHMARK_REF)
 
     # All baselines (may have model tags: scores_gpt-4o.json, scores_gemini-2.5-pro.json, etc.)
     baseline_dir = RESULTS_DIR / "baseline"

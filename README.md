@@ -170,12 +170,7 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 
 ### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
 
-| Configuration | f1_macro | f1_micro | Precision | Recall |
-|---|---|---|---|---|
-| **MIPROv2 light + Pro (Predict)** | **0.8912** | **0.8965** | 0.8852 | 0.9080 |
-| DSPy baseline (GPT-4o, Predict) | 0.8172 | 0.8237 | 0.8608 | 0.7897 |
-
-MIPROv2 light with Gemini 2.5 Pro achieved f1_macro=0.8912, a +7.4 point improvement over the unoptimized baseline and competitive with the benchmark leaderboard's best hand-crafted prompt scores (Gemini 3 Pro preview: 89.1, GPT-5: 87.9). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules.
+MIPROv2 light with Gemini 2.5 Pro achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best hand-crafted prompt scores (Gemini 3 Pro preview: 89.1, GPT-5: 87.9). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules.
 
 This established the target. The question became: how close can a model that costs ~10-15x less get to this ceiling?
 
