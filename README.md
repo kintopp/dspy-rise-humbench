@@ -452,35 +452,31 @@ The following RISE benchmarks follow the image → JSON pattern but may be harde
 
 The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manuscripts) use different task types (text-to-XML, OCR transcription, page segmentation) that would require a different pipeline architecture rather than the image → structured JSON approach used here.
 
-## Future Directions
+## Possible Future Directions
 
 ### Optimizing stronger models
 
-All experiments used Gemini 2.0 Flash as the target model. A natural next step is to apply MIPROv2 medium-CoT to the models that currently lead the RISE leaderboard — GPT-5 (top on Library Cards and Business Letters), GPT-4o (top on Bibliographic Data) — and measure whether optimization yields meaningful gains when the unoptimized baseline is already strong. The Library Cards Phase 1 result offers a preview: Gemini 2.5 Pro gained +7.4 points from a lighter optimization (MIPROv2 light). A heavier search on an even stronger model could push scores well past 90 on multiple benchmarks, establishing new ceilings for what prompt optimization can achieve on these tasks.
+All experiments used Gemini 2.0 Flash as the target model. A natural next step is to apply MIPROv2 medium-CoT to the models that currently lead the RISE leaderboard and measure whether optimization yields meaningful gains when the unoptimized baseline is already strong. 
 
 ### Small and local models
 
-The project's central finding — that optimization is most impactful on cheaper models — predicts that small, locally-run vision models would see the largest relative gains. Models like Qwen2.5-VL, Phi-4-vision, or LLaVA-Next can run on consumer hardware with zero marginal inference cost, making them attractive for archival-scale deployments where tens of thousands of documents need processing. The RISE benchmark already includes a [local MLX runner](https://github.com/RISE-UNIBAS/humanities_data_benchmark), making it straightforward to establish local model baselines. If DSPy optimization can bridge even part of the gap between a local 8B-parameter model and a cloud API model, the cost-performance case becomes compelling for institutions with large digitised collections and limited budgets.
+Since optimization is most impactful on cheaper models, it's conceivable that small, locally-run vision models could see similar gains. The RISE benchmark already includes a [local MLX runner](https://github.com/RISE-UNIBAS/humanities_data_benchmark), making it straightforward to establish local model baselines. 
 
-### Upstream scoring improvements
+### Scoring improvements
 
-Two benchmarks have identified metric ceilings that cap what any model — optimized or not — can achieve. Bibliographic Data's position-based scoring causes cascading alignment errors: a single misplaced entry shifts all subsequent comparisons, producing scores of ~0.39 on pages where the actual extraction quality is much higher (issues [#91](https://github.com/RISE-UNIBAS/humanities_data_benchmark/issues/91), [#92](https://github.com/RISE-UNIBAS/humanities_data_benchmark/issues/92)). Business Letters' exact-match alias lookup with no fuzzy tolerance or name normalization means any name variant not in `persons.json` scores zero, regardless of how close the extraction is. Proposing and implementing improved metrics upstream — ID-aware entry matching for Bibliographic Data, fuzzy or normalized name matching for Business Letters — would raise the ceiling for all participants and make optimization gains more meaningful.
-
-### Cross-benchmark transfer
-
-The Library Cards experiment showed that a program optimized on Gemini 2.5 Pro transferred to Flash with only a 1.7-point loss. A related question is whether optimized programs can transfer *across benchmarks* that share structural similarities. Library Cards and Personnel Cards both involve card images with tabular layouts and similar field types (names, dates, codes). If few-shot demonstrations from one benchmark help on another, it would reduce the cold-start problem when adapting the pipeline to new RISE benchmarks — particularly useful for benchmarks with very small datasets where optimization has limited signal to work with.
+Two benchmarks have identified metric ceilings that cap what any model can achieve. Bibliographic Data's position-based scoring causes cascading alignment errors: a single misplaced entry shifts all subsequent comparisons on pages where the actual extraction quality is much higher. Business Letters' exact-match alias lookup with no fuzzy tolerance or name normalization means any name variant not in `persons.json` scores zero, regardless of how close the extraction is. Implementing improved metrics in the RISE Humanities Benchmark — ID-aware entry matching for Bibliographic Data, fuzzy or normalized name matching for Business Letters — would make DSPy-based optimization gains more meaningful.
 
 ### Ensemble and self-consistency
 
-Some images still score 0.0 due to JSON parse failures or catastrophic extraction errors (3/43 Personnel Cards, sporadic failures on other benchmarks). A simple inference-time strategy is to run the optimized program *k* times per image and take the majority vote per field, trading *k*× more API calls for reduced variance. This could eliminate most zero-scoring outliers without any changes to the optimization pipeline. DSPy's built-in retry mechanisms or a lightweight voting wrapper could implement this.
-
-### Remaining RISE benchmarks
-
-Company Lists (leaderboard top ~49.7) follows the image → JSON pattern and has the weakest baseline on the RISE leaderboard — exactly the profile where this project showed the largest gains. Applying the pipeline to this benchmark would test whether optimization can make progress on tasks where even the best models struggle. Blacklist Cards (~95.5) would test the opposite question: whether optimization can squeeze meaningful gains from a near-saturated benchmark.
+Some images still score 0.0 due to JSON parse failures or catastrophic extraction errors (3/43 Personnel Cards, sporadic failures on other benchmarks). A simple inference-time strategy is to run the optimized program *k* times per image and take the majority vote per field, trading *k*× more API calls for reduced variance. This could eliminate many zero-scoring outliers without any changes to the optimization pipeline.
 
 ### Multi-step agentic pipelines
 
-The current architecture is single-shot: one LM call per image. A two-step pipeline — first extract raw text and structural elements, then parse into the target JSON schema — could decouple visual recognition from schema mapping. DSPy supports multi-module programs that MIPROv2 can optimize jointly. This would be most valuable for Business Letters (multi-page documents requiring cross-page entity resolution) and Bibliographic Data (nested entries with cross-page continuations), where a single-pass approach forces the model to handle visual parsing and structural reasoning simultaneously.
+The current architecture is single-shot: one LM call per image. A two-step pipeline — first extract raw text and structural elements, then parse into the target JSON schema — could decouple visual recognition from schema mapping. DSPy supports multi-module programs that MIPROv2 can optimize jointly. This should be most valuable for Business Letters (multi-page documents requiring cross-page entity resolution) and Bibliographic Data (nested entries with cross-page continuations), where a single-pass approach forces the model to handle visual parsing and structural reasoning simultaneously.
+
+### Additional RISE benchmarks
+
+[Company Lists](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/company_lists) (leaderboard top ~49.7) follows the image → JSON pattern and has the weakest baseline on the RISE leaderboard. Applying the pipeline to this benchmark would test whether optimization can make progress on tasks where even the best models struggle. [Blacklist Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/blacklist_cards) (~95.5) would test the opposite question: whether optimization can squeeze meaningful gains from a near-saturated benchmark.
 
 ## Credits
 
