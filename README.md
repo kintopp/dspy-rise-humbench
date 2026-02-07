@@ -11,7 +11,7 @@ The RISE Humanities Data Benchmark evaluates LLMs on extracting structured data 
 The benchmark establishes baseline scores using custom, manual prompts. But prompt engineering is task-specific, and hard to iterate on systematically. This project investigates a different approach:
 
 - **Can automated optimization match or surpass hand-crafted prompts?** DSPy optimizers search over instruction phrasings and few-shot example selections to find configurations that maximize a task-specific metric.
-- **How do optimized pipelines generalize across benchmark tasks?** Starting with library catalog cards, the project’s pipeline is designed to be adapted to other RISE benchmark tasks with minimal changes — swap the schema, scoring function, and data loader.
+- **How do optimized pipelines generalize across benchmark tasks?** Starting with library catalog cards, the project's pipeline is designed to be adapted to other RISE benchmark tasks with minimal changes — swap the schema, scoring function, and data loader.
 - **What is the cost-performance tradeoff?** Vision LLM calls with image inputs are expensive. DSPy's optimization strategies add few-shot demonstrations that increase per-call cost, but can also enable cheaper models to match more expensive ones. Understanding where this investment pays off is important for practical adoption.
 
 ## DSPy Methodology
@@ -31,37 +31,36 @@ The key insight is that the *prompt* is not the program — it is a compiled art
 
 The RISE benchmarks are well-suited for DSPy optimization for several reasons:
 
-- **Structured output with clear metrics.** Each benchmark has a well-defined JSON schema and a quantitative scoring function (field-level fuzzy F1). This gives DSPy's optimizers a concrete signal to optimize against.
+- **Structured output with clear metrics.** Each benchmark has a well-defined JSON schema and a quantitative scoring function (field-level fuzzy matching). This gives DSPy's optimizers a concrete signal to optimize against.
 - **Consistent task structure.** Every benchmark follows the same pattern: read a document image, extract structured data. This means a single DSPy pipeline architecture (image → structured JSON) can be reused across tasks.
 - **Room for improvement via demonstrations.** The benchmark's hand-crafted prompts describe the extraction rules in natural language. But some extraction decisions (e.g., distinguishing "Dissertation or thesis" from "Reference" based on a subtle "s." marker) might be better communicated through worked examples than through instructions alone.
-- **Cost-constrained optimization.** With unto several hundred images per task and vision API calls costing $0.01–0.03 each, the datasets tested here are small enough that optimization runs remain affordable while large enough for meaningful held-out evaluation.
+- **Cost-constrained optimization.** With up to several hundred images per task and vision API calls costing $0.01–0.03 each, the datasets tested here are small enough that optimization runs remain affordable while large enough for meaningful held-out evaluation.
 
 ### DSPy Optimizers used
 
-- **MIPROv2** (Multiprompt Instruction Proposal Optimizer v2): Jointly optimizes instructions and bootstraps few-shot demonstrations. Uses a Bayesian search over candidate prompts, evaluating each on a validation set. The `auto="light"` setting keeps the search budget small.
+- **MIPROv2** (Multiprompt Instruction Proposal Optimizer v2): Jointly optimizes instructions and bootstraps few-shot demonstrations. Uses a Bayesian search over candidate prompts, evaluating each on a validation set. The `auto` setting controls search budget (`light`=6, `medium`=12, `heavy`=18+ trials).
 - **SIMBA** (Self-Improving Model-Based Agent): Samples random mini-batches, identifies high-variability examples (ones the model sometimes gets right, sometimes wrong), and uses LLM self-reflection to generate improvement rules and select demonstrations. Does not require a separate validation set.
 - **GEPA** (Genetic-Evolutionary Prompt Adaptation): Evolves instructions through a genetic algorithm guided by textual feedback. Requires a feedback metric that returns both a score and a natural-language explanation of errors. Uses a separate reflection LM to propose instruction improvements.
 - **BootstrapFewShot**: A simpler optimizer that selects demonstrations from the training set by running the model and keeping examples where the metric exceeds a threshold. No instruction optimization — just few-shot selection.
 
 ## Technical Approach
 
-N.B. The section below use the `Library Cards` benchmark as an paradigmatic example.
-
 ### Pipeline architecture
 
+Every benchmark uses the same pipeline structure. The input image and schema vary per benchmark, but the architecture is identical:
 
 ```
 ┌─────────────┐     ┌──────────────────────────────┐     ┌──────────────┐
-│  Card Image  │ ──> │  LibraryCardExtractor         │ ──> │  JSON Output  │
-│  (dspy.Image)│     │  (Predict or ChainOfThought)  │     │  (document)   │
-└─────────────┘     └──────────────────────────────┘     └──────────────┘
+│  Document    │ ──> │  Extractor                    │ ──> │  JSON Output  │
+│  Image       │     │  (Predict or ChainOfThought)  │     │  (document)   │
+│  (dspy.Image)│     └──────────────────────────────┘     └──────────────┘
                               │
                     ┌─────────┴─────────┐
-                    │  LibraryCard       │
-                    │  Extraction        │
+                    │  Benchmark         │
+                    │  Signature         │
                     │  (dspy.Signature)  │
                     │                   │
-                    │  Input: card_image │
+                    │  Input: image      │
                     │  Output: document  │
                     └───────────────────┘
 ```
@@ -70,26 +69,15 @@ The module wraps either a `dspy.Predict` or `dspy.ChainOfThought` call (selected
 
 ### Scoring
 
-Scoring faithfully reimplements the benchmark's field-level fuzzy F1:
+All benchmarks use field-level fuzzy string matching as the base comparison:
 
-1. Both prediction and ground truth are flattened to their leaf keys (e.g., `author.last_name`, `publication.year`).
-2. For each key present in either side:
-   - If both have non-null values and their fuzzy similarity (rapidfuzz ratio) is ≥ 0.92 → **true positive**
-   - If both have values but similarity < 0.92 → **false positive + false negative**
-   - If only the prediction has a value → **false positive**
-   - If only the ground truth has a value → **false negative**
-   - If both are null/empty → **skip** (not counted)
-3. Per-image F1 is computed from TP/FP/FN. Macro F1 averages per-image F1 scores; micro F1 aggregates TP/FP/FN globally.
+1. Both prediction and ground truth are flattened to their leaf keys (e.g., `author.last_name`, `entries[0].title`).
+2. Each predicted value is compared to the corresponding ground-truth value using rapidfuzz ratio (0.0–1.0).
 
-### Data split
+How these per-field scores are aggregated into a benchmark score differs:
 
-The 263 matched image/ground-truth pairs are split deterministically (seed=42):
-
-| Split | Count | Purpose |
-|-------|-------|---------|
-| Train | 39 (15%) | Few-shot candidate pool + MIPROv2 training signal |
-| Dev   | 39 (15%) | MIPROv2 validation / optimizer evaluation |
-| Test  | 185 (70%) | Held-out final evaluation |
+- **Library Cards** uses **F1**: a fuzzy similarity ≥ 0.92 counts as a true positive; below 0.92 counts as both a false positive and false negative. Per-image F1 is computed from TP/FP/FN, then macro-averaged across images.
+- **Bibliographic Data** uses **average fuzzy score**: the raw fuzzy similarity for every leaf field is averaged directly, with no threshold. This gives a continuous metric where every field improvement counts.
 
 ### Project structure
 
@@ -115,6 +103,7 @@ scripts/
   evaluate_baseline.py    # --benchmark flag, dynamic imports
   optimize.py             # MIPROv2, BootstrapFewShot, SIMBA, or GEPA
   evaluate_optimized.py   # Evaluate saved optimized program (supports Refine)
+  loo_mipro.py            # Leave-one-out MIPROv2 for small datasets
   compare_results.py      # Side-by-side comparison (auto-discovers results)
   check_rate_limits.py    # Check provider API rate limits
 ```
@@ -153,6 +142,9 @@ uv run python scripts/compare_results.py
 # Run on a different benchmark:
 uv run python scripts/evaluate_baseline.py --benchmark bibliographic_data --model gemini-2.0-flash
 uv run python scripts/compare_results.py --benchmark bibliographic_data
+
+# Leave-one-out optimization (for small datasets):
+uv run python scripts/loo_mipro.py --benchmark bibliographic_data --model gemini-2.0-flash --auto medium
 ```
 
 ### Multi-provider support
@@ -161,9 +153,21 @@ The pipeline supports multiple LLM providers via [litellm](https://docs.litellm.
 
 Available presets: `gpt-4o`, `gpt-4o-mini`, `gemini-3-pro-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `claude-sonnet`, `claude-haiku`, and OpenRouter variants (`or-gemini-2.5-pro`, `or-claude-sonnet`, `or-gpt-4o`). Any full litellm model string also works.
 
-### Benchmark reference (RISE leaderboard)
+## Results
 
-Top scores on the Library Cards benchmark from the [RISE dashboard](https://rise-services.rise.unibas.ch/benchmarks/) (full 263 images, hand-crafted prompts):
+### The cost-performance question
+
+The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. A model scoring 85% at $0.003/call is more useful than one scoring 89% at $0.04/call if you need to process tens of thousands of documents. Our experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
+
+---
+
+### Library Cards
+
+*263 images of Swiss library catalog cards. Each card contains bibliographic metadata — author, title, year, shelfmark, classification codes — to be extracted into a flat JSON structure. One card, one record.*
+
+**Metric**: Field-level fuzzy F1 (macro-averaged across images). **Data split**: 39 train (15%) / 39 dev (15%) / 185 test (70%), seed=42.
+
+**RISE leaderboard reference** (full 263 images, hand-crafted prompts):
 
 | Rank | Model | f1_macro |
 |------|-------|----------|
@@ -173,21 +177,13 @@ Top scores on the Library Cards benchmark from the [RISE dashboard](https://rise
 | 4 | Gemini 2.5 Pro | 87.2 |
 | 5 | GPT-4.1 | 86.5 |
 
-## Results
-
-All results are evaluated on the held-out test set for the Library Cards benchmark (185 images, 70% of data).
-
-### The cost-performance question
-
-The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. A model scoring 85% at $0.003/call is more useful than one scoring 89% at $0.04/call if you need to process tens of thousands of documents. Our experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
-
-### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
+#### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
 
 MIPROv2 light with Gemini 2.5 Pro achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best hand-crafted prompt scores (Gemini 3 Pro preview: 89.1, GPT-5: 87.9). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules.
 
 This established the target. The question became: how close can a model that costs ~10-15x less get to this ceiling?
 
-### Phase 2: Uplifting Gemini 2.0 Flash
+#### Phase 2: Uplifting Gemini 2.0 Flash
 
 We ran the full experiment matrix on Flash — baselines, three optimizers, cross-model transfer, and an inference-time retry wrapper:
 
@@ -210,7 +206,7 @@ The optimizer search budget was critical: MIPROv2 medium's best trial was #18 ou
 
 The different optimizers revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g., "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. GEPA's genetic-evolutionary approach was limited by using Flash as its own reflection model — the model struggled to diagnose its own failures.
 
-### Key findings
+#### Key findings
 
 - **Optimization is most impactful on cheaper models.** The absolute uplift on Flash (+14.3 points) far exceeds the uplift on Pro (+7.4 points). Weaker models have more room for optimization to add value — and the per-call savings compound across large-scale deployments.
 - **Optimized Flash exceeds both optimized Pro and the benchmark leaderboard.** f1_macro=0.9017 surpasses Gemini 2.5 Pro's optimized score (0.8912) and the leaderboard's top hand-crafted prompt result (Gemini 3 Pro preview: 89.1), despite evaluating on a held-out 70% subset rather than the full dataset.
@@ -219,7 +215,87 @@ The different optimizers revealed different improvement strategies. SIMBA's mini
 - **Optimizer search budget matters.** MIPROv2 medium (12 trials) found a configuration that light (6 trials) would have missed. When the model is cheap, the cost of a broader search is negligible compared to the gains.
 - **Few-shot demos matter more than verbose instructions.** Across all optimizers, the best configurations use concise instructions with 2-4 worked examples, rather than the benchmark's detailed multi-paragraph prompt. Demonstrations implicitly communicate extraction rules that are hard to articulate in words.
 
-### Issues encountered
+---
+
+### Bibliographic Data
+
+*5 JPEG pages from a 1961 bibliography of philosophy of history ("Bibliography of Works in the Philosophy of History, 1945-1957", History and Theory). Each page contains 14-20 bibliographic entries (~82 total) with multilingual titles, nested related entries, and cross-page continuations. Task: extract structured entries with authors, titles, types, publishers, volumes, pages, and relations.*
+
+**Metric**: Average fuzzy score across all leaf fields (continuous, no threshold). **Data split**: 2 train (40%) / 1 dev (20%) / 2 test (40%). Leave-one-out cross-validation also run (5 folds, one image per fold).
+
+**RISE leaderboard reference**: ~70.2% top (Gemini 2.5 Flash Preview). GPT-4o: 61.9, Gemini 2.5 Flash: 66.9.
+
+This benchmark tests DSPy optimization under a fundamentally different regime from Library Cards: 5 images instead of 263, multi-entry extraction per image instead of one-card-one-record, and a continuous metric instead of thresholded F1. The tiny dataset severely constrains what optimizers can learn.
+
+**Ground truth normalization.** Before experiments could produce meaningful results, two rounds of annotation normalization were required. Page 10 used CSL-JSON hyphenated keys (`publisher-place`, `container-title`) while pages 2-5 used underscored keys, and used different type values (`article-journal`, `chapter`) than the rest of the dataset (`journal-article`, `book`). Both were normalised at data load time and reported upstream ([humanities_data_benchmark#91](https://github.com/RISE-UNIBAS/humanities_data_benchmark/issues/91)).
+
+#### Phase 2: Optimizer comparison (2/1/2 split)
+
+All configurations use Gemini 2.0 Flash with ChainOfThought. Test set: page_5 + page_10.
+
+| Configuration | page_5 | page_10 | Avg fuzzy | vs baseline |
+|---|---|---|---|---|
+| **MIPROv2 heavy (CoT)** | 0.9126 | **0.5018** | **0.7072** | **+0.0426** |
+| **MIPROv2 medium (CoT)** | **0.9219** | 0.4898 | **0.7059** | +0.0413 |
+| SIMBA (CoT) | 0.9168 | 0.4256 | 0.6712 | +0.0066 |
+| GEPA light (CoT) | 0.9202 | 0.4123 | 0.6663 | +0.0017 |
+| Predict baseline | 0.9165 | 0.4127 | 0.6646 | — |
+| CoT baseline | 0.9165 | 0.4016 | 0.6591 | -0.0055 |
+
+MIPROv2 delivered the only meaningful uplift (+4.1 to +4.3 points). SIMBA and GEPA barely improved — their self-reflection and feedback mechanisms need more diverse training examples than 2 images can provide. The heavy search budget (27 trials) yielded only +0.13 points over medium (18 trials), suggesting diminishing returns from broader search when validation is limited to a single image.
+
+#### Phase 3: Leave-one-out cross-validation
+
+To address the tiny dataset constraint, we ran MIPROv2 medium across 5 LOO folds (3 train / 1 dev / 1 test per fold), producing a score on every image without data leakage.
+
+| Image | Fold | Avg fuzzy |
+|---|---|---|
+| page_5 | 4 | 0.9111 |
+| page_2 | 1 | 0.8980 |
+| page_4 | 3 | 0.8895 |
+| page_10 | 0 | 0.3936 |
+| page_3 | 2 | 0.3923 |
+| **Aggregate** | | **0.6969** |
+
+The LOO results revealed a **bimodal distribution**: three pages score 0.89-0.91 (excellent extraction), two pages score ~0.39 (poor). There is nothing in between. The LOO aggregate (0.6969) did not improve over the standard MIPROv2 medium result (0.7059), despite 50% more training data per fold.
+
+The ~0.39 scores on pages 3 and 10 are **not** caused by poor field-level extraction. They are caused by **cascading alignment errors** in the position-based scoring. The benchmark's metric matches predicted and ground-truth entries by array position (entries[0] vs entries[0], entries[1] vs entries[1]). When the model assigns one entry to the wrong position — by inserting an extra entry or by flattening nested entries — every subsequent entry is compared to the wrong ground truth, and all downstream scores collapse.
+
+On **page 3**, the model is off-by-one from the very first entry: it predicts id "16" where the ground truth expects id "15". From that point on, each entry's title, author, journal, volume, and page numbers are scored against the next entry's ground truth. The model's field-level data is largely correct — it is just shifted by one slot.
+
+On **page 10**, the model flattens entries 146-149 (which the ground truth nests under entry 145's `related` field) into top-level entries, causing the same downstream shift for all subsequent entries.
+
+An ID-aware scoring approach — matching entries by their `id` field rather than by array position — would likely raise both hard pages to the 0.70-0.85 range and the aggregate from ~0.70 to ~0.80-0.85.
+
+#### Key findings
+
+- **The metric is the bottleneck, not the model.** Position-based scoring penalises alignment errors catastrophically. The model's actual extraction quality is substantially better than the 0.39 scores suggest. Further optimization of prompts will yield diminishing returns until the evaluation methodology accounts for entry-level alignment.
+- **Optimization gains scale with dataset size.** MIPROv2's +4.3 point uplift on 5 images is roughly 3x smaller than its +14.3 point uplift on Library Cards' 263 images. The optimizer simply has too little signal — 2 training images where the model already scores 0.90+ provide almost no failures to learn from.
+- **LOO didn't solve data scarcity.** Despite 50% more training data per fold, the aggregate didn't improve. The bottleneck isn't training data quantity but structural complexity (nested entries, page continuations) that prompt optimization can't address.
+- **Ground truth quality was a hidden ceiling.** Two normalization rounds were required before scores became meaningful. Annotation inconsistencies in key formatting and type values created systematic scoring errors that no optimizer could overcome. Always audit GT consistency before optimizing.
+- **Competitive with the leaderboard on a cheaper model.** MIPROv2 medium at 0.7059 with Gemini 2.0 Flash matches the leaderboard top of ~70.2% (Gemini 2.5 Flash Preview), continuing the Library Cards pattern of optimized-cheap matching unoptimized-expensive.
+
+---
+
+### Cross-Benchmark Findings
+
+Results from Library Cards (263 images) and Bibliographic Data (5 images) converge on several findings that we expect to hold across RISE benchmarks:
+
+| Finding | Library Cards | Bibliographic Data |
+|---|---|---|
+| MIPROv2 is the best optimizer | +14.3 pts | +4.3 pts |
+| CoT hurts unoptimized, helps optimized | -5.5 / best | -0.55 / best |
+| SIMBA > GEPA (when data sufficient) | +8.98 vs +5.65 | +0.66 vs +0.17 |
+| Optimized Flash matches/beats expensive models | 0.9017 vs Pro 0.8912 | 0.7059 vs leaderboard 70.2 |
+| Optimization gain scales with dataset size | 263 imgs → +14.3 pts | 5 imgs → +4.3 pts |
+
+**ChainOfThought as optimizer amplifier.** The most robust finding across both benchmarks: unoptimized CoT consistently hurts performance, but optimized CoT consistently produces the best results. CoT does not help through "reasoning" alone — it widens the optimization surface by giving MIPROv2 more degrees of freedom (instruction text + reasoning structure) to search over. Use CoT when you plan to optimize; skip it for unoptimized baselines.
+
+**MIPROv2 medium is the default recommendation.** Across both benchmarks, MIPROv2 medium with CoT on Gemini 2.0 Flash produced the best results. SIMBA is a strong second choice when the dataset is large enough (100+ examples) — its targeted extraction rules can achieve the highest precision. GEPA is limited by using the same model for both extraction and reflection.
+
+**Optimized cheap beats unoptimized expensive.** In both benchmarks, DSPy optimization on Gemini 2.0 Flash matched or exceeded the best scores achieved by more expensive models with hand-crafted or default prompts. For large-scale archival deployments where inference cost matters, this is the key practical finding.
+
+## Issues Encountered
 
 **Rate limiting is the main practical challenge for DSPy optimization with vision models:**
 
@@ -234,7 +310,7 @@ The different optimizers revealed different improvement strategies. SIMBA's mini
 
 **Recommendation:** Use GA (generally available) models with high rate limits for optimization. Preview/experimental models typically have restrictive quotas unsuitable for parallel evaluation strategies. Use `scripts/check_rate_limits.py` to verify provider limits before running optimization.
 
-## Adapting to other RISE benchmarks
+## Adapting to Other Benchmarks
 
 To apply this pipeline to a different RISE benchmark task, create a new package under `benchmarks/` with the standard interface:
 
@@ -244,13 +320,12 @@ To apply this pipeline to a different RISE benchmark task, create a new package 
 
 No changes to any scripts are needed — just pass `--benchmark {task_name}`.
 
-### Next benchmarks to test
+### Next benchmarks
 
-The following RISE benchmarks are strong candidates for DSPy optimization, given their structural similarity to Library Cards (image → structured JSON extraction). Current leaderboard top scores are included to indicate headroom for improvement.
+The following RISE benchmarks are the next candidates for DSPy optimization, given their structural similarity to the completed benchmarks and their headroom for improvement:
 
 | Benchmark | Description | Top score | Why it's a good fit |
 |---|---|---|---|
-| **[Bibliographic Data](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/bibliographic_data)** | Extract publication details, authors, dates, and metadata from digitized historical documents | ~66.9 | Closest analog to Library Cards — same bibliographic domain, same image → JSON pattern, minimal schema changes needed. Moderate leaderboard scores suggest significant room for optimization gains. |
 | **[Personnel Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/personnel_cards)** | Extract structured employment data (position, location, salary, dates) from 20th-century Swiss personnel card tables | ~79.0 | Table-like card images with structured output — similar pipeline to Library Cards, but with tabular rather than bibliographic data. Schema is more complex (each field has diplomatic transcript, interpretation, and is_crossed_out sub-fields). |
 | **[Business Letters](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/business_letters)** | Extract persons, organizations, dates, and locations from 20th-century Swiss historical correspondence | ~67.8 | Same image → JSON pattern with moderate scores. Schema is more complex (multiple dataclass files for persons, organizations, categories). |
 

@@ -101,6 +101,24 @@ def samples_to_examples(samples: list[dict]) -> list[dspy.Example]:
     return examples
 
 
+def load_loo_folds() -> list[tuple[list[dict], list[dict], list[dict]]]:
+    """Return leave-one-out folds: [(train_raw, dev_raw, test_raw), ...].
+
+    Each fold holds out 1 image as test, uses 1 as dev, and the rest as train.
+    Images sorted by ID for deterministic ordering.
+    """
+    samples = sorted(load_matched_samples(), key=lambda s: s["id"])
+    folds = []
+    for i in range(len(samples)):
+        test = [samples[i]]
+        remaining = [s for j, s in enumerate(samples) if j != i]
+        # Rotate dev assignment so each fold uses a different dev image
+        dev = [remaining[i % len(remaining)]]
+        train = [s for s in remaining if s is not dev[0]]
+        folds.append((train, dev, test))
+    return folds
+
+
 def load_and_split(seed: int = 42):
     """Convenience: load samples, split, and convert all to dspy.Examples."""
     samples = load_matched_samples()
