@@ -456,7 +456,7 @@ All experiments used Gemini 2.0 Flash as the target model. A natural next step i
 
 ### Revisiting GEPA with a stronger reflection model
 
-GEPA underperformed in our experiments (scoring only +0.14 pts over the Library Cards baseline), likely because Gemini 2.0 Flash served as both the target model and the reflection model — the model struggled to diagnose its own extraction failures. [Bogin et al. (2025)](https://arxiv.org/abs/2507.19457) show that GEPA can outperform MIPROv2 by over 10% when its reflective evolution loop works well, with up to 35× fewer rollouts than reinforcement learning approaches. The reflection step — where the LM examines execution traces and proposes prompt mutations — is text-only, so using a stronger model (e.g. Gemini 2.5 Pro or Claude Sonnet) for reflection while keeping Flash as the inference model would add minimal cost. Re-running GEPA with a capable reflection model on the benchmarks where it underperformed most would test whether the optimizer's poor showing was due to reflection quality rather than the evolutionary approach itself.
+GEPA underperformed in our experiments (scoring only +0.14 pts over the Library Cards baseline), likely because Gemini 2.0 Flash served as both the target model and the reflection model — the model struggled to diagnose its own extraction failures. [Bogin et al. (2025)](https://arxiv.org/abs/2507.19457) show that GEPA can outperform MIPROv2 by over 10% when its reflective evolution loop works well. The reflection step — where the LM examines execution traces and proposes prompt mutations — is text-only, so using a stronger model for reflection adds minimal cost.
 
 ### Small and local models
 
