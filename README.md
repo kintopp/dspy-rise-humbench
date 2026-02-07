@@ -195,17 +195,19 @@ The module, optimizer scripts, and comparison tooling remain unchanged.
 
 ### Next benchmarks to test
 
-The following RISE benchmarks are strong candidates for DSPy optimization, given their structural similarity to Library Cards (image → structured JSON extraction):
+The following RISE benchmarks are strong candidates for DSPy optimization, given their structural similarity to Library Cards (image → structured JSON extraction). Current leaderboard top scores are included to indicate headroom for improvement.
 
-| Benchmark | Description | Why it's a good fit |
+| Benchmark | Description | Top score | Why it's a good fit |
+|---|---|---|---|
+| **[Bibliographic Data](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/bibliographic_data)** | Extract publication details, authors, dates, and metadata from digitized historical documents | ~66.9 | Closest analog to Library Cards — same bibliographic domain, same image → JSON pattern, minimal schema changes needed. Moderate leaderboard scores suggest significant room for optimization gains. |
+| **[Personnel Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/personnel_cards)** | Extract structured employment data (position, location, salary, dates) from 20th-century Swiss personnel card tables | ~79.0 | Table-like card images with structured output — similar pipeline to Library Cards, but with tabular rather than bibliographic data. Schema is more complex (each field has diplomatic transcript, interpretation, and is_crossed_out sub-fields). |
+| **[Business Letters](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/business_letters)** | Extract persons, organizations, dates, and locations from 20th-century Swiss historical correspondence | ~67.8 | Same image → JSON pattern with moderate scores. Schema is more complex (multiple dataclass files for persons, organizations, categories). |
+
+Other benchmarks that follow the image → JSON pattern but may be harder to improve with DSPy optimization:
+
+| Benchmark | Top score | Notes |
 |---|---|---|
-| **[Personnel Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/personnel_cards)** | Extract structured employment data (position, location, salary, dates) from 20th-century Swiss personnel card tables | Table-like card images with structured output — very similar pipeline to library cards, but with tabular rather than bibliographic data |
-| **[Blacklist Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/blacklist)** | Extract and structure information from historical blacklist cards | Card-based extraction with a different domain schema — tests whether DSPy optimization generalises across card types |
+| **[Blacklist Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/blacklist_cards)** | ~95.5 | Card-based extraction from 1940s British company index cards. Top models already score 95%+, leaving little room for optimization gains. |
+| **[Company Lists](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/company_lists)** | ~49.7 | List-format extraction from company directory pages. Very low top scores suggest fundamental task difficulty beyond what prompt optimization alone may address. |
 
-Other benchmarks that could benefit from optimization but require more adaptation:
-
-| Benchmark | Notes |
-|---|---|
-| **Bibliographic Data** | Very close to library cards (bibliographic extraction from documents), minimal schema changes needed |
-| **Business Letters** | Structured metadata extraction from correspondence — different document type but same image → JSON pattern |
-| **Company Lists** | List-like rather than card-like input — tests whether the approach works on different visual layouts |
+The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manuscripts) use different task types (text-to-XML, OCR transcription, page segmentation) that would require a different pipeline architecture rather than the image → structured JSON approach used here.
