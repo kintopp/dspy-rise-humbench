@@ -13,6 +13,15 @@ IMAGES_DIR = DATA_DIR / "bibliographic_data" / "images"
 GROUND_TRUTHS_DIR = DATA_DIR / "bibliographic_data" / "ground_truths"
 
 
+# page_10.json uses CSL-JSON conventions that differ from the other pages.
+# Normalize both keys and type values at load time.
+_TYPE_MAP = {
+    "article-journal": "journal-article",
+    "chapter": "book",  # no "chapter" type in schema; closest is "book"
+    "review": "journal-article",  # page_2 has "review"; treat as article
+}
+
+
 def _normalize_keys(obj: Any) -> Any:
     """Recursively replace hyphens with underscores in dict keys.
 
@@ -26,6 +35,25 @@ def _normalize_keys(obj: Any) -> Any:
     return obj
 
 
+def _normalize_type_values(obj: Any) -> Any:
+    """Normalize entry type values to match the schema.
+
+    page_10 uses CSL-JSON 'article-journal' instead of 'journal-article',
+    and 'chapter' which isn't in our schema. page_2 has 'review'.
+    """
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            if k == "type" and isinstance(v, str) and v in _TYPE_MAP:
+                out[k] = _TYPE_MAP[v]
+            else:
+                out[k] = _normalize_type_values(v)
+        return out
+    if isinstance(obj, list):
+        return [_normalize_type_values(item) for item in obj]
+    return obj
+
+
 def load_matched_samples() -> list[dict]:
     """Load all image/GT pairs for the bibliographic data benchmark."""
     samples = []
@@ -36,7 +64,7 @@ def load_matched_samples() -> list[dict]:
             continue
         with open(gt_path) as f:
             gt = json.load(f)
-        gt = _normalize_keys(gt)
+        gt = _normalize_type_values(_normalize_keys(gt))
         samples.append({
             "id": stem,
             "image_path": str(img_path),

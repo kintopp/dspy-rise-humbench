@@ -10,7 +10,7 @@ from benchmarks.shared.scoring_helpers import (
     parse_gt_document,
     FeedbackScore,
 )
-from benchmarks.bibliographic_data.data import _normalize_keys
+from benchmarks.bibliographic_data.data import _normalize_keys, _normalize_type_values
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,8 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
     Both dicts are key-normalized (hyphens → underscores) to handle CSL-JSON
     inconsistency in ground truths and potential model output variation.
     """
-    pred_dict = _normalize_keys(pred_dict)
-    gt_dict = _normalize_keys(gt_dict)
+    pred_dict = _normalize_type_values(_normalize_keys(pred_dict))
+    gt_dict = _normalize_type_values(_normalize_keys(gt_dict))
     gt_keys = get_all_keys(gt_dict)
 
     total_score = 0
