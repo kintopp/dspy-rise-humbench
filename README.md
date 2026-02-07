@@ -187,8 +187,6 @@ Available presets: `gpt-4o`, `gpt-4o-mini`, `gemini-3-pro-preview`, `gemini-2.5-
 
 ## Results
 
-### The cost-performance question
-
 The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
 
 All four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). The Library Cards benchmark also includes early comparison experiments with Gemini 2.5 Pro to establish an upper bound.
@@ -264,7 +262,7 @@ The different optimizers revealed different improvement strategies. SIMBA's mini
 
 With only 5 images, multi-entry extraction per page, and a continuous metric (no threshold), this benchmark tests optimization under severe data scarcity.
 
-**Ground truth normalization.** Before experiments could produce meaningful results, two rounds of annotation normalization were required. Page 10 used CSL-JSON hyphenated keys (`publisher-place`, `container-title`) while pages 2-5 used underscored keys, and used different type values (`article-journal`, `chapter`) than the rest of the dataset (`journal-article`, `book`). Both were normalised at data load time and reported upstream ([humanities_data_benchmark#91](https://github.com/RISE-UNIBAS/humanities_data_benchmark/issues/91)).
+**Ground truth normalization.** Before experiments could produce meaningful results, two rounds of annotation normalization were required. Page 10 used CSL-JSON hyphenated keys (`publisher-place`, `container-title`) while pages 2-5 used underscored keys, and used different type values (`article-journal`, `chapter`) than the rest of the dataset (`journal-article`, `book`). Both were normalised at data load time.
 
 #### Phase 2: Optimizer comparison (2/1/2 split)
 
@@ -403,7 +401,7 @@ Comparing the four optimized prompts reveals how MIPROv2's Bayesian search adapt
 
 **A single prompt element can dominate all other optimization gains.** Business Letters' "First Last" name format rule is the clearest example: because the `persons.json` alias table uses exact string matching with all 119 entries in "First Last" format, adding this single rule to the output field description lifted the baseline by +18 points — more than MIPROv2 optimization contributed on top. The lesson: when scoring depends on format conventions that the model cannot infer from the task alone, explicit format rules in the prompt are more valuable than any amount of optimizer search.
 
-#### Results
+#### Combined Results
 
 | Benchmark | Predict baseline | CoT baseline | MIPROv2 medium CoT | Gain |
 |---|---|---|---|---|
@@ -437,7 +435,7 @@ Comparing the four optimized prompts reveals how MIPROv2's Bayesian search adapt
 
 **GEPA metric compatibility:** DSPy's parallelizer calls `sum()` on metric results for progress tracking, but GEPA expects a dict with `{"score", "feedback"}` keys. The `FeedbackScore` class in `benchmarks/shared/scoring_helpers.py` bridges this by being a dict subclass that also supports arithmetic operations.
 
-**Recommendation:** Use GA (generally available) models with high rate limits for optimization. Preview/experimental models typically have restrictive quotas unsuitable for parallel evaluation strategies. Use `scripts/check_rate_limits.py` to verify provider limits before running optimization.
+**Preview vs. GA models:** Use GA (generally available) models with high rate limits for optimization. Preview/experimental models typically have restrictive quotas unsuitable for parallel evaluation strategies. Use `scripts/check_rate_limits.py` to verify provider limits before running optimization.
 
 ### Other RISE benchmarks
 
@@ -462,7 +460,7 @@ Since optimization is most impactful on cheaper models, it's conceivable that sm
 
 ### Scoring improvements
 
-Two benchmarks hit metric ceilings: Bibliographic Data's position-based scoring causes cascading alignment errors (see above), and Business Letters' exact-match alias lookup means any name variant not in `persons.json` scores zero. Implementing ID-aware entry matching and fuzzy name matching respectively in the upstream RISE benchmark would make further optimization gains more meaningful.
+Two benchmarks hit metric ceilings: Bibliographic Data's position-based scoring causes cascading alignment errors, and Business Letters' exact-match alias lookup means any name variant not in `persons.json` scores zero. Implementing ID-aware entry matching and fuzzy name matching in the RISE benchmark would make optimization gains more meaningful.
 
 ### Ensemble and self-consistency
 
