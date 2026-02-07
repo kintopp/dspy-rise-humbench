@@ -199,7 +199,7 @@ No changes to any scripts are needed — just pass `--benchmark {task_name}`.
 
 ### The cost-performance question
 
-The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. A model scoring 85% at $0.003/call is more useful than one scoring 89% at $0.04/call if you need to process tens of thousands of documents. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
+The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
 
 All four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). The Library Cards benchmark also includes early comparison experiments with Gemini 2.5 Pro to establish an upper bound.
 
@@ -225,7 +225,7 @@ All four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, in
 
 #### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
 
-MIPROv2 light was initially tested with Gemini 2.5 Pro (GPT-5 results were not yet available) and achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best hand-crafted prompt scores (GPT-5: 89.5, GPT-4.1: 89.4). The optimization discovered a concise 2-sentence instruction combined with 2 bootstrapped few-shot demonstrations — the demos implicitly teach the extraction schema through worked examples, doing the heavy lifting that the benchmark's multi-paragraph prompt achieves through explicit field-by-field rules. Between the start 
+MIPROv2 light was initially tested with Gemini 2.5 Pro (GPT-5 results were not yet available) and achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best hand-crafted prompt scores (GPT-5: 89.5, GPT-4.1: 89.4).
 
 #### Phase 2: Uplifting Gemini 2.0 Flash
 
@@ -240,22 +240,17 @@ We ran the full experiment matrix on Flash — baselines, three optimizers, cros
 | Predict baseline (unoptimized) | 0.8134 | 0.8207 | 0.8773 | 0.7709 | — |
 | CoT baseline (unoptimized) | 0.7583 | 0.8192 | 0.8662 | 0.7770 | -0.0551 |
 
-**Optimized Flash (0.9017) surpasses optimized Gemini 2.5 Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium's Bayesian search over 12 candidate instruction/demo combinations found a configuration that lifted Flash by +14.3 points from its unoptimized CoT baseline, producing a well-balanced extractor with nearly equal precision (0.9083) and recall (0.9057).
+**Optimized Flash (0.9017) surpasses optimized Gemini 2.5 Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium lifted Flash by +14.3 points from its unoptimized CoT baseline, producing a well-balanced extractor with nearly equal precision (0.9083) and recall (0.9057).
 
-An unexpected finding: **ChainOfThought hurts unoptimized Flash** (0.7583 vs Predict's 0.8134). Without optimized instructions to guide it, the reasoning step introduces errors rather than preventing them. But CoT becomes essential once optimization is applied — it creates a wider "optimization surface" that MIPROv2 can exploit. The optimized CoT program (0.9017) far exceeds what any Predict-based optimization achieved, including the Pro result (0.8912). This suggests that CoT's value lies not in reasoning per se, but in giving the optimizer more freedom to shape model behaviour through instructions and demonstrations.
-
-We also tested cross-model transfer: running the Pro-optimized program (MIPROv2 light, Predict) directly on Flash without re-optimization. This scored 0.8743 — a very good result that loses only 1.7 points from the Pro score. Instructions and few-shot demonstrations partially transfer across models. But Flash-native optimization (0.9017) still beats the transfer by +2.7 points, confirming that per-model optimization is worth the small additional cost when the target model is cheap. We then increased the optimizer's search budget, which ended-up being critical: MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have stopped at a dev score of ~85.9 — good, but not enough to beat Pro. 
+Cross-model transfer also worked: running the Pro-optimized program directly on Flash scored 0.8743 — only 1.7 points below the Pro result. But Flash-native optimization still beats transfer by +2.7 points, confirming that per-model optimization is worthwhile when the target model is cheap. The search budget was also critical: MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have stopped at a dev score of ~85.9.
 
 The different optimizers revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g. "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. GEPA's genetic-evolutionary approach was limited by using Flash as its own reflection model — the model struggled to diagnose its own failures.
 
 #### Key findings
 
-- **Optimization is most impactful on cheaper models.** The absolute uplift on Flash (+14.3 points) far exceeds the uplift on Pro (+7.4 points). Weaker models have more room for optimization to add value — and the per-call savings compound across large-scale deployments.
-- **Optimized Flash exceeds both optimized Pro and the benchmark leaderboard.** f1_macro=0.9017 surpasses Gemini 2.5 Pro's optimized score (0.8912) and the leaderboard's top hand-crafted prompt result (GPT-5: 89.5), despite evaluating on a held-out 70% subset rather than the full dataset.
-- **ChainOfThought is a double-edged sword.** It hurts unoptimized Flash (-5.5 points) but enables the largest optimization gains (+14.3 points with MIPROv2 medium). CoT's value is not in reasoning per se, but in giving optimizers more degrees of freedom.
-- **Optimized programs partially transfer across models.** Pro-optimized instructions and demos scored 0.8743 on Flash — only 1.7 points below the Pro result. But per-model optimization beats transfer by +2.7 points, and is cheap enough to be worthwhile.
-- **Optimizer search budget matters.** MIPROv2 medium (12 trials) found a configuration that light (6 trials) would have missed. When the model is cheap, the cost of a broader search is negligible compared to the gains.
-- **Few-shot demos matter more than verbose instructions.** Across all optimizers, the best configurations use concise instructions with 2-4 worked examples, rather than the benchmark's detailed multi-paragraph prompt. Demonstrations implicitly communicate extraction rules that are hard to articulate in words.
+- **Optimization is most impactful on cheaper models.** The uplift on Flash (+14.3 pts) far exceeds the uplift on Pro (+7.4 pts).
+- **Programs partially transfer across models.** Pro-optimized demos scored 0.8743 on Flash — only 1.7 pts below the Pro result, but per-model optimization beats transfer by +2.7 pts.
+- **Search budget matters.** MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have missed this configuration.
 
 **A note on comparability.** The leaderboard scores are computed over all 263 images using a single hand-crafted prompt, whereas our 0.9017 is evaluated on a 70% held-out test set (185 images) that the optimizer never saw. MIPROv2 needs train and dev sets to select instructions and demos, so the test set must remain separate. Making the comparison rigorous would require repeated random splits (Monte Carlo cross-validation): re-running the full optimization pipeline with different 15/15/70 partitions and reporting the mean and confidence interval. Based on standard power analysis, 10–30 repetitions would likely be needed depending on the variance across splits at ~$3–4 per run.
 
@@ -277,7 +272,7 @@ The different optimizers revealed different improvement strategies. SIMBA's mini
 
 *Last accessed: 2026-02-07. Scores are best results per model across all benchmark runs.*
 
-This benchmark tests DSPy optimization under a fundamentally different regime from Library Cards: 5 images instead of 263, multi-entry extraction per image instead of one-card-one-record, and a continuous metric instead of thresholded F1. The tiny dataset severely constrains what optimizers can learn.
+With only 5 images, multi-entry extraction per page, and a continuous metric (no threshold), this benchmark tests optimization under severe data scarcity.
 
 **Ground truth normalization.** Before experiments could produce meaningful results, two rounds of annotation normalization were required. Page 10 used CSL-JSON hyphenated keys (`publisher-place`, `container-title`) while pages 2-5 used underscored keys, and used different type values (`article-journal`, `chapter`) than the rest of the dataset (`journal-article`, `book`). Both were normalised at data load time and reported upstream ([humanities_data_benchmark#91](https://github.com/RISE-UNIBAS/humanities_data_benchmark/issues/91)).
 
@@ -321,11 +316,9 @@ An ID-aware scoring approach — matching entries by their `id` field rather tha
 
 #### Key findings
 
-- **The metric is the bottleneck, not the model.** Position-based scoring penalises alignment errors severely. The model's actual extraction quality is substantially better than the 0.39 scores suggest. Further optimization of prompts will yield diminishing returns until the evaluation methodology accounts for entry-level alignment.
-- **Optimization gains scale with dataset size.** MIPROv2's +4.3 point uplift on 5 images is roughly 3x smaller than its +14.3 point uplift on Library Cards' 263 images. The optimizer simply has too little signal — 2 training images where the model already scores 0.90+ provide almost no failures to learn from.
-- **LOO didn't solve data scarcity.** Despite 50% more training data per fold, the aggregate didn't improve. The bottleneck isn't training data quantity but structural complexity (nested entries, page continuations) that prompt optimization can't address.
-- **Ground truth quality was a hidden ceiling.** Two normalization rounds were required before scores became meaningful. Annotation inconsistencies in key formatting and type values created systematic scoring errors that no optimizer could overcome. Always audit GT consistency before optimizing.
-- **Competitive with the leaderboard on a cheaper model.** MIPROv2 medium at 0.7059 with Gemini 2.0 Flash is within 1 point of the leaderboard top (GPT-4o: 71.4), continuing the Library Cards pattern of optimized-cheap approaching unoptimized-expensive.
+- **The metric is the bottleneck, not the model.** Position-based scoring penalises alignment errors severely. The model's actual extraction quality is substantially better than the 0.39 scores suggest.
+- **LOO didn't solve data scarcity.** Despite 50% more training data per fold, the aggregate didn't improve. The bottleneck is structural complexity (nested entries, page continuations) that prompt optimization can't address.
+- **Ground truth quality was a hidden ceiling.** Two normalization rounds were required before scores became meaningful. Always audit GT consistency before optimizing.
 
 ---
 
@@ -349,14 +342,13 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 | CoT baseline (unoptimized) | 0.7983 | 0.8415 | 0.8142 | 0.8706 | +0.1687 |
 | Predict baseline (unoptimized) | 0.6296 | 0.7497 | 0.8420 | 0.6756 | — |
 
-**MIPROv2 medium-CoT achieved 0.8858 f1_macro — a +25.6 point lift over the predict baseline**, the largest absolute improvement across all four benchmarks. Using Gemini 2.0 Flash, the optimized program exceeds the previously reported leaderboard top (~79.0) by nearly 10 points — using a model that costs a fraction of Gemini 2.5 Pro.
+**MIPROv2 medium-CoT achieved 0.8858 f1_macro — a +25.6 point lift over the predict baseline.** The optimized program exceeds the previously reported leaderboard top (~79.0) by nearly 10 points.
 
 #### Key findings
 
-- **CoT helped the unoptimized baseline** — unlike Library Cards, where CoT hurt by -5.5 points. Here, CoT improved the unoptimized baseline by +16.9 points (0.6296 → 0.7983). The difference: Personnel Cards' biggest problem was JSON parse failures (8/43 cards scoring 0.0 in the predict baseline), and CoT's reasoning step helped the model structure its output more carefully before committing to JSON.
-- **False positives dropped by 75%.** FP went from 376 (predict baseline) to 94 (optimized). The few-shot demonstrations taught the model precisely what constitutes a valid row entry, eliminating hallucinated fields.
-- **Recall jumped from 0.676 to 0.914.** The model now finds 91% of all fields, up from 68%. CoT reasoning + optimized instructions help the model systematically process each column rather than skipping entries.
-- **3/43 cards still score 0.0** (down from 8/43 in predict baseline). These may contain unusual layouts that even few-shot demonstrations cannot fully address.
+- **CoT helped the unoptimized baseline** (+16.9 pts), unlike Library Cards where it hurt. The difference: Personnel Cards' main problem was JSON parse failures (8/43 cards scoring 0.0), and CoT's reasoning step helped the model structure its output before committing to JSON.
+- **False positives dropped 75%** (376 → 94) and **recall jumped from 0.676 to 0.914**. The few-shot demonstrations taught the model what constitutes a valid row entry.
+- **3/43 cards still score 0.0** (down from 8/43 in predict baseline).
 
 ---
 
@@ -378,7 +370,7 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 
 *Last accessed: 2026-02-07. Scores are best results per model across all benchmark runs.*
 
-This benchmark has a unique scoring characteristic: person names must exactly match entries in a `persons.json` alias table that maps name variants to canonical IDs. All 119 aliases use "First Last" format — zero use "Last, First". The upstream benchmark performs no name normalisation, so the model must output names in exactly the right format. Before adding explicit "First Last" format guidance to the prompt, the predict baseline scored only 0.2721 f1_macro — the prompt change alone gave a +0.18 lift to 0.4565.
+The key challenge is person name matching: names must exactly match entries in the `persons.json` alias table (119 entries, all in "First Last" format, no fuzzy matching). Before adding explicit "First Last" format guidance to the prompt, the predict baseline scored only 0.2721 — the prompt change alone gave a +18 point lift to 0.4565.
 
 #### Results
 
@@ -388,14 +380,13 @@ This benchmark has a unique scoring characteristic: person names must exactly ma
 | CoT baseline (unoptimized) | 0.4713 | 0.4636 | 0.4286 | 0.5050 | +0.0148 |
 | Predict baseline (unoptimized) | 0.4565 | 0.4734 | 0.4623 | 0.4851 | — |
 
-**MIPROv2 medium-CoT on Gemini 2.0 Flash achieved 0.6378 f1_macro — a +18.1 point lift over the predict baseline.** The few-shot demonstrations were critical: they provided concrete examples of the correct "First Last" name format that the alias table requires, lifting person matching from near-zero.
+**MIPROv2 medium-CoT achieved 0.6378 f1_macro — a +18.1 point lift over the predict baseline.**
 
 #### Key findings
 
-- **Few-shot demos taught name formatting.** The primary improvement vector was person matching. The demonstrations showed the model exactly how names should appear to match the alias table, something that instruction text alone struggled to communicate effectively.
-- **True positives jumped from 51 to 68** (+33%), while false negatives dropped from 50 to 33. The model now catches significantly more people and dates.
-- **Large dev-test gap.** The dev score was 89.58 but test dropped to 63.78. With only 8 dev letters, the optimizer can overfit to specific letter styles. Despite this, the test improvement is substantial and well above the 0.55 success target.
-- **Scoring is the ceiling.** The exact-match alias lookup with no fuzzy tolerance means any name variant not in `persons.json` scores zero, regardless of how close the extraction is. Further improvement would require either expanding the alias table (upstream change) or a more tolerant matching strategy.
+- **True positives jumped from 51 to 68** (+33%), while false negatives dropped from 50 to 33.
+- **Large dev-test gap.** Dev score was 89.58 but test dropped to 63.78 with only 8 dev letters.
+- **Scoring is the ceiling.** Any name variant not in `persons.json` scores zero regardless of extraction quality.
 
 ---
 
@@ -460,14 +451,14 @@ Comparing the four optimized prompts reveals how MIPROv2's Bayesian search adapt
 
 ### Other RISE benchmarks
 
-The following RISE benchmarks follow the image → JSON pattern but may be harder to improve with DSPy optimization:
+The following RISE benchmarks follow the image → JSON pattern and are candidates for future work:
 
 | Benchmark | Top score | Notes |
 |---|---|---|
-| **[Blacklist Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/blacklist_cards)** | ~95.5 | Card-based extraction from 1940s British company index cards. Top models already score 95%+, leaving little room for optimization gains. |
-| **[Company Lists](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/company_lists)** | ~49.7 | List-format extraction from company directory pages. Very low top scores suggest fundamental task difficulty beyond what prompt optimization alone may address. |
+| **[Blacklist Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/blacklist_cards)** | ~95.5 | Near-saturated — can optimization squeeze gains from a 95%+ baseline? |
+| **[Company Lists](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/company_lists)** | ~49.7 | Very low top scores — can optimization help where all models struggle? |
 
-The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manuscripts) use different task types (text-to-XML, OCR transcription, page segmentation) that would require a different pipeline architecture rather than the image → structured JSON approach used here.
+The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manuscripts) use different task types (text-to-XML, OCR transcription, page segmentation) that would require a different pipeline architecture.
 
 ## Potential Future Work
 
@@ -481,7 +472,7 @@ Since optimization is most impactful on cheaper models, it's conceivable that sm
 
 ### Scoring improvements
 
-Two benchmarks have identified metric ceilings that cap what any model can achieve. Bibliographic Data's position-based scoring causes cascading alignment errors: a single misplaced entry shifts all subsequent comparisons on pages where the actual extraction quality is much higher. Business Letters' exact-match alias lookup with no fuzzy tolerance or name normalization means any name variant not in `persons.json` scores zero, regardless of how close the extraction is. Implementing improved metrics in the RISE Humanities Benchmark — ID-aware entry matching for Bibliographic Data, fuzzy or normalized name matching for Business Letters — would make DSPy-based optimization gains more meaningful.
+Two benchmarks hit metric ceilings: Bibliographic Data's position-based scoring causes cascading alignment errors (see above), and Business Letters' exact-match alias lookup means any name variant not in `persons.json` scores zero. Implementing ID-aware entry matching and fuzzy name matching respectively in the upstream RISE benchmark would make further optimization gains more meaningful.
 
 ### Ensemble and self-consistency
 
@@ -490,10 +481,6 @@ Some images still score 0.0 due to JSON parse failures or catastrophic extractio
 ### Multi-step agentic pipelines
 
 The current architecture is single-shot: one LM call per image. A two-step pipeline — first extract raw text and structural elements, then parse into the target JSON schema — could decouple visual recognition from schema mapping. DSPy supports multi-module programs that MIPROv2 can optimize jointly. This should be most valuable for Business Letters (multi-page documents requiring cross-page entity resolution) and Bibliographic Data (nested entries with cross-page continuations), where a single-pass approach forces the model to handle visual parsing and structural reasoning simultaneously.
-
-### Additional RISE benchmarks
-
-[Company Lists](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/company_lists) (leaderboard top ~49.7) follows the image → JSON pattern and has the weakest baseline on the RISE leaderboard. Applying the pipeline to this benchmark would test whether optimization can make progress on tasks where even the best models struggle. [Blacklist Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/blacklist_cards) (~95.5) would test the opposite question: whether optimization can squeeze meaningful gains from a near-saturated benchmark.
 
 ## Credits
 
