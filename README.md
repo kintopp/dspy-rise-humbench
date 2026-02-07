@@ -185,16 +185,6 @@ The pipeline supports multiple LLM providers via [litellm](https://docs.litellm.
 
 Available presets: `gpt-4o`, `gpt-4o-mini`, `gemini-3-pro-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `claude-sonnet`, `claude-haiku`, and OpenRouter variants (`or-gemini-2.5-pro`, `or-claude-sonnet`, `or-gpt-4o`). Any full litellm model string also works.
 
-### Adapting to Other Benchmarks
-
-To apply this pipeline to a different RISE benchmark task, create a new package under `benchmarks/` with the standard interface:
-
-1. Create `benchmarks/{task_name}/` with `schema.py`, `signature.py`, `data.py`, `module.py`, `scoring.py`
-2. Symlink data into `data/{task_name}/images` and `data/{task_name}/ground_truths`
-3. Export the standard interface: `Extractor`, `load_and_split`, `dspy_metric`, `score_single_prediction`, `compute_aggregate_scores`, etc.
-
-No changes to any scripts are needed — just pass `--benchmark {task_name}`.
-
 ## Results
 
 ### The cost-performance question
