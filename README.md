@@ -350,6 +350,8 @@ Results across all four RISE benchmarks — spanning dataset sizes from 5 to 263
 
 **Small dev sets cause overfitting.** Business Letters showed the largest dev-test gap: 89.58 dev → 63.78 test with only 8 dev letters. Personnel Cards (9 dev) showed a smaller gap: 85.16 dev → 88.58 test. Library Cards (39 dev) showed minimal gap. When the dev set is small, MIPROv2's Bayesian search can lock onto configurations that work well on a few specific examples without generalising. The test improvement is still substantial, but practitioners should expect dev scores to overestimate test performance on small datasets.
 
+**Total project cost: ~$3–4 on Gemini 2.0 Flash.** All four benchmarks — baselines, MIPROv2 optimizations, and test evaluations — used an estimated 3,600 Flash API calls totalling ~7.9M input and ~4.6M output tokens, for a base cost of $2.63 on AI Studio pricing ($0.10/$0.40 per 1M tokens). Including a 1.3× retry multiplier, the all-Flash work cost ~$3.42. The early Library Cards experiments on Gemini 2.5 Pro and 3 Pro Preview added ~$12.71 — most of the project's total spend. A single MIPROv2 medium optimization run on Flash costs roughly $1–2 per benchmark, making systematic optimization practical even on tight budgets.
+
 ## Issues Encountered
 
 **Rate limiting is the main practical challenge for DSPy optimization with vision models:**
