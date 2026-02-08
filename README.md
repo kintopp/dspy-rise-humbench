@@ -4,7 +4,7 @@ This project applies [DSPy](https://dspy.ai/) — a framework for programming an
 
 ## TLDR;
 
-DSPy's automated prompt optimization for Gemini 2.0 Flash — a cheap vision model at ~1/10th the cost of frontier models — matches or beats custom prompts on expensive models across four RISE benchmarks, with gains of +10 to +27 F1 points. The biggest wins came with the weakest baselines (Personnel Cards: 0.63 → 0.89, Business Letters: 0.46 → 0.73).
+DSPy's automated prompt optimization for Gemini 2.0 Flash — a cheap vision model at ~1/10th the cost of frontier models — matches or beats custom prompts on expensive models across four RISE benchmarks, with gains of +10 to +27 F1 points. The biggest wins came from the weakest baselines (Personnel Cards: 0.63 → 0.89, Business Letters: 0.46 → 0.73).
 
 ## Aims
 
