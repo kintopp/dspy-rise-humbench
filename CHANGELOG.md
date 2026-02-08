@@ -30,6 +30,14 @@ was not versioned, entries are grouped by date.
 - **`docs/code-review-triage.md`**: documents triage principles, deferred items
   (D1–D7), and rejected items (R1–R3) from two independent code reviews.
 
+### Changed
+- **`dspy-costs/results.json`**: added GEPA and Refine(3) experiment costs
+  across all 4 benchmarks; updated model totals.
+
+### Removed
+- **`docs/poss-dspy-improvements.md`**: superseded by the two independent code
+  reviews and `docs/code-review-triage.md`.
+
 ---
 
 ## 2026-02-08
