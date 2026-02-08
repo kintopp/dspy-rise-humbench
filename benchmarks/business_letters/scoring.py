@@ -199,14 +199,14 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
 
 
 def refine_reward_fn(example, prediction, trace=None) -> float:
-    """Reward function for dspy.Refine: 1.0 if output is valid JSON with any required key."""
+    """Reward function for dspy.Refine: 1.0 if output is valid JSON with all required keys."""
     doc = parse_prediction_document(prediction)
     if doc is None:
         return 0.0
     # Handle metadata wrapper
     if "metadata" in doc and isinstance(doc["metadata"], dict):
         doc = doc["metadata"]
-    if not REQUIRED_KEYS.intersection(doc.keys()):
+    if not REQUIRED_KEYS.issubset(doc.keys()):
         return 0.0
     return 1.0
 

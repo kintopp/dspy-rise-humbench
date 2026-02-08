@@ -36,7 +36,6 @@ class EvalReward:
 
     def __init__(self, scoring_mod):
         self._score_single = scoring_mod.score_single_prediction
-        self._fallback_fn = scoring_mod.refine_reward_fn
         self._gt = None
         # Auto-detect primary metric key: bibliographic_data → "fuzzy", others → "f1_score"
         probe = scoring_mod.score_single_prediction({}, {})
@@ -50,7 +49,7 @@ class EvalReward:
 
     def __call__(self, kwargs, outputs):
         if self._gt is None:
-            return self._fallback_fn(kwargs, outputs)
+            raise RuntimeError("EvalReward called without GT; call set_gt() first")
         try:
             pred_dict = parse_prediction_document(outputs)
         except Exception:

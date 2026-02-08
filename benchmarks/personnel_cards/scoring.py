@@ -18,9 +18,6 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 MATCH_THRESHOLD = 0.92
-SKIP_SUFFIXES = (".row_number",)
-
-
 def _filter_keys(all_keys: list[str]) -> list[str]:
     """Filter out row_number and parent keys that have children."""
     # Remove row_number fields (structural, not scored)
