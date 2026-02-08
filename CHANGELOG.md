@@ -42,6 +42,20 @@ was not versioned, entries are grouped by date.
   `business_letters` scoring.
 - Removed dead `"binary"` ternary branch in `evaluate_optimized.py` and
   unnecessary `getattr` fallback in `optimize.py`.
+- Added `benchmarks/shared/data_helpers.py` with generic `split_data()` and
+  `load_and_split()`, replacing duplicated splitting logic in all four
+  benchmark `data.py` modules.
+- Added shared F1 scoring factories (`f1_refine_reward_fn`,
+  `f1_dspy_metric`, `f1_gepa_feedback_metric`, `f1_compute_aggregate_scores`)
+  to `scoring_helpers.py`, replacing ~130 lines of identical metric/reward
+  code in `library_cards` and `personnel_cards`. `bibliographic_data` shares
+  only `refine_reward_fn` (fuzzy metric differs from F1).
+- Added `__all__` re-exports to all benchmark `__init__.py` files for a
+  clean public API.
+- Modernized `List[X]` to `list[X]` in all schema files.
+- Extracted helpers in `check_rate_limits.py` (`_get_api_key`,
+  `_extract_rate_limit_headers`, `_print_limits`) and `compare_results.py`
+  (`_F1_METRICS` constant).
 
 ### Changed
 - README: added Refine(3) rows to all benchmark result tables, new
