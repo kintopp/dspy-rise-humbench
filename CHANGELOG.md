@@ -7,6 +7,16 @@ was not versioned, entries are grouped by date.
 
 ## 2026-02-08
 
+### Fixed
+- **Business Letters `refine_reward_fn`**: used `intersection` (any key present)
+  instead of `issubset` (all keys present), inconsistent with other benchmarks.
+  Now requires all three required keys (`send_date`, `sender_persons`,
+  `receiver_persons`) to accept a prediction during Refine.
+- **`EvalReward` fallback path**: unreachable fallback called `refine_reward_fn`
+  with wrong argument types (`dict` instead of `dspy.Example`). Replaced with
+  explicit `RuntimeError` and removed unused `_fallback_fn` attribute.
+- Removed unused `SKIP_SUFFIXES` constant from `personnel_cards/scoring.py`.
+
 ### Added
 - **Quality-aware Refine(3)** inference-time refinement: `EvalReward` class in
   `evaluate_optimized.py` uses the actual benchmark metric (F1 or fuzzy) as
