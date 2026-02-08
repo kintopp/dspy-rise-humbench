@@ -43,6 +43,14 @@ was not versioned, entries are grouped by date.
   combined results table.
 - Future Work: GEPA section rewritten from proposed experiment to completed
   experiment summary with cross-benchmark conclusions.
+- README: removed duplicate sections on optimized pipelines and
+  cost-performance tradeoff.
+- README: fixed Library Cards instruction description (5-sentence, not
+  2-sentence).
+- Optimized prompt docs (`docs/optimized-prompt-*.md`): added resized demo
+  images (600px width, ~477KB total in `docs/figures/`) so readers can see the
+  source scans alongside extraction output. Images matched to originals via
+  MD5 hash of base64-decoded program data.
 
 ---
 
