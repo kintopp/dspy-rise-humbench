@@ -33,6 +33,16 @@ was not versioned, entries are grouped by date.
 - Reflection model name now included in GEPA output filenames for traceability
   (e.g., `gepa-cot_gemini-2.0-flash_reflect-gemini-2.5-pro_optimized.json`).
 
+### Refactored
+- Extracted shared `compute_f1()` and `filter_parent_keys()` helpers into
+  `benchmarks/shared/scoring_helpers.py`, replacing 8 inline F1 computations
+  and 2 parent-key filtering loops across the three F1-based scoring modules.
+  No scoring logic changes — behavior-preserving deduplication only.
+- Replaced verbose loops with list/set comprehensions in `library_cards` and
+  `business_letters` scoring.
+- Removed dead `"binary"` ternary branch in `evaluate_optimized.py` and
+  unnecessary `getattr` fallback in `optimize.py`.
+
 ### Changed
 - README: added Refine(3) rows to all benchmark result tables, new
   "Inference-time refinement (Refine)" subsection under Cross-Benchmark
