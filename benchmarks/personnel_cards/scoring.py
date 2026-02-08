@@ -6,6 +6,8 @@ from benchmarks.shared.scoring_helpers import (
     get_all_keys,
     get_nested_value,
     calculate_fuzzy_score,
+    compute_f1,
+    filter_parent_keys,
     parse_prediction_document,
     parse_gt_document,
     FeedbackScore,
@@ -18,25 +20,15 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 MATCH_THRESHOLD = 0.92
+
+
 def _filter_keys(all_keys: list[str]) -> list[str]:
     """Filter out row_number and parent keys that have children."""
-    # Remove row_number fields (structural, not scored)
-    filtered_temp = []
-    for key in all_keys:
-        if key.endswith(".row_number") or key == "row_number":
-            continue
-        filtered_temp.append(key)
-
-    # Filter out parent keys when child keys exist
-    filtered_keys = []
-    for key in filtered_temp:
-        has_children = any(
-            other.startswith(key + ".") for other in filtered_temp if other != key
-        )
-        if not has_children:
-            filtered_keys.append(key)
-
-    return filtered_keys
+    without_row_number = [
+        key for key in all_keys
+        if key != "row_number" and not key.endswith(".row_number")
+    ]
+    return filter_parent_keys(without_row_number)
 
 
 def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
@@ -82,9 +74,7 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
             fn += 1
         # Both None -> skip
 
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+    precision, recall, f1 = compute_f1(tp, fp, fn)
 
     return {
         "f1_score": round(f1, 4),
@@ -181,13 +171,7 @@ def compute_aggregate_scores(all_scores: list[dict]) -> dict:
             total_fn += s["false_negatives"]
             f1_scores.append(s["f1_score"])
 
-    micro_precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0.0
-    micro_recall = total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0.0
-    f1_micro = (
-        2 * micro_precision * micro_recall / (micro_precision + micro_recall)
-        if (micro_precision + micro_recall) > 0
-        else 0.0
-    )
+    micro_precision, micro_recall, f1_micro = compute_f1(total_tp, total_fp, total_fn)
     f1_macro = sum(f1_scores) / len(f1_scores) if f1_scores else 0.0
 
     return {

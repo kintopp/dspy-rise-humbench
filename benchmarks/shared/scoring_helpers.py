@@ -7,7 +7,7 @@ FeedbackScore class needed by GEPA.
 
 import json
 import logging
-from typing import Any, Union
+from typing import Any
 
 from pydantic import BaseModel
 from rapidfuzz import fuzz
@@ -43,7 +43,7 @@ def get_all_keys(obj: Any, parent_key: str = "") -> list[str]:
     return keys
 
 
-def get_nested_value(obj: Union[dict, BaseModel], path: str) -> Any:
+def get_nested_value(obj: dict | BaseModel, path: str) -> Any:
     """Retrieve a value from a nested dict based on a dot/bracket path."""
     keys = path.replace("[", ".").replace("]", "").split(".")
     for key in keys:
@@ -129,6 +129,30 @@ def parse_gt_document(example) -> dict | None:
             logger.warning("Failed to parse GT document as JSON")
             return None
     return None
+
+
+# ---------------------------------------------------------------------------
+# Scoring helpers
+# ---------------------------------------------------------------------------
+
+
+def compute_f1(tp: int, fp: int, fn: int) -> tuple[float, float, float]:
+    """Compute precision, recall, and F1 from TP/FP/FN counts.
+
+    Returns (precision, recall, f1).
+    """
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+    return precision, recall, f1
+
+
+def filter_parent_keys(keys: list[str]) -> list[str]:
+    """Remove parent keys when child keys exist (e.g. drop 'a' if 'a.b' is present)."""
+    return [
+        key for key in keys
+        if not any(other.startswith(key + ".") for other in keys if other != key)
+    ]
 
 
 # ---------------------------------------------------------------------------

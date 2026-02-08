@@ -15,6 +15,7 @@ from pathlib import Path
 
 from benchmarks.shared.config import DATA_DIR
 from benchmarks.shared.scoring_helpers import (
+    compute_f1,
     parse_prediction_document,
     parse_gt_document,
     FeedbackScore,
@@ -93,15 +94,8 @@ _NULL_SENTINELS = {"null", "None", "", None}
 
 def _score_send_date(pred_dict: dict, gt_dict: dict) -> dict[str, int]:
     """Score send_date category via set comparison."""
-    gt_dates = set()
-    for d in (gt_dict.get("send_date") or []):
-        if d not in _NULL_SENTINELS:
-            gt_dates.add(d)
-
-    pred_dates = set()
-    for d in (pred_dict.get("send_date") or []):
-        if d not in _NULL_SENTINELS:
-            pred_dates.add(d)
+    gt_dates = {d for d in (gt_dict.get("send_date") or []) if d not in _NULL_SENTINELS}
+    pred_dates = {d for d in (pred_dict.get("send_date") or []) if d not in _NULL_SENTINELS}
 
     return {
         "send_date_tp": len(gt_dates & pred_dates),
@@ -182,10 +176,7 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
     total_fp = sum(score[f"{cat}_fp"] for cat in SCORED_CATEGORIES)
     total_fn = sum(score[f"{cat}_fn"] for cat in SCORED_CATEGORIES)
 
-    precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0.0
-    recall = total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
-
+    precision, recall, f1 = compute_f1(total_tp, total_fp, total_fn)
     score["f1_score"] = round(f1, 4)
     score["precision"] = precision
     score["recall"] = recall
@@ -290,10 +281,7 @@ def compute_aggregate_scores(all_scores: list[dict]) -> dict:
     # Per-category F1
     cat_f1s = []
     for cat in SCORED_CATEGORIES:
-        tp, fp, fn = cat_tp[cat], cat_fp[cat], cat_fn[cat]
-        p = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-        r = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-        f1 = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
+        _, _, f1 = compute_f1(cat_tp[cat], cat_fp[cat], cat_fn[cat])
         cat_f1s.append(f1)
 
     f1_macro = sum(cat_f1s) / len(cat_f1s) if cat_f1s else 0.0
@@ -302,9 +290,7 @@ def compute_aggregate_scores(all_scores: list[dict]) -> dict:
     total_tp = sum(cat_tp.values())
     total_fp = sum(cat_fp.values())
     total_fn = sum(cat_fn.values())
-    micro_p = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0.0
-    micro_r = total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0.0
-    f1_micro = 2 * micro_p * micro_r / (micro_p + micro_r) if (micro_p + micro_r) > 0 else 0.0
+    micro_p, micro_r, f1_micro = compute_f1(total_tp, total_fp, total_fn)
 
     return {
         "f1_micro": round(f1_micro, 4),

@@ -162,7 +162,7 @@ def main():
         "program": args.program,
         "module_type": args.module,
         "refine_n": args.refine,
-        "refine_reward": "quality" if eval_reward is not None else "binary" if args.refine > 0 else None,
+        "refine_reward": "quality" if eval_reward is not None else None,
         "aggregate": aggregate,
         "per_image": [
             {k: v for k, v in r.items() if k != "field_scores"}
