@@ -8,6 +8,7 @@ from benchmarks.shared.scoring_helpers import (
     calculate_fuzzy_score,
     parse_prediction_document,
     parse_gt_document,
+    f1_refine_reward_fn,
     FeedbackScore,
 )
 from benchmarks.bibliographic_data.data import _normalize_keys, _normalize_type_values
@@ -24,7 +25,7 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
     """Score a single prediction against its ground truth.
 
     Returns dict with fuzzy (average fuzzy score across non-metadata leaf keys).
-    Both dicts are key-normalized (hyphens → underscores) to handle CSL-JSON
+    Both dicts are key-normalized (hyphens -> underscores) to handle CSL-JSON
     inconsistency in ground truths and potential model output variation.
     """
     pred_dict = _normalize_type_values(_normalize_keys(pred_dict))
@@ -64,15 +65,7 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
 
 REQUIRED_KEYS = {"entries"}
 
-
-def refine_reward_fn(example, prediction, trace=None) -> float:
-    """Reward function for dspy.Refine: 1.0 if output is valid JSON with entries, else 0.0."""
-    doc = parse_prediction_document(prediction)
-    if doc is None:
-        return 0.0
-    if not REQUIRED_KEYS.issubset(doc.keys()):
-        return 0.0
-    return 1.0
+refine_reward_fn = f1_refine_reward_fn(REQUIRED_KEYS)
 
 
 def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
@@ -89,14 +82,16 @@ def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None
     if fuzzy >= 1.0:
         return FeedbackScore(fuzzy, "Perfect score")
 
-    low_fields = []
-    for key, info in scores["field_scores"].items():
-        if info["score"] < 0.8:
-            low_fields.append(
-                f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
-            )
+    low_fields = [
+        f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
+        for key, info in scores["field_scores"].items()
+        if info["score"] < 0.8
+    ]
 
-    feedback = f"fuzzy={fuzzy:.3f}. Low-scoring fields:\n" + "\n".join(low_fields[:20]) if low_fields else f"fuzzy={fuzzy:.3f}"
+    if low_fields:
+        feedback = f"fuzzy={fuzzy:.3f}. Low-scoring fields:\n" + "\n".join(low_fields[:20])
+    else:
+        feedback = f"fuzzy={fuzzy:.3f}"
     return FeedbackScore(fuzzy, feedback)
 
 

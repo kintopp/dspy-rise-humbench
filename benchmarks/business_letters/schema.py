@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
 
 class Document(BaseModel):
-    letter_title: Optional[List[str]] = None
-    send_date: Optional[List[str]] = None
-    sender_persons: Optional[List[str]] = None
-    receiver_persons: Optional[List[str]] = None
+    letter_title: Optional[list[str]] = None
+    send_date: Optional[list[str]] = None
+    sender_persons: Optional[list[str]] = None
+    receiver_persons: Optional[list[str]] = None
     has_signatures: Optional[str] = None

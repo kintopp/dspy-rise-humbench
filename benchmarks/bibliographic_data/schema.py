@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -24,14 +24,14 @@ class Entry(BaseModel):
     type: EntryType
     title: str
     container_title: Optional[str] = None
-    author: Optional[List[Author]] = None
+    author: Optional[list[Author]] = None
     note: Optional[str] = None
     publisher: Optional[str] = None
-    editor: Optional[List[str]] = None
+    editor: Optional[list[str]] = None
     publisher_place: Optional[str] = None
     issued: Optional[str] = None
     event_date: Optional[str] = None
-    related: Optional[List[str]] = None
+    related: Optional[list[str]] = None
     relation: Optional[str] = None
     volume: Optional[str] = None
     page: Optional[str] = None
@@ -49,4 +49,4 @@ class Metadata(BaseModel):
 
 class Document(BaseModel):
     metadata: Metadata
-    entries: List[Entry]
+    entries: list[Entry]

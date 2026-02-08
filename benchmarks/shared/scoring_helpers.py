@@ -192,3 +192,131 @@ class FeedbackScore(dict):
 
     def __repr__(self):
         return f"FeedbackScore(score={self['score']:.4f})"
+
+
+# ---------------------------------------------------------------------------
+# F1-based DSPy metric wrappers (shared by Library Cards, Personnel Cards)
+# ---------------------------------------------------------------------------
+
+
+def f1_refine_reward_fn(required_keys: set):
+    """Create a Refine reward function that checks for valid JSON with required keys.
+
+    Args:
+        required_keys: Set of top-level keys that must be present.
+
+    Returns:
+        A reward function compatible with dspy.Refine.
+    """
+
+    def reward_fn(example, prediction, trace=None) -> float:
+        doc = parse_prediction_document(prediction)
+        if doc is None:
+            return 0.0
+        if not required_keys.issubset(doc.keys()):
+            return 0.0
+        return 1.0
+
+    return reward_fn
+
+
+def f1_dspy_metric(score_fn, bootstrap_threshold: float = 0.5):
+    """Create a DSPy-compatible F1 metric function.
+
+    Args:
+        score_fn: Function(pred_dict, gt_dict) -> dict with "f1_score" key.
+        bootstrap_threshold: F1 threshold for bootstrapping mode.
+
+    Returns:
+        A metric function compatible with DSPy's Evaluate/MIPROv2.
+    """
+
+    def metric(example, prediction, trace=None) -> float | bool:
+        pred_dict = parse_prediction_document(prediction)
+        gt_dict = parse_gt_document(example)
+
+        if pred_dict is None or gt_dict is None:
+            return False if trace else 0.0
+
+        scores = score_fn(pred_dict, gt_dict)
+        f1 = scores["f1_score"]
+
+        if trace is not None:
+            return f1 >= bootstrap_threshold
+        return f1
+
+    return metric
+
+
+def f1_gepa_feedback_metric(score_fn, match_threshold: float = 0.92):
+    """Create a GEPA-compatible F1 feedback metric.
+
+    Args:
+        score_fn: Function(pred_dict, gt_dict) -> dict with "f1_score" and "field_scores".
+        match_threshold: Fuzzy score threshold below which fields are reported.
+
+    Returns:
+        A metric function compatible with GEPA.
+    """
+
+    def metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
+        pred_dict = parse_prediction_document(pred)
+        gt_dict = parse_gt_document(gold)
+
+        if pred_dict is None or gt_dict is None:
+            return FeedbackScore(0.0, "Failed to parse JSON output")
+
+        scores = score_fn(pred_dict, gt_dict)
+        f1 = scores["f1_score"]
+
+        if f1 >= 1.0:
+            return FeedbackScore(f1, "Perfect score")
+
+        low_fields = []
+        for key, info in scores["field_scores"].items():
+            if info["score"] < match_threshold:
+                low_fields.append(
+                    f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
+                )
+
+        if low_fields:
+            feedback = f"f1={f1:.3f}. Low-scoring fields:\n" + "\n".join(low_fields)
+        else:
+            feedback = f"f1={f1:.3f}"
+        return FeedbackScore(f1, feedback)
+
+    return metric
+
+
+def f1_compute_aggregate_scores(all_scores: list[dict]) -> dict:
+    """Compute micro and macro F1 across all scored images.
+
+    Expects each score dict to have f1_score, true_positives, false_positives,
+    false_negatives keys (as returned by F1-based score_single_prediction).
+    """
+    if not all_scores:
+        return {"f1_micro": 0.0, "f1_macro": 0.0}
+
+    total_tp = total_fp = total_fn = 0
+    f1_scores = []
+
+    for s in all_scores:
+        if isinstance(s, dict) and "f1_score" in s:
+            total_tp += s["true_positives"]
+            total_fp += s["false_positives"]
+            total_fn += s["false_negatives"]
+            f1_scores.append(s["f1_score"])
+
+    micro_precision, micro_recall, f1_micro = compute_f1(total_tp, total_fp, total_fn)
+    f1_macro = sum(f1_scores) / len(f1_scores) if f1_scores else 0.0
+
+    return {
+        "f1_micro": round(f1_micro, 4),
+        "f1_macro": round(f1_macro, 4),
+        "micro_precision": round(micro_precision, 4),
+        "micro_recall": round(micro_recall, 4),
+        "total_instances": len(f1_scores),
+        "total_tp": total_tp,
+        "total_fp": total_fp,
+        "total_fn": total_fn,
+    }

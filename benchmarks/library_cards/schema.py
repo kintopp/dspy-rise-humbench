@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 

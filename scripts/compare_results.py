@@ -20,11 +20,12 @@ def load_scores(path: Path) -> dict | None:
 
 
 # Metric keys to display per benchmark type
+_F1_METRICS = ["f1_macro", "f1_micro", "micro_precision", "micro_recall"]
 METRIC_KEYS = {
-    "library_cards": ["f1_macro", "f1_micro", "micro_precision", "micro_recall"],
+    "library_cards": _F1_METRICS,
     "bibliographic_data": ["fuzzy", "total_instances", "total_keys"],
-    "personnel_cards": ["f1_macro", "f1_micro", "micro_precision", "micro_recall"],
-    "business_letters": ["f1_macro", "f1_micro", "micro_precision", "micro_recall"],
+    "personnel_cards": _F1_METRICS,
+    "business_letters": _F1_METRICS,
 }
 
 
@@ -88,9 +89,10 @@ def main():
     optimized_dir = res_dir / "optimized"
     opt_files = sorted(optimized_dir.glob("*_test_scores.json")) if optimized_dir.exists() else []
 
+    first_baseline = next(iter(baselines.values()), None) if baselines else None
+
     if opt_files:
         print("\n--- Optimized Results (test split) ---")
-        first_baseline = next(iter(baselines.values()), None) if baselines else None
         for f in opt_files:
             scores = load_scores(f)
             label = f.stem.replace("_test_scores", "")
@@ -99,7 +101,6 @@ def main():
         print("\n(No optimized results found yet)")
 
     # Delta summary
-    first_baseline = next(iter(baselines.values()), None) if baselines else None
     if first_baseline and opt_files:
         print(f"\n--- Deltas vs First Baseline ({primary_key}) ---")
         for f in opt_files:

@@ -46,7 +46,7 @@ def results_dir(benchmark: str) -> Path:
     return RESULTS_DIR / benchmark
 
 
-def configure_dspy(model: str = DEFAULT_MODEL, temperature: float = 0.0):
+def configure_dspy(model: str = DEFAULT_MODEL, temperature: float = 0.0) -> dspy.LM:
     """Configure DSPy with the specified LM.
 
     Args:

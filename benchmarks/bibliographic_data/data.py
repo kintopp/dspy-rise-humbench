@@ -1,13 +1,13 @@
 """Data loading for the Bibliographic Data benchmark."""
 
 import json
-import random
-from pathlib import Path
 from typing import Any
 
 import dspy
 
 from benchmarks.shared.config import DATA_DIR
+from benchmarks.shared.data_helpers import split_data as _split_data
+from benchmarks.shared.data_helpers import load_and_split as _load_and_split
 
 IMAGES_DIR = DATA_DIR / "bibliographic_data" / "images"
 GROUND_TRUTHS_DIR = DATA_DIR / "bibliographic_data" / "ground_truths"
@@ -80,25 +80,20 @@ def split_data(
     dev_frac: float = 0.2,
 ) -> tuple[list[dict], list[dict], list[dict]]:
     """Split samples into train/dev/test (default 40/20/40 for 5 images -> 2/1/2)."""
-    rng = random.Random(seed)
-    shuffled = list(samples)
-    rng.shuffle(shuffled)
-    n = len(shuffled)
-    n_train = max(1, int(n * train_frac))
-    n_dev = max(1, int(n * dev_frac))
-    return shuffled[:n_train], shuffled[n_train : n_train + n_dev], shuffled[n_train + n_dev :]
+    return _split_data(
+        samples, seed=seed, train_frac=train_frac, dev_frac=dev_frac, min_per_split=1,
+    )
 
 
 def samples_to_examples(samples: list[dict]) -> list[dspy.Example]:
     """Convert raw samples to dspy.Examples with image input and document output."""
-    examples = []
-    for s in samples:
-        ex = dspy.Example(
+    return [
+        dspy.Example(
             page_image=dspy.Image(s["image_path"]),
             document=json.dumps(s["ground_truth"]),
         ).with_inputs("page_image")
-        examples.append(ex)
-    return examples
+        for s in samples
+    ]
 
 
 def load_loo_folds() -> list[tuple[list[dict], list[dict], list[dict]]]:
@@ -121,13 +116,4 @@ def load_loo_folds() -> list[tuple[list[dict], list[dict], list[dict]]]:
 
 def load_and_split(seed: int = 42):
     """Convenience: load samples, split, and convert all to dspy.Examples."""
-    samples = load_matched_samples()
-    train_raw, dev_raw, test_raw = split_data(samples, seed=seed)
-    return (
-        samples_to_examples(train_raw),
-        samples_to_examples(dev_raw),
-        samples_to_examples(test_raw),
-        train_raw,
-        dev_raw,
-        test_raw,
-    )
+    return _load_and_split(load_matched_samples, split_data, samples_to_examples, seed=seed)
