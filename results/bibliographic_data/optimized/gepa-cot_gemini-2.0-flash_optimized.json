@@ -1,0 +1,32 @@
+{
+  "predict.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Extract structured bibliographic data from a scanned page of a historical bibliography. Pay close attention to the visual layout of the page to identify different entry types (books, journal articles, reviews).\n\nSpecifically:\n\n1.  **Metadata Extraction:**\n    *   Locate and extract the year the bibliography section covers. This is usually found at the top of the page.\n    *   If present, extract the page number.\n\n2.  **Entry Identification and Extraction:**\n    *   Identify individual bibliographic entries. Entries are typically numbered or visually separated.\n    *   For each entry, determine the 'type' (book, journal-article, or review) based on the following criteria:\n        *   **Book:** Typically includes author, title, publisher, and publisher location.\n        *   **Journal-article:** Includes author, title, journal title (container\\_title), volume, page numbers, and year (issued).\n        *   **Review:** May be indicated by the word \"Review\" or a similar term. Reviews often cite the reviewed work.\n    *   Extract all available fields for each entry, including:\n        *   `id`: The entry number.\n        *   `type`: (book, journal-article, review).\n        *   `title`: The title of the book or article.\n        *   `container_title`: The title of the journal or container (only for journal articles or reviews).\n        *   `author`: An array of author objects, each with `family` and `given` names. Be precise with author names. Do not combine names if they are separated. If no author is listed for an entry, leave the author field empty rather than omitting the entire journal entry.\n        *   `note`: Any additional information, such as edition details, translations, or series information.\n        *   `publisher`: The publisher of the book.\n        *   `editor`: The editor of the book, if applicable.\n        *   `publisher_place`: The location of the publisher.\n        *   `issued`: The year of publication.\n        *   `event_date`: Date of an event.\n        *   `related`: An array of IDs of related entries (e.g., the entry being reviewed).\n        *   `relation`: The relationship to the related entry (e.g., \"reviewed\").\n        *   `volume`: The volume number of the journal.\n        *   `page`: The page numbers of the article within the journal.\n        *   `fascicle`: The fascicle number of the journal.\n        *   `reprint`: Reprint information.\n        *   `edition`: Edition information. Infer the full edition ordinal (e.g., \"2nd\" instead of \"2\").\n        *   `incomplete`: Any indication that the entry is incomplete.\n\n3.  **Identifying Reviews and Related Entries:**\n    *   Carefully examine entries for indications that they are reviews of other works listed in the bibliography.\n    *   If an entry is a review, identify the reviewed work by matching the title or author. If a match is found within the current page, populate the `\"related\"` field with the `\"id\"` of the reviewed entry and set the `\"relation\"` field to `\"reviewed\"`. If there is an explicit reference in the text, prefer that reference.\n\n4.  **Year Discrepancies:**\n    *   The `issued` field for each entry can differ from the bibliography `year`. If the entry's `issued` year is explicitly mentioned, use that value. Otherwise, infer the year based on the surrounding context and the bibliography's year.\n\n5. **Pay attention to author name parsing.** Do not split author names incorrectly. Follow the punctuation as closely as possible. For example, 'R.G:' is different than 'R. G.'\n\n6. **Handle entries without titles carefully**. Do not assume that information following the author is the title if there is a journal listed.",
+      "fields": [
+        {
+          "prefix": "Page Image:",
+          "description": "Scanned page of a historical bibliography"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Document:",
+          "description": "A JSON object with the extracted bibliographic data from the scanned bibliography page.\nThe JSON must follow this exact schema:\n{\n  \"metadata\": {\n    \"title\": \"string — title of the bibliography\",\n    \"year\": \"string — year of the bibliography section\",\n    \"page_number\": integer or null\n  },\n  \"entries\": [\n    {\n      \"id\": \"string — sequential entry number from the bibliography\",\n      \"type\": \"book\" | \"journal-article\" | \"other\",\n      \"title\": \"string — title of the work\",\n      \"container_title\": \"string or null — journal/collection name for articles\",\n      \"author\": [{\"family\": \"string\", \"given\": \"string\"}] or null,\n      \"note\": \"string or null — additional notes (reprints, volume info, etc.)\",\n      \"publisher\": \"string or null\",\n      \"editor\": [\"string\"] or null,\n      \"publisher_place\": \"string or null — city of publication\",\n      \"issued\": \"string or null — year of publication\",\n      \"event_date\": \"string or null\",\n      \"related\": [\"string — IDs of related entries\"] or null,\n      \"relation\": \"string or null — e.g. 'reviewed' for reviews\",\n      \"volume\": \"string or null — volume number (use Roman numerals as written)\",\n      \"page\": \"string or null — page range\",\n      \"fascicle\": \"string or null\",\n      \"reprint\": \"string or null\",\n      \"edition\": \"string or null\",\n      \"incomplete\": true or null — set to true if the entry is cut off at page edge\n    }\n  ]\n}\n\nRules:\n- Assign sequential IDs matching the numbering in the bibliography.\n- Use \"journal-article\" for journal articles (has container_title/volume/page), \"book\" for books.\n- If an entry is a review of another, set relation to describe it and related to the reviewed entry's ID.\n- Set incomplete to true only if the entry is cut off at the page boundary.\n- Use null for missing optional fields, not empty strings.\n- Preserve original language and diacritics in titles.\n"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

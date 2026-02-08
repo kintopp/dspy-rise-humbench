@@ -1,0 +1,23 @@
+{
+  "benchmark": "bibliographic_data",
+  "program": "results/bibliographic_data/optimized/gepa-cot_gemini-2.0-flash_optimized.json",
+  "module_type": "cot",
+  "refine_n": 0,
+  "aggregate": {
+    "fuzzy": 0.6663,
+    "total_instances": 2,
+    "total_keys": 304
+  },
+  "per_image": [
+    {
+      "id": "page_5",
+      "fuzzy": 0.9202,
+      "total_keys": 117
+    },
+    {
+      "id": "page_10",
+      "fuzzy": 0.4123,
+      "total_keys": 187
+    }
+  ]
+}

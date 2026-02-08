@@ -1,0 +1,22 @@
+{
+  "benchmark": "bibliographic_data",
+  "model": "gemini/gemini-2.0-flash",
+  "module_type": "cot",
+  "aggregate": {
+    "fuzzy": 0.6591,
+    "total_instances": 2,
+    "total_keys": 304
+  },
+  "per_image": [
+    {
+      "id": "page_5",
+      "fuzzy": 0.9165,
+      "total_keys": 117
+    },
+    {
+      "id": "page_10",
+      "fuzzy": 0.4016,
+      "total_keys": 187
+    }
+  ]
+}

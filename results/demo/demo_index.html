@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HumBench Demo — Optimizer Comparison</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 40px; }
+
+  h1 { font-size: 22px; color: #e94560; margin-bottom: 8px; }
+  .subtitle { color: #888; font-size: 13px; margin-bottom: 32px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+
+  .card { background: #16213e; border-radius: 10px; padding: 20px; border: 1px solid #0f3460; transition: border-color 0.2s, transform 0.15s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+  .card:hover { border-color: #e94560; transform: translateY(-2px); }
+  .card h2 { font-size: 16px; color: #e94560; margin-bottom: 10px; }
+  .card .metric { font-size: 11px; color: #888; margin-bottom: 6px; }
+  .card .scores { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .card .score-pill { background: #0f3460; padding: 3px 8px; border-radius: 4px; font-size: 11px; }
+  .card .score-pill .name { color: #888; }
+  .card .score-pill .val { font-weight: 700; }
+
+  .good { color: #2ecc71; }
+  .mid { color: #f39c12; }
+  .bad { color: #e94560; }
+
+  .card .images-count { font-size: 11px; color: #555; margin-top: 8px; }
+
+  .footer { margin-top: 40px; font-size: 11px; color: #444; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>HumBench — Optimizer Comparison Demo</h1>
+  <p class="subtitle">Interactive visualization of ground truth vs. optimizer predictions across RISE HumBench benchmarks. Select a benchmark to explore.</p>
+
+  <div class="grid">
+    
+    <a class="card" href="demo_library_cards.html">
+      <h2>Library Cards</h2>
+      <div class="metric">Primary metric: f1_score</div>
+      <div class="scores"><div class="score-pill"><span class="name">Predict Baseline</span> <span class="val mid">0.652</span></div><div class="score-pill"><span class="name">MIPROv2 CoT</span> <span class="val good">0.818</span></div><div class="score-pill"><span class="name">MIPROv2 CoT + Refine(3)</span> <span class="val good">0.847</span></div><div class="score-pill"><span class="name">GEPA CoT</span> <span class="val mid">0.714</span></div></div>
+      <div class="images-count">5 sample images</div>
+    </a>
+
+    <a class="card" href="demo_bibliographic_data.html">
+      <h2>Bibliographic Data</h2>
+      <div class="metric">Primary metric: fuzzy</div>
+      <div class="scores"><div class="score-pill"><span class="name">Predict Baseline</span> <span class="val mid">0.665</span></div><div class="score-pill"><span class="name">MIPROv2 Heavy CoT</span> <span class="val mid">0.707</span></div><div class="score-pill"><span class="name">GEPA CoT</span> <span class="val mid">0.666</span></div></div>
+      <div class="images-count">2 sample images</div>
+    </a>
+
+    <a class="card" href="demo_personnel_cards.html">
+      <h2>Personnel Cards</h2>
+      <div class="metric">Primary metric: f1_score</div>
+      <div class="scores"><div class="score-pill"><span class="name">Predict Baseline</span> <span class="val mid">0.507</span></div><div class="score-pill"><span class="name">MIPROv2 CoT</span> <span class="val mid">0.773</span></div><div class="score-pill"><span class="name">MIPROv2 CoT + Refine(3)</span> <span class="val mid">0.765</span></div><div class="score-pill"><span class="name">GEPA CoT</span> <span class="val mid">0.747</span></div></div>
+      <div class="images-count">5 sample images</div>
+    </a>
+
+    <a class="card" href="demo_business_letters.html">
+      <h2>Business Letters</h2>
+      <div class="metric">Primary metric: f1_score</div>
+      <div class="scores"><div class="score-pill"><span class="name">Predict Baseline</span> <span class="val mid">0.447</span></div><div class="score-pill"><span class="name">MIPROv2 CoT</span> <span class="val mid">0.605</span></div><div class="score-pill"><span class="name">MIPROv2 CoT + Refine(3)</span> <span class="val mid">0.567</span></div><div class="score-pill"><span class="name">GEPA CoT</span> <span class="val mid">0.567</span></div></div>
+      <div class="images-count">5 sample images</div>
+    </a>
+
+  </div>
+
+  <div class="footer">Generated from DSPy optimization pipeline results. Model: Gemini 2.0 Flash.</div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "predict.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Extract structured bibliographic data from a scanned Swiss library catalog card image. Pay close attention to the layout and text to accurately identify fields.\n\n1.  **Type Identification:** The card type is almost always \"Dissertation or thesis\". Only classify it differently if there's strong evidence to the contrary. S. alone means it is definitely a dissertation.\n2.  **Author Extraction:** Extract the author's last and first names. Pay attention to diacritics and special characters; \"Zust\" should be corrected to \"Züst\".\n3.  **Title Extraction:** Extract the full title of the publication.\n4.  **Publication Details:** Extract the year and place of publication. If a publisher is explicitly mentioned (e.g., \"Med.Fak.Ludwig-Maximilian-Univ.\"), include it; otherwise, leave it as null. Infer the place if it is available from other fields (e.g., the shelfmark).\n5.  **Physical Description:** Extract the number of pages and format (e.g., \"8'\", \"8°\").\n6.  **Library Reference:** Extract the shelfmark and any subject headings. If subjects are present, separate them by \"/\".\n7.  **Shelfmark Details:** Prioritize information included in the shelfmark field if it provides missing information on place or publisher.\n8. **Format:** Be careful to extract all elements present in the shelfmark.",
+      "fields": [
+        {
+          "prefix": "Card Image:",
+          "description": "Scanned image of a library catalog card"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Document:",
+          "description": "A JSON object with the extracted bibliographic data from the library card image.\nThe JSON must follow this exact schema:\n{\n  \"type\": {\"type\": \"Dissertation or thesis\" OR \"Reference\"},\n  \"author\": {\"last_name\": \"string\", \"first_name\": \"string\"},\n  \"publication\": {\n    \"title\": \"string\",\n    \"year\": \"string\",\n    \"place\": \"string or null\",\n    \"pages\": \"string or null\",\n    \"publisher\": \"string or null\",\n    \"format\": \"string or null\",\n    \"editor\": \"string or null\"\n  },\n  \"library_reference\": {\n    \"shelfmark\": \"string or null\",\n    \"subjects\": \"string or null\"\n  }\n}\n\nRules:\n- If the card contains \"s.\" on a separate line, type is \"Reference\"; otherwise \"Dissertation or thesis\".\n- Use null for missing optional fields.\n- Remove \" S.\" suffix from pages values.\n- Format is usually \"8°\", \"8'\" or \"4°\".\n- Shelfmark often begins with \"Diss.\" or \"AT\".\n"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

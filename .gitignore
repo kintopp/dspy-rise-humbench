@@ -12,13 +12,9 @@ wheels/
 # Secrets
 .env
 
-# Results (regenerated)
-results/
-
-# Symlinks to benchmark data (old root-level and new per-benchmark)
+# Symlinks to benchmark data (old root-level)
 images
 ground_truths
-data/
 
 # Offline analysis artifacts (local only)
 offline/

@@ -1,0 +1,3699 @@
+{
+  "benchmark": "bibliographic_data",
+  "method": "loo-mipro-medium",
+  "module_type": "cot",
+  "model": "gemini/gemini-2.0-flash",
+  "num_folds": 5,
+  "aggregate": {
+    "fuzzy": 0.6969,
+    "total_instances": 5,
+    "total_keys": 729
+  },
+  "per_image": [
+    {
+      "id": "page_10",
+      "fold": 0,
+      "fuzzy": 0.3936,
+      "total_keys": 187,
+      "field_scores": {
+        "entries[0].id": {
+          "response": "140",
+          "ground_truth": "140",
+          "score": 1.0
+        },
+        "entries[0].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[0].title": {
+          "response": "Why We Read History",
+          "ground_truth": "Why We Read History",
+          "score": 1.0
+        },
+        "entries[0].author[0].family": {
+          "response": "Smellie",
+          "ground_truth": "Smellie",
+          "score": 1.0
+        },
+        "entries[0].author[0].given": {
+          "response": "K. B.",
+          "ground_truth": "K. B.",
+          "score": 1.0
+        },
+        "entries[0].publisher": {
+          "response": "P. Elek",
+          "ground_truth": "P. Elek",
+          "score": 1.0
+        },
+        "entries[0].publisher_place": {
+          "response": "London",
+          "ground_truth": "London",
+          "score": 1.0
+        },
+        "entries[0].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[1].id": {
+          "response": "141",
+          "ground_truth": "141",
+          "score": 1.0
+        },
+        "entries[1].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[1].title": {
+          "response": "A Study of History",
+          "ground_truth": "A Study of History",
+          "score": 1.0
+        },
+        "entries[1].author[0].family": {
+          "response": "Toynbee",
+          "ground_truth": "Toynbee",
+          "score": 1.0
+        },
+        "entries[1].author[0].given": {
+          "response": "Arnold J.",
+          "ground_truth": "Arnold J.",
+          "score": 1.0
+        },
+        "entries[1].publisher": {
+          "response": "Oxford",
+          "ground_truth": "Oxford",
+          "score": 1.0
+        },
+        "entries[1].publisher_place": {
+          "response": "New York",
+          "ground_truth": "New York",
+          "score": 1.0
+        },
+        "entries[1].note": {
+          "response": "abridged by D. C. Somervell, New York: Oxford (Abridgement of vols. I-VI of A Study of History)",
+          "ground_truth": "Abridged by D. C. Somervell. Abridgement of vols. I-VI of A Study of History.",
+          "score": 0.8604651162790699
+        },
+        "entries[1].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[2].id": {
+          "response": "142",
+          "ground_truth": "142",
+          "score": 1.0
+        },
+        "entries[2].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[2].title": {
+          "response": "In den spiegel van het verleden: historische opstellen",
+          "ground_truth": "In den spiegel van het verleden: historische opstellen",
+          "score": 1.0
+        },
+        "entries[2].author[0].family": {
+          "response": "Verberne",
+          "ground_truth": "Verberne",
+          "score": 1.0
+        },
+        "entries[2].author[0].given": {
+          "response": "L. G. J.",
+          "ground_truth": "L. G. J.",
+          "score": 1.0
+        },
+        "entries[2].publisher": {
+          "response": "Bruna",
+          "ground_truth": "Bruna",
+          "score": 1.0
+        },
+        "entries[2].publisher_place": {
+          "response": "Utrecht, Antwerpen",
+          "ground_truth": "Utrecht, Antwerpen",
+          "score": 1.0
+        },
+        "entries[2].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[3].id": {
+          "response": "143",
+          "ground_truth": "143",
+          "score": 1.0
+        },
+        "entries[3].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[3].title": {
+          "response": "Esquemas de metodolog\u00eda eclesi\u00e1stica",
+          "ground_truth": "Esquemas de metodolog\u00eda eclesi\u00e1stica",
+          "score": 1.0
+        },
+        "entries[3].author[0].family": {
+          "response": "Vevir",
+          "ground_truth": "Vevir",
+          "score": 1.0
+        },
+        "entries[3].author[0].given": {
+          "response": "Jos\u00e9",
+          "ground_truth": "Jos\u00e9",
+          "score": 1.0
+        },
+        "entries[3].publisher": {
+          "response": null,
+          "ground_truth": "Instituto",
+          "score": 0.0
+        },
+        "entries[3].publisher_place": {
+          "response": "Barcelona: Instituto",
+          "ground_truth": "Barcelona",
+          "score": 0.6206896551724138
+        },
+        "entries[3].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[4].id": {
+          "response": "144",
+          "ground_truth": "144",
+          "score": 1.0
+        },
+        "entries[4].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[4].title": {
+          "response": "Sinn und Ziel der Geschichte",
+          "ground_truth": "Sinn und Ziel der Geschichte",
+          "score": 1.0
+        },
+        "entries[4].author[0].family": {
+          "response": "Walz",
+          "ground_truth": "Walz",
+          "score": 1.0
+        },
+        "entries[4].author[0].given": {
+          "response": "Hans H.",
+          "ground_truth": "Hans H.",
+          "score": 1.0
+        },
+        "entries[4].publisher": {
+          "response": "Universit\u00e4ts-Verlag",
+          "ground_truth": "Universit\u00e4ts-Verlag",
+          "score": 1.0
+        },
+        "entries[4].publisher_place": {
+          "response": "Bonn",
+          "ground_truth": "Bonn",
+          "score": 1.0
+        },
+        "entries[4].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[5].id": {
+          "response": "145",
+          "ground_truth": "145",
+          "score": 1.0
+        },
+        "entries[5].type": {
+          "response": "other",
+          "ground_truth": "book",
+          "score": 0.2222222222222222
+        },
+        "entries[5].title": {
+          "response": "Atti del congresso internazionale di filosofia 15-20 November, 1946",
+          "ground_truth": "Atti del congresso internazionale di filosofia",
+          "score": 0.8141592920353982
+        },
+        "entries[5].event_date": {
+          "response": null,
+          "ground_truth": "1946-11-15/1946-11-20",
+          "score": 0.0
+        },
+        "entries[5].publisher": {
+          "response": "Castellani",
+          "ground_truth": "Castellani",
+          "score": 1.0
+        },
+        "entries[5].publisher_place": {
+          "response": "Milano",
+          "ground_truth": "Milano",
+          "score": 1.0
+        },
+        "entries[5].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[5].note": {
+          "response": "Relevant articles:\n146 Pietro C. Drago, \"Storia e materialismo storico\", vol. I, 109-117.\n147 Vito Fazio-Allmayer, \"Critica del giudizio storico\", vol. I, 281-290.\n148 A. Nyman, \"Forza e spirito nella storia\", vol. I, 191-200.\n149 Benjamin Walter, \"Sur le concept d'histoire\", Les temps modernes II, 623-634.",
+          "ground_truth": "Mentions relevant articles.",
+          "score": 0.13134328358208958
+        },
+        "entries[5].related[0].id": {
+          "response": null,
+          "ground_truth": "146",
+          "score": 0.0
+        },
+        "entries[5].related[0].type": {
+          "response": null,
+          "ground_truth": "journal-article",
+          "score": 0.0
+        },
+        "entries[5].related[0].title": {
+          "response": null,
+          "ground_truth": "Storia e materialismo storico",
+          "score": 0.0
+        },
+        "entries[5].related[0].author[0].family": {
+          "response": null,
+          "ground_truth": "Drago",
+          "score": 0.0
+        },
+        "entries[5].related[0].author[0].given": {
+          "response": null,
+          "ground_truth": "Pietro C.",
+          "score": 0.0
+        },
+        "entries[5].related[0].volume": {
+          "response": null,
+          "ground_truth": "I",
+          "score": 0.0
+        },
+        "entries[5].related[0].page": {
+          "response": null,
+          "ground_truth": "109-117",
+          "score": 0.0
+        },
+        "entries[5].related[0].relation.part_of": {
+          "response": null,
+          "ground_truth": "145",
+          "score": 0.0
+        },
+        "entries[5].related[1].id": {
+          "response": null,
+          "ground_truth": "147",
+          "score": 0.0
+        },
+        "entries[5].related[1].type": {
+          "response": null,
+          "ground_truth": "journal-article",
+          "score": 0.0
+        },
+        "entries[5].related[1].title": {
+          "response": null,
+          "ground_truth": "Critica del giudizio storico",
+          "score": 0.0
+        },
+        "entries[5].related[1].author[0].family": {
+          "response": null,
+          "ground_truth": "Fazio-Allmayer",
+          "score": 0.0
+        },
+        "entries[5].related[1].author[0].given": {
+          "response": null,
+          "ground_truth": "Vito",
+          "score": 0.0
+        },
+        "entries[5].related[1].volume": {
+          "response": null,
+          "ground_truth": "I",
+          "score": 0.0
+        },
+        "entries[5].related[1].page": {
+          "response": null,
+          "ground_truth": "281-290",
+          "score": 0.0
+        },
+        "entries[5].related[1].relation.part_of": {
+          "response": null,
+          "ground_truth": "145",
+          "score": 0.0
+        },
+        "entries[5].related[2].id": {
+          "response": null,
+          "ground_truth": "148",
+          "score": 0.0
+        },
+        "entries[5].related[2].type": {
+          "response": null,
+          "ground_truth": "journal-article",
+          "score": 0.0
+        },
+        "entries[5].related[2].title": {
+          "response": null,
+          "ground_truth": "Forza e spirito nella storia",
+          "score": 0.0
+        },
+        "entries[5].related[2].author[0].family": {
+          "response": null,
+          "ground_truth": "Nyman",
+          "score": 0.0
+        },
+        "entries[5].related[2].author[0].given": {
+          "response": null,
+          "ground_truth": "A.",
+          "score": 0.0
+        },
+        "entries[5].related[2].volume": {
+          "response": null,
+          "ground_truth": "I",
+          "score": 0.0
+        },
+        "entries[5].related[2].page": {
+          "response": null,
+          "ground_truth": "191-200",
+          "score": 0.0
+        },
+        "entries[5].related[2].relation.part_of": {
+          "response": null,
+          "ground_truth": "145",
+          "score": 0.0
+        },
+        "entries[6].id": {
+          "response": "150",
+          "ground_truth": "149",
+          "score": 0.33333333333333337
+        },
+        "entries[6].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[6].title": {
+          "response": "\"Philosophy of History\"",
+          "ground_truth": "Sur le concept d'histoire",
+          "score": 0.375
+        },
+        "entries[6].author[0].family": {
+          "response": "Boodin",
+          "ground_truth": "Benjamin",
+          "score": 0.4285714285714286
+        },
+        "entries[6].author[0].given": {
+          "response": "John E.",
+          "ground_truth": "Walter",
+          "score": 0.0
+        },
+        "entries[6].container_title": {
+          "response": "20th Century Philosophy",
+          "ground_truth": "Les temps modernes",
+          "score": 0.24390243902439024
+        },
+        "entries[6].volume": {
+          "response": null,
+          "ground_truth": "II",
+          "score": 0.0
+        },
+        "entries[6].page": {
+          "response": "89-106",
+          "ground_truth": "623-634",
+          "score": 0.3076923076923077
+        },
+        "entries[6].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[7].id": {
+          "response": "151",
+          "ground_truth": "150",
+          "score": 0.6666666666666667
+        },
+        "entries[7].type": {
+          "response": "journal-article",
+          "ground_truth": "book",
+          "score": 0.10526315789473684
+        },
+        "entries[7].title": {
+          "response": "\"De la perception \u00e0 l'histoire. La philosophie de M. Merleau-Ponty\"",
+          "ground_truth": "Philosophy of History",
+          "score": 0.2727272727272727
+        },
+        "entries[7].author[0].family": {
+          "response": "Caillois",
+          "ground_truth": "Boodin",
+          "score": 0.2857142857142857
+        },
+        "entries[7].author[0].given": {
+          "response": "R. P.",
+          "ground_truth": "John E.",
+          "score": 0.33333333333333337
+        },
+        "entries[7].container_title": {
+          "response": "Deucalion",
+          "ground_truth": "Twentieth Century Philosophy",
+          "score": 0.2162162162162162
+        },
+        "entries[7].editor[0].family": {
+          "response": null,
+          "ground_truth": "Runes",
+          "score": 0.0
+        },
+        "entries[7].editor[0].given": {
+          "response": null,
+          "ground_truth": "Dagobert D.",
+          "score": 0.0
+        },
+        "entries[7].publisher": {
+          "response": null,
+          "ground_truth": "Philosophical Library",
+          "score": 0.0
+        },
+        "entries[7].publisher_place": {
+          "response": null,
+          "ground_truth": "New York",
+          "score": 0.0
+        },
+        "entries[7].page": {
+          "response": "57-85",
+          "ground_truth": "89-106",
+          "score": 0.18181818181818177
+        },
+        "entries[7].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[8].id": {
+          "response": "152",
+          "ground_truth": "151",
+          "score": 0.6666666666666667
+        },
+        "entries[8].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[8].title": {
+          "response": "\"Commemorazione di Adolfo Omodeo\"",
+          "ground_truth": "De la perception \u00e0 l'histoire. La philosophie de M. Merleau-Ponty",
+          "score": 0.2857142857142857
+        },
+        "entries[8].author[0].family": {
+          "response": "Cantimori",
+          "ground_truth": "Caillois",
+          "score": 0.5882352941176471
+        },
+        "entries[8].author[0].given": {
+          "response": "Delio",
+          "ground_truth": "R. P.",
+          "score": 0.0
+        },
+        "entries[8].container_title": {
+          "response": "Annali della Scuola Normale di Pisa",
+          "ground_truth": "Deucalion",
+          "score": 0.2272727272727273
+        },
+        "entries[8].volume": {
+          "response": null,
+          "ground_truth": "II",
+          "score": 0.0
+        },
+        "entries[8].page": {
+          "response": null,
+          "ground_truth": "57-85",
+          "score": 0.0
+        },
+        "entries[8].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[9].id": {
+          "response": "153",
+          "ground_truth": "152",
+          "score": 0.6666666666666667
+        },
+        "entries[9].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[9].title": {
+          "response": "\"The Historian and the Philosophy of Science\"",
+          "ground_truth": "Commemorazione di Adolfo Omodeo",
+          "score": 0.34210526315789463
+        },
+        "entries[9].author[0].family": {
+          "response": "Cowan",
+          "ground_truth": "Cantimori",
+          "score": 0.4285714285714286
+        },
+        "entries[9].author[0].given": {
+          "response": "Thomas",
+          "ground_truth": "Delio",
+          "score": 0.18181818181818177
+        },
+        "entries[9].container_title": {
+          "response": "Isis",
+          "ground_truth": "Annali della Scuola Normale di Pisa",
+          "score": 0.10256410256410253
+        },
+        "entries[9].fascicle": {
+          "response": null,
+          "ground_truth": "3-4",
+          "score": 0.0
+        },
+        "entries[9].reprint.title": {
+          "response": null,
+          "ground_truth": "Studi di storia",
+          "score": 0.0
+        },
+        "entries[9].reprint.publisher": {
+          "response": null,
+          "ground_truth": "Einaudi",
+          "score": 0.0
+        },
+        "entries[9].reprint.publisher_place": {
+          "response": null,
+          "ground_truth": "Torino",
+          "score": 0.0
+        },
+        "entries[9].reprint.issued": {
+          "response": null,
+          "ground_truth": 1959,
+          "score": 0.0
+        },
+        "entries[9].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[10].id": {
+          "response": "154",
+          "ground_truth": "153",
+          "score": 0.6666666666666667
+        },
+        "entries[10].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[10].title": {
+          "response": "\"History as a Science\"",
+          "ground_truth": "The Historian and the Philosophy of Science",
+          "score": 0.5538461538461539
+        },
+        "entries[10].author[0].family": {
+          "response": "Crawford",
+          "ground_truth": "Cowan",
+          "score": 0.3076923076923077
+        },
+        "entries[10].author[0].given": {
+          "response": "R. M.",
+          "ground_truth": "Thomas",
+          "score": 0.0
+        },
+        "entries[10].container_title": {
+          "response": "Historical Studies: Australia and New Zealand",
+          "ground_truth": "Isis",
+          "score": 0.12244897959183676
+        },
+        "entries[10].volume": {
+          "response": "III",
+          "ground_truth": "XXXVIII",
+          "score": 0.6
+        },
+        "entries[10].page": {
+          "response": "153-175",
+          "ground_truth": "11-18",
+          "score": 0.5
+        },
+        "entries[10].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[11].id": {
+          "response": "155",
+          "ground_truth": "154",
+          "score": 0.6666666666666667
+        },
+        "entries[11].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[11].title": {
+          "response": "\"Christianisme et histoire\"",
+          "ground_truth": "History as a Science",
+          "score": 0.3829787234042554
+        },
+        "entries[11].author[0].family": {
+          "response": "Dani\u00e9lou",
+          "ground_truth": "Crawford",
+          "score": 0.25
+        },
+        "entries[11].author[0].given": {
+          "response": "J.",
+          "ground_truth": "R. M.",
+          "score": 0.2857142857142857
+        },
+        "entries[11].container_title": {
+          "response": "Etudes",
+          "ground_truth": "Historical Studies: Australia and New Zealand",
+          "score": 0.196078431372549
+        },
+        "entries[11].volume": {
+          "response": "CCLIV",
+          "ground_truth": "III",
+          "score": 0.25
+        },
+        "entries[11].page": {
+          "response": "166-184",
+          "ground_truth": "153-175",
+          "score": 0.4285714285714286
+        },
+        "entries[11].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[12].id": {
+          "response": "156",
+          "ground_truth": "155",
+          "score": 0.6666666666666667
+        },
+        "entries[12].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[12].title": {
+          "response": "\"Wahrheit der Geschichte. Geschichte der Wahrheit\"",
+          "ground_truth": "Christianisme et histoire",
+          "score": 0.3733333333333333
+        },
+        "entries[12].author[0].family": {
+          "response": "Dell",
+          "ground_truth": "Dani\u00e9lou",
+          "score": 0.33333333333333337
+        },
+        "entries[12].author[0].given": {
+          "response": "Stanley",
+          "ground_truth": "J.",
+          "score": 0.0
+        },
+        "entries[12].container_title": {
+          "response": "Amerikanische Rundschau",
+          "ground_truth": "Etudes",
+          "score": 0.2068965517241379
+        },
+        "entries[12].volume": {
+          "response": "III",
+          "ground_truth": "CCLIV",
+          "score": 0.25
+        },
+        "entries[12].page": {
+          "response": "44-53",
+          "ground_truth": "166-184",
+          "score": 0.16666666666666663
+        },
+        "entries[12].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[13].id": {
+          "response": "157",
+          "ground_truth": "156",
+          "score": 0.6666666666666667
+        },
+        "entries[13].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[13].title": {
+          "response": "\"The Idea of Progress\"",
+          "ground_truth": "Wahrheit der Geschichte. Geschichte der Wahrheit",
+          "score": 0.2857142857142857
+        },
+        "entries[13].author[0].family": {
+          "response": "Fay",
+          "ground_truth": "Dell",
+          "score": 0.0
+        },
+        "entries[13].author[0].given": {
+          "response": "Sidney B.",
+          "ground_truth": "Stanley",
+          "score": 0.5
+        },
+        "entries[13].container_title": {
+          "response": "American Historical Review",
+          "ground_truth": "Amerikanische Rundschau",
+          "score": 0.4897959183673469
+        },
+        "entries[13].volume": {
+          "response": "LII",
+          "ground_truth": "III",
+          "score": 0.6666666666666667
+        },
+        "entries[13].page": {
+          "response": "231-246",
+          "ground_truth": "44-53",
+          "score": 0.16666666666666663
+        },
+        "entries[13].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[14].id": {
+          "response": "158",
+          "ground_truth": "157",
+          "score": 0.6666666666666667
+        },
+        "entries[14].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[14].title": {
+          "response": "\"Th\u00e9ologie et histoire\"",
+          "ground_truth": "The Idea of Progress",
+          "score": 0.41860465116279066
+        },
+        "entries[14].author[0].family": {
+          "response": "Fessard",
+          "ground_truth": "Fay",
+          "score": 0.4
+        },
+        "entries[14].author[0].given": {
+          "response": "Gaston",
+          "ground_truth": "Sidney B.",
+          "score": 0.1333333333333333
+        },
+        "entries[14].container_title": {
+          "response": "Dieu vivant",
+          "ground_truth": "American Historical Review",
+          "score": 0.2702702702702703
+        },
+        "entries[14].volume": {
+          "response": "VIII",
+          "ground_truth": "LII",
+          "score": 0.5714285714285714
+        },
+        "entries[14].page": {
+          "response": "39-65",
+          "ground_truth": "231-246",
+          "score": 0.5
+        },
+        "entries[14].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[15].id": {
+          "response": "159",
+          "ground_truth": "158",
+          "score": 0.6666666666666667
+        },
+        "entries[15].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[15].title": {
+          "response": "\"Acton, Creighton, and Lea: a Study in History and Ethics\"",
+          "ground_truth": "Th\u00e9ologie et histoire",
+          "score": 0.2784810126582279
+        },
+        "entries[15].author[0].family": {
+          "response": "Fish",
+          "ground_truth": "Fessard",
+          "score": 0.36363636363636365
+        },
+        "entries[15].author[0].given": {
+          "response": "Andrew",
+          "ground_truth": "Gaston",
+          "score": 0.16666666666666663
+        },
+        "entries[15].container_title": {
+          "response": "Pacific Historical Review",
+          "ground_truth": "Dieu vivant",
+          "score": 0.2222222222222222
+        },
+        "entries[15].volume": {
+          "response": "XVI",
+          "ground_truth": "VIII",
+          "score": 0.5714285714285714
+        },
+        "entries[15].page": {
+          "response": "59-69",
+          "ground_truth": "39-65",
+          "score": 0.6
+        },
+        "entries[15].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[16].id": {
+          "response": "160",
+          "ground_truth": "159",
+          "score": 0.33333333333333337
+        },
+        "entries[16].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[16].title": {
+          "response": "\"Le conscience historique en Italie\"",
+          "ground_truth": "Acton, Creighton, and Lea: a Study in History and Ethics",
+          "score": 0.3695652173913043
+        },
+        "entries[16].author[0].family": {
+          "response": "Garosci",
+          "ground_truth": "Fish",
+          "score": 0.18181818181818177
+        },
+        "entries[16].author[0].given": {
+          "response": "A.",
+          "ground_truth": "Andrew",
+          "score": 0.25
+        },
+        "entries[16].container_title": {
+          "response": "Les temps modernes",
+          "ground_truth": "Pacific Historical Review",
+          "score": 0.23255813953488372
+        },
+        "entries[16].volume": {
+          "response": "III",
+          "ground_truth": "XVI",
+          "score": 0.33333333333333337
+        },
+        "entries[16].page": {
+          "response": "23-24",
+          "ground_truth": "59-69",
+          "score": 0.19999999999999996
+        },
+        "entries[16].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        },
+        "entries[17].id": {
+          "response": null,
+          "ground_truth": "160",
+          "score": 0.0
+        },
+        "entries[17].type": {
+          "response": null,
+          "ground_truth": "journal-article",
+          "score": 0.0
+        },
+        "entries[17].title": {
+          "response": null,
+          "ground_truth": "Le conscience historique en Italie",
+          "score": 0.0
+        },
+        "entries[17].author[0].family": {
+          "response": null,
+          "ground_truth": "Garosci",
+          "score": 0.0
+        },
+        "entries[17].author[0].given": {
+          "response": null,
+          "ground_truth": "A.",
+          "score": 0.0
+        },
+        "entries[17].container_title": {
+          "response": null,
+          "ground_truth": "Les temps modernes",
+          "score": 0.0
+        },
+        "entries[17].volume": {
+          "response": null,
+          "ground_truth": "III",
+          "score": 0.0
+        },
+        "entries[17].page": {
+          "response": null,
+          "ground_truth": "23-24",
+          "score": 0.0
+        },
+        "entries[17].issued": {
+          "response": null,
+          "ground_truth": 1947,
+          "score": 0.0
+        }
+      }
+    },
+    {
+      "id": "page_2",
+      "fold": 1,
+      "fuzzy": 0.898,
+      "total_keys": 124,
+      "field_scores": {
+        "entries[0].id": {
+          "response": "1",
+          "ground_truth": "1",
+          "score": 1.0
+        },
+        "entries[0].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[0].title": {
+          "response": "Time as Dimension and History",
+          "ground_truth": "Time as Dimension and History",
+          "score": 1.0
+        },
+        "entries[0].author[0].family": {
+          "response": "Alexander",
+          "ground_truth": "Alexander",
+          "score": 1.0
+        },
+        "entries[0].author[0].given": {
+          "response": "Hubert G.",
+          "ground_truth": "Hubert G.",
+          "score": 1.0
+        },
+        "entries[0].publisher": {
+          "response": "University of New Mexico Press",
+          "ground_truth": "University of New Mexico Press",
+          "score": 1.0
+        },
+        "entries[0].publisher_place": {
+          "response": "Albuquerque",
+          "ground_truth": "Albuquerque",
+          "score": 1.0
+        },
+        "entries[0].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[1].id": {
+          "response": "2",
+          "ground_truth": "2",
+          "score": 1.0
+        },
+        "entries[1].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[1].title": {
+          "response": "Wahrheit und Ideologie",
+          "ground_truth": "Wahrheit und Ideologie",
+          "score": 1.0
+        },
+        "entries[1].author[0].family": {
+          "response": "Barth",
+          "ground_truth": "Barth",
+          "score": 1.0
+        },
+        "entries[1].author[0].given": {
+          "response": "Hans",
+          "ground_truth": "Hans",
+          "score": 1.0
+        },
+        "entries[1].publisher": {
+          "response": "Manesse",
+          "ground_truth": "Manesse",
+          "score": 1.0
+        },
+        "entries[1].publisher_place": {
+          "response": "Z\u00fcrich",
+          "ground_truth": "Z\u00fcrich",
+          "score": 1.0
+        },
+        "entries[1].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[2].id": {
+          "response": "3",
+          "ground_truth": "3",
+          "score": 1.0
+        },
+        "entries[2].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[2].title": {
+          "response": "Las generaciones en la historia",
+          "ground_truth": "Las generaciones en la historia",
+          "score": 1.0
+        },
+        "entries[2].author[0].family": {
+          "response": "Entralyo La\u00edn",
+          "ground_truth": "Entralyo La\u00edn",
+          "score": 1.0
+        },
+        "entries[2].author[0].given": {
+          "response": "Pedro",
+          "ground_truth": "Pedro",
+          "score": 1.0
+        },
+        "entries[2].publisher": {
+          "response": "Instituto de estudios pol\u00edticos",
+          "ground_truth": "Instituto de estudios pol\u00edticos",
+          "score": 1.0
+        },
+        "entries[2].publisher_place": {
+          "response": "Madrid",
+          "ground_truth": "Madrid",
+          "score": 1.0
+        },
+        "entries[2].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[3].id": {
+          "response": "4",
+          "ground_truth": "4",
+          "score": 1.0
+        },
+        "entries[3].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[3].title": {
+          "response": "Cuatro visiones de la historia universal",
+          "ground_truth": "Cuatro visiones de la historia universal",
+          "score": 1.0
+        },
+        "entries[3].author[0].family": {
+          "response": "Ferrater Mora",
+          "ground_truth": "Ferrater Mora",
+          "score": 1.0
+        },
+        "entries[3].author[0].given": {
+          "response": "Jos\u00e9",
+          "ground_truth": "Jos\u00e9",
+          "score": 1.0
+        },
+        "entries[3].publisher": {
+          "response": "Editorial Losada",
+          "ground_truth": "Editorial Losada",
+          "score": 1.0
+        },
+        "entries[3].publisher_place": {
+          "response": "Buenos Aires",
+          "ground_truth": "Buenos Aires",
+          "score": 1.0
+        },
+        "entries[3].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[4].id": {
+          "response": "5",
+          "ground_truth": "5",
+          "score": 1.0
+        },
+        "entries[4].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[4].title": {
+          "response": "The Use of Personal Documents in History, Anthropology, and Sociology",
+          "ground_truth": "The Use of Personal Documents in History, Anthropology, and Sociology",
+          "score": 1.0
+        },
+        "entries[4].author[0].family": {
+          "response": "Gottschalk",
+          "ground_truth": "Gottschalk",
+          "score": 1.0
+        },
+        "entries[4].author[0].given": {
+          "response": "L.",
+          "ground_truth": "L.",
+          "score": 1.0
+        },
+        "entries[4].author[1].family": {
+          "response": "Kluckhohn",
+          "ground_truth": "Kluckhohn",
+          "score": 1.0
+        },
+        "entries[4].author[1].given": {
+          "response": "C.",
+          "ground_truth": "C.",
+          "score": 1.0
+        },
+        "entries[4].author[2].family": {
+          "response": "Angell",
+          "ground_truth": "Angell",
+          "score": 1.0
+        },
+        "entries[4].author[2].given": {
+          "response": "R.",
+          "ground_truth": "R.",
+          "score": 1.0
+        },
+        "entries[4].publisher": {
+          "response": "Social Science Research Council, Bulletin 53",
+          "ground_truth": "Social Science Research Council",
+          "score": 0.8266666666666667
+        },
+        "entries[4].publisher_place": {
+          "response": "New York",
+          "ground_truth": "New York",
+          "score": 1.0
+        },
+        "entries[4].note": {
+          "response": null,
+          "ground_truth": "Published as Bulletin 53 by the SSRC",
+          "score": 0.0
+        },
+        "entries[4].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[5].id": {
+          "response": "6",
+          "ground_truth": "6",
+          "score": 1.0
+        },
+        "entries[5].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[5].title": {
+          "response": "The American Journal of Sociology LII (1946), 156-157",
+          "ground_truth": "Review of The Use of Personal Documents in History, Anthropology, and Sociology",
+          "score": 0.36363636363636365
+        },
+        "entries[5].author[0].family": {
+          "response": "Lapiere",
+          "ground_truth": "Lapiere",
+          "score": 1.0
+        },
+        "entries[5].author[0].given": {
+          "response": "R. T.",
+          "ground_truth": "R. T.",
+          "score": 1.0
+        },
+        "entries[5].container_title": {
+          "response": "The American Journal of Sociology",
+          "ground_truth": "The American Journal of Sociology",
+          "score": 1.0
+        },
+        "entries[5].volume": {
+          "response": "LII",
+          "ground_truth": "LII",
+          "score": 1.0
+        },
+        "entries[5].issued": {
+          "response": "1946",
+          "ground_truth": 1946,
+          "score": 1.0
+        },
+        "entries[5].relation.reviewed": {
+          "response": null,
+          "ground_truth": "5",
+          "score": 0.0
+        },
+        "entries[6].id": {
+          "response": "7",
+          "ground_truth": "7",
+          "score": 1.0
+        },
+        "entries[6].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[6].title": {
+          "response": "El problema de la historia y su lugar en el conocimiento",
+          "ground_truth": "El problema de la historia y su lugar en el conocimiento",
+          "score": 1.0
+        },
+        "entries[6].author[0].family": {
+          "response": "Jasinowski",
+          "ground_truth": "Jasinowski",
+          "score": 1.0
+        },
+        "entries[6].author[0].given": {
+          "response": "Bogumil",
+          "ground_truth": "Bogumil",
+          "score": 1.0
+        },
+        "entries[6].publisher": {
+          "response": "Universidad de Chile",
+          "ground_truth": "Universidad de Chile",
+          "score": 1.0
+        },
+        "entries[6].publisher_place": {
+          "response": "Santiago, Chile",
+          "ground_truth": "Santiago, Chile",
+          "score": 1.0
+        },
+        "entries[6].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[7].id": {
+          "response": "8",
+          "ground_truth": "8",
+          "score": 1.0
+        },
+        "entries[7].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[7].title": {
+          "response": "Revue philosophique CXL (1950), 528",
+          "ground_truth": "Review of El problema de la historia y su lugar en el conocimiento",
+          "score": 0.29702970297029707
+        },
+        "entries[7].container_title": {
+          "response": "Revue philosophique",
+          "ground_truth": "Revue philosophique",
+          "score": 1.0
+        },
+        "entries[7].volume": {
+          "response": "CXL",
+          "ground_truth": "CXL",
+          "score": 1.0
+        },
+        "entries[7].page": {
+          "response": "528",
+          "ground_truth": "528",
+          "score": 1.0
+        },
+        "entries[7].issued": {
+          "response": "1950",
+          "ground_truth": 1950,
+          "score": 1.0
+        },
+        "entries[7].relation.reviewed": {
+          "response": null,
+          "ground_truth": "7",
+          "score": 0.0
+        },
+        "entries[8].id": {
+          "response": "9",
+          "ground_truth": "9",
+          "score": 1.0
+        },
+        "entries[8].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[8].title": {
+          "response": "Man the Measure: a New Approach to History",
+          "ground_truth": "Man the Measure: a New Approach to History",
+          "score": 1.0
+        },
+        "entries[8].author[0].family": {
+          "response": "Kahler",
+          "ground_truth": "Kahler",
+          "score": 1.0
+        },
+        "entries[8].author[0].given": {
+          "response": "Erich",
+          "ground_truth": "Erich",
+          "score": 1.0
+        },
+        "entries[8].edition": {
+          "response": "2nd ed.",
+          "ground_truth": "2",
+          "score": 0.25
+        },
+        "entries[8].publisher": {
+          "response": "Jonathan Cape",
+          "ground_truth": "Jonathan Cape",
+          "score": 1.0
+        },
+        "entries[8].publisher_place": {
+          "response": "London",
+          "ground_truth": "London",
+          "score": 1.0
+        },
+        "entries[8].issued": {
+          "response": "1943",
+          "ground_truth": 1945,
+          "score": 0.75
+        },
+        "entries[8].note": {
+          "response": null,
+          "ground_truth": "First edition published in 1943 by Pantheon, New York",
+          "score": 0.0
+        },
+        "entries[9].id": {
+          "response": "10",
+          "ground_truth": "10",
+          "score": 1.0
+        },
+        "entries[9].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[9].title": {
+          "response": "The Flight from Reason",
+          "ground_truth": "The Flight from Reason",
+          "score": 1.0
+        },
+        "entries[9].author[0].family": {
+          "response": "Savelle",
+          "ground_truth": "Savelle",
+          "score": 1.0
+        },
+        "entries[9].author[0].given": {
+          "response": "Max",
+          "ground_truth": "Max",
+          "score": 1.0
+        },
+        "entries[9].container_title": {
+          "response": "Journal of Modern History",
+          "ground_truth": "Journal of Modern History",
+          "score": 1.0
+        },
+        "entries[9].volume": {
+          "response": "XVII",
+          "ground_truth": "XVII",
+          "score": 1.0
+        },
+        "entries[9].page": {
+          "response": "153-162",
+          "ground_truth": "153-162",
+          "score": 1.0
+        },
+        "entries[9].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[9].relation.reviewed": {
+          "response": null,
+          "ground_truth": "9",
+          "score": 0.0
+        },
+        "entries[10].id": {
+          "response": "11",
+          "ground_truth": "11",
+          "score": 1.0
+        },
+        "entries[10].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[10].title": {
+          "response": "The Social Interpretation of History",
+          "ground_truth": "The Social Interpretation of History",
+          "score": 1.0
+        },
+        "entries[10].author[0].family": {
+          "response": "Maurice",
+          "ground_truth": "Maurice",
+          "score": 1.0
+        },
+        "entries[10].author[0].given": {
+          "response": "William",
+          "ground_truth": "William",
+          "score": 1.0
+        },
+        "entries[10].publisher": {
+          "response": "Scribner",
+          "ground_truth": "Scribner",
+          "score": 1.0
+        },
+        "entries[10].publisher_place": {
+          "response": "New York",
+          "ground_truth": "New York",
+          "score": 1.0
+        },
+        "entries[10].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[11].id": {
+          "response": "12",
+          "ground_truth": "12",
+          "score": 1.0
+        },
+        "entries[11].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[11].title": {
+          "response": "The Open Society and Its Enemies, 2 vols.",
+          "ground_truth": "The Open Society and Its Enemies",
+          "score": 0.8767123287671232
+        },
+        "entries[11].author[0].family": {
+          "response": "Popper",
+          "ground_truth": "Popper",
+          "score": 1.0
+        },
+        "entries[11].author[0].given": {
+          "response": "Karl",
+          "ground_truth": "Karl",
+          "score": 1.0
+        },
+        "entries[11].publisher": {
+          "response": "Routledge",
+          "ground_truth": "Routledge",
+          "score": 1.0
+        },
+        "entries[11].publisher_place": {
+          "response": "London",
+          "ground_truth": "London",
+          "score": 1.0
+        },
+        "entries[11].note": {
+          "response": null,
+          "ground_truth": "Consists of two volumes. Revised edition published in 1950 in Princeton, Princeton University Press",
+          "score": 0.0
+        },
+        "entries[11].issued": {
+          "response": "1950",
+          "ground_truth": 1945,
+          "score": 0.75
+        },
+        "entries[12].id": {
+          "response": "13",
+          "ground_truth": "13",
+          "score": 1.0
+        },
+        "entries[12].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[12].title": {
+          "response": "Journal of Philosophy XLIV (1947), 459-479",
+          "ground_truth": "Review of The Open Society and Its Enemies",
+          "score": 0.23809523809523814
+        },
+        "entries[12].author[0].family": {
+          "response": "Aiken",
+          "ground_truth": "Aiken",
+          "score": 1.0
+        },
+        "entries[12].author[0].given": {
+          "response": "H. D.",
+          "ground_truth": "H. D.",
+          "score": 1.0
+        },
+        "entries[12].container_title": {
+          "response": "Journal of Philosophy",
+          "ground_truth": "Journal of Philosophy",
+          "score": 1.0
+        },
+        "entries[12].volume": {
+          "response": "XLIV",
+          "ground_truth": "XLIV",
+          "score": 1.0
+        },
+        "entries[12].page": {
+          "response": "459-479",
+          "ground_truth": "459-479",
+          "score": 1.0
+        },
+        "entries[12].issued": {
+          "response": "1947",
+          "ground_truth": 1947,
+          "score": 1.0
+        },
+        "entries[12].relation.reviewed": {
+          "response": null,
+          "ground_truth": "12",
+          "score": 0.0
+        },
+        "entries[13].id": {
+          "response": "14",
+          "ground_truth": "14",
+          "score": 1.0
+        },
+        "entries[13].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[13].title": {
+          "response": "The Social Scientist in the 'Open Society'",
+          "ground_truth": "The Social Scientist in the 'Open Society'",
+          "score": 1.0
+        },
+        "entries[13].author[0].family": {
+          "response": "Bock",
+          "ground_truth": "Bock",
+          "score": 1.0
+        },
+        "entries[13].author[0].given": {
+          "response": "Kenneth E.",
+          "ground_truth": "Kenneth E.",
+          "score": 1.0
+        },
+        "entries[13].relation.reviewed": {
+          "response": null,
+          "ground_truth": "12",
+          "score": 0.0
+        },
+        "entries[13].incomplete": {
+          "response": null,
+          "ground_truth": true,
+          "score": 0.0
+        }
+      }
+    },
+    {
+      "id": "page_3",
+      "fold": 2,
+      "fuzzy": 0.3923,
+      "total_keys": 166,
+      "field_scores": {
+        "entries[0].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[0].container_title": {
+          "response": "British Journal of Sociology",
+          "ground_truth": "American Journal of Economics and Sociology",
+          "score": 0.6478873239436621
+        },
+        "entries[0].issued": {
+          "response": "1952",
+          "ground_truth": 1951,
+          "score": 0.75
+        },
+        "entries[0].volume": {
+          "response": "III",
+          "ground_truth": "X",
+          "score": 0.0
+        },
+        "entries[0].page": {
+          "response": "264-273",
+          "ground_truth": "211-219",
+          "score": 0.4285714285714286
+        },
+        "entries[0].incomplete": {
+          "response": null,
+          "ground_truth": true,
+          "score": 0.0
+        },
+        "entries[1].id": {
+          "response": "16",
+          "ground_truth": "15",
+          "score": 0.5
+        },
+        "entries[1].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[1].title": {
+          "response": "The Open Society - a Comment",
+          "ground_truth": "The Open Society and Its Enemies",
+          "score": 0.7
+        },
+        "entries[1].author[0].family": {
+          "response": "Gombrich",
+          "ground_truth": "Plamenatz",
+          "score": 0.11764705882352944
+        },
+        "entries[1].author[0].given": {
+          "response": "E. H.",
+          "ground_truth": "J.",
+          "score": 0.2857142857142857
+        },
+        "entries[1].container_title": {
+          "response": "British Journal of Sociology",
+          "ground_truth": "British Journal of Sociology",
+          "score": 1.0
+        },
+        "entries[1].volume": {
+          "response": "III",
+          "ground_truth": "III",
+          "score": 1.0
+        },
+        "entries[1].page": {
+          "response": "358-360",
+          "ground_truth": "264-273",
+          "score": 0.2857142857142857
+        },
+        "entries[1].issued": {
+          "response": "1952",
+          "ground_truth": 1952,
+          "score": 1.0
+        },
+        "entries[2].id": {
+          "response": "17",
+          "ground_truth": "16",
+          "score": 0.5
+        },
+        "entries[2].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[2].title": {
+          "response": "The Open Society - a Rejoinder",
+          "ground_truth": "The Open Society \u2013 a comment",
+          "score": 0.7586206896551724
+        },
+        "entries[2].author[0].family": {
+          "response": "Plamenatz",
+          "ground_truth": "Gombrich",
+          "score": 0.11764705882352944
+        },
+        "entries[2].author[0].given": {
+          "response": "J.",
+          "ground_truth": "E.H.",
+          "score": 0.33333333333333337
+        },
+        "entries[2].container_title": {
+          "response": "British Journal of Sociology",
+          "ground_truth": "British Journal of Sociology",
+          "score": 1.0
+        },
+        "entries[2].volume": {
+          "response": "IV",
+          "ground_truth": "III",
+          "score": 0.4
+        },
+        "entries[2].page": {
+          "response": "76-77",
+          "ground_truth": "355-360",
+          "score": 0.16666666666666663
+        },
+        "entries[2].issued": {
+          "response": "1953",
+          "ground_truth": 1952,
+          "score": 0.75
+        },
+        "entries[2].relation.reviewed": {
+          "response": null,
+          "ground_truth": "15",
+          "score": 0.0
+        },
+        "entries[3].id": {
+          "response": "18",
+          "ground_truth": "17",
+          "score": 0.5
+        },
+        "entries[3].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[3].title": {
+          "response": "The Open Society: a Reconsideration",
+          "ground_truth": "The Open Society \u2013 a Rejoinder",
+          "score": 0.8
+        },
+        "entries[3].author[0].family": {
+          "response": "Cobban",
+          "ground_truth": "Plamenatz",
+          "score": 0.2666666666666667
+        },
+        "entries[3].author[0].given": {
+          "response": "Alfred",
+          "ground_truth": "J.",
+          "score": 0.0
+        },
+        "entries[3].container_title": {
+          "response": "Political Science Quarterly",
+          "ground_truth": "British Journal of Sociology",
+          "score": 0.4
+        },
+        "entries[3].volume": {
+          "response": "LXIX",
+          "ground_truth": "VI",
+          "score": 0.33333333333333337
+        },
+        "entries[3].page": {
+          "response": "119-126",
+          "ground_truth": "76-77",
+          "score": 0.16666666666666663
+        },
+        "entries[3].issued": {
+          "response": "1954",
+          "ground_truth": 1953,
+          "score": 0.75
+        },
+        "entries[4].id": {
+          "response": "19",
+          "ground_truth": "18",
+          "score": 0.5
+        },
+        "entries[4].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[4].title": {
+          "response": "Has History a Meaning?",
+          "ground_truth": "The Open Society: a Reconsideration",
+          "score": 0.38596491228070173
+        },
+        "entries[4].author[0].family": {
+          "response": "Bernal",
+          "ground_truth": "Cobban",
+          "score": 0.16666666666666663
+        },
+        "entries[4].author[0].given": {
+          "response": "J. D.",
+          "ground_truth": "Alfred",
+          "score": 0.0
+        },
+        "entries[4].container_title": {
+          "response": "British Journal for the Philosophy of Science",
+          "ground_truth": "Political Science Quarterly",
+          "score": 0.36111111111111116
+        },
+        "entries[4].volume": {
+          "response": "VI",
+          "ground_truth": "LXIX",
+          "score": 0.33333333333333337
+        },
+        "entries[4].page": {
+          "response": "164-169",
+          "ground_truth": "119-126",
+          "score": 0.5714285714285714
+        },
+        "entries[4].issued": {
+          "response": "1955",
+          "ground_truth": 1955,
+          "score": 1.0
+        },
+        "entries[5].id": {
+          "response": "20",
+          "ground_truth": "19",
+          "score": 0.0
+        },
+        "entries[5].type": {
+          "response": "book",
+          "ground_truth": "journal-article",
+          "score": 0.10526315789473684
+        },
+        "entries[5].title": {
+          "response": "War and History",
+          "ground_truth": "Has History a Meaning?",
+          "score": 0.4864864864864865
+        },
+        "entries[5].author[0].family": {
+          "response": "Sumner",
+          "ground_truth": "Bernal",
+          "score": 0.33333333333333337
+        },
+        "entries[5].author[0].given": {
+          "response": "B. H.",
+          "ground_truth": "J.D.",
+          "score": 0.4444444444444444
+        },
+        "entries[5].container_title": {
+          "response": null,
+          "ground_truth": "British Journal for the Philosophy of Science",
+          "score": 0.0
+        },
+        "entries[5].volume": {
+          "response": null,
+          "ground_truth": "VI",
+          "score": 0.0
+        },
+        "entries[5].page": {
+          "response": null,
+          "ground_truth": "164-169",
+          "score": 0.0
+        },
+        "entries[5].issued": {
+          "response": "1945",
+          "ground_truth": 1955,
+          "score": 0.75
+        },
+        "entries[6].id": {
+          "response": "21",
+          "ground_truth": "20",
+          "score": 0.5
+        },
+        "entries[6].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[6].title": {
+          "response": "The Philosophy of American History, 2 vols.",
+          "ground_truth": "War and History",
+          "score": 0.3793103448275862
+        },
+        "entries[6].author[0].family": {
+          "response": "Zucker",
+          "ground_truth": "Sumner",
+          "score": 0.5
+        },
+        "entries[6].author[0].given": {
+          "response": "Morris",
+          "ground_truth": "B.H.",
+          "score": 0.0
+        },
+        "entries[6].publisher": {
+          "response": "Arnold and Howard",
+          "ground_truth": "Oliver and Boyd",
+          "score": 0.5
+        },
+        "entries[6].publisher_place": {
+          "response": "New York",
+          "ground_truth": "Edinburgh",
+          "score": 0.11764705882352944
+        },
+        "entries[7].id": {
+          "response": "22",
+          "ground_truth": "21",
+          "score": 0.5
+        },
+        "entries[7].type": {
+          "response": "journal-article",
+          "ground_truth": "book",
+          "score": 0.10526315789473684
+        },
+        "entries[7].title": {
+          "response": "History as a Liberal Art",
+          "ground_truth": "The Philosophy of American History",
+          "score": 0.3793103448275862
+        },
+        "entries[7].author[0].family": {
+          "response": "Barzun",
+          "ground_truth": "Zucker",
+          "score": 0.16666666666666663
+        },
+        "entries[7].author[0].given": {
+          "response": "Jacques",
+          "ground_truth": "Morris",
+          "score": 0.15384615384615385
+        },
+        "entries[7].publisher": {
+          "response": null,
+          "ground_truth": "Arnold and Howard",
+          "score": 0.0
+        },
+        "entries[7].publisher_place": {
+          "response": null,
+          "ground_truth": "New York",
+          "score": 0.0
+        },
+        "entries[7].note": {
+          "response": null,
+          "ground_truth": "2 vols.",
+          "score": 0.0
+        },
+        "entries[7].issued": {
+          "response": "1945",
+          "ground_truth": 1945,
+          "score": 1.0
+        },
+        "entries[8].id": {
+          "response": "23",
+          "ground_truth": "22",
+          "score": 0.5
+        },
+        "entries[8].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[8].title": {
+          "response": "The Study of Contemporary History: Some Further Reflections",
+          "ground_truth": "History as a Liberal Art",
+          "score": 0.3132530120481928
+        },
+        "entries[8].author[0].family": {
+          "response": "Beloff",
+          "ground_truth": "Barzun",
+          "score": 0.16666666666666663
+        },
+        "entries[8].author[0].given": {
+          "response": "Max",
+          "ground_truth": "Jacques",
+          "score": 0.19999999999999996
+        },
+        "entries[8].container_title": {
+          "response": "History N. S.",
+          "ground_truth": "Journal of the History of Ideas",
+          "score": 0.40909090909090906
+        },
+        "entries[8].volume": {
+          "response": "XXX",
+          "ground_truth": "VI",
+          "score": 0.0
+        },
+        "entries[8].page": {
+          "response": "75-84",
+          "ground_truth": "81-88",
+          "score": 0.4
+        },
+        "entries[9].id": {
+          "response": "24",
+          "ground_truth": "23",
+          "score": 0.5
+        },
+        "entries[9].type": {
+          "response": "other",
+          "ground_truth": "journal-article",
+          "score": 0.30000000000000004
+        },
+        "entries[9].title": {
+          "response": "Appunti sullo 'storicismo'",
+          "ground_truth": "The Study of Contemporary History: Some Further Reflections",
+          "score": 0.2823529411764706
+        },
+        "entries[9].author[0].family": {
+          "response": "Cantimori",
+          "ground_truth": "Beloff",
+          "score": 0.1333333333333333
+        },
+        "entries[9].author[0].given": {
+          "response": "Delio",
+          "ground_truth": "Max",
+          "score": 0.0
+        },
+        "entries[9].container_title": {
+          "response": null,
+          "ground_truth": "History N.S.",
+          "score": 0.0
+        },
+        "entries[9].volume": {
+          "response": "I",
+          "ground_truth": "XXX",
+          "score": 0.0
+        },
+        "entries[9].page": {
+          "response": "1-45",
+          "ground_truth": "75-84",
+          "score": 0.4444444444444444
+        },
+        "entries[10].id": {
+          "response": "25",
+          "ground_truth": "24",
+          "score": 0.5
+        },
+        "entries[10].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[10].title": {
+          "response": "The Meaning of History",
+          "ground_truth": "Appunti sullo 'storicismo'",
+          "score": 0.375
+        },
+        "entries[10].author[0].family": {
+          "response": "Coulborn",
+          "ground_truth": "Cantimori",
+          "score": 0.3529411764705882
+        },
+        "entries[10].author[0].given": {
+          "response": "Rushton",
+          "ground_truth": "Delio",
+          "score": 0.16666666666666663
+        },
+        "entries[10].container_title": {
+          "response": "Ethics",
+          "ground_truth": "Societ\u00e0",
+          "score": 0.15384615384615385
+        },
+        "entries[10].volume": {
+          "response": "LV",
+          "ground_truth": "I",
+          "score": 0.0
+        },
+        "entries[10].page": {
+          "response": "46-63",
+          "ground_truth": "1-45",
+          "score": 0.2222222222222222
+        },
+        "entries[10].note": {
+          "response": null,
+          "ground_truth": "(Reprinted in D.Cantimori, Studi di storia, Torino: Einaudi, 1959, 1-45)",
+          "score": 0.0
+        },
+        "entries[11].id": {
+          "response": "26",
+          "ground_truth": "25",
+          "score": 0.5
+        },
+        "entries[11].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[11].title": {
+          "response": "History - a Science?",
+          "ground_truth": "The Meaning of History",
+          "score": 0.33333333333333337
+        },
+        "entries[11].author[0].family": {
+          "response": "Gould",
+          "ground_truth": "Coulborn",
+          "score": 0.4615384615384615
+        },
+        "entries[11].author[0].given": {
+          "response": "Clarence P.",
+          "ground_truth": "Rushton",
+          "score": 0.11111111111111116
+        },
+        "entries[11].container_title": {
+          "response": "Mississippi Valley Historical Review",
+          "ground_truth": "Ethics",
+          "score": 0.1428571428571429
+        },
+        "entries[11].volume": {
+          "response": "XXXII",
+          "ground_truth": "LV",
+          "score": 0.0
+        },
+        "entries[11].page": {
+          "response": "375-388",
+          "ground_truth": "46-63",
+          "score": 0.33333333333333337
+        },
+        "entries[12].id": {
+          "response": "27",
+          "ground_truth": "26",
+          "score": 0.5
+        },
+        "entries[12].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[12].title": {
+          "response": "Generality and Singularity in Historical Judgment",
+          "ground_truth": "History - a Science?",
+          "score": 0.3188405797101449
+        },
+        "entries[12].author[0].family": {
+          "response": "Hofstadter",
+          "ground_truth": "Gould",
+          "score": 0.2666666666666667
+        },
+        "entries[12].author[0].given": {
+          "response": "A.",
+          "ground_truth": "Clarance P.",
+          "score": 0.15384615384615385
+        },
+        "entries[12].container_title": {
+          "response": "Journal of Philosophy",
+          "ground_truth": "Mississippi Valley Historical Review",
+          "score": 0.21052631578947367
+        },
+        "entries[12].volume": {
+          "response": "XLII",
+          "ground_truth": "XXXII",
+          "score": 0.6666666666666667
+        },
+        "entries[12].page": {
+          "response": "57-65",
+          "ground_truth": "375-388",
+          "score": 0.33333333333333337
+        },
+        "entries[13].id": {
+          "response": "28",
+          "ground_truth": "27",
+          "score": 0.5
+        },
+        "entries[13].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[13].title": {
+          "response": "Les nouvelles conceptions de l'histoire",
+          "ground_truth": "Generality and Singularity in Historical Judgement",
+          "score": 0.35955056179775285
+        },
+        "entries[13].author[0].family": {
+          "response": "Lenoble",
+          "ground_truth": "Hifstadter",
+          "score": 0.11764705882352944
+        },
+        "entries[13].author[0].given": {
+          "response": "R.",
+          "ground_truth": "A.",
+          "score": 0.5
+        },
+        "entries[13].container_title": {
+          "response": "Revue philosophique",
+          "ground_truth": "Journal of Philosophy",
+          "score": 0.5
+        },
+        "entries[13].volume": {
+          "response": "CXXXV",
+          "ground_truth": "XLII",
+          "score": 0.2222222222222222
+        },
+        "entries[13].page": {
+          "response": "193-208, 324-348",
+          "ground_truth": "57-65",
+          "score": 0.09523809523809523
+        },
+        "entries[14].id": {
+          "response": "29",
+          "ground_truth": "28",
+          "score": 0.5
+        },
+        "entries[14].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[14].title": {
+          "response": "In History or Beyond History",
+          "ground_truth": "Les nouvelles conceptions de l'histoire",
+          "score": 0.417910447761194
+        },
+        "entries[14].author[0].family": {
+          "response": "McCown",
+          "ground_truth": "Lenoble",
+          "score": 0.15384615384615385
+        },
+        "entries[14].author[0].given": {
+          "response": "C. C.",
+          "ground_truth": "R.",
+          "score": 0.2857142857142857
+        },
+        "entries[14].container_title": {
+          "response": "Harvard Theological Review",
+          "ground_truth": "Revue philosophique",
+          "score": 0.3111111111111111
+        },
+        "entries[14].volume": {
+          "response": "XXXVIII",
+          "ground_truth": "CXXXV",
+          "score": 0.6666666666666667
+        },
+        "entries[14].page": {
+          "response": "151-175",
+          "ground_truth": "193-208, 324-348",
+          "score": 0.17391304347826086
+        },
+        "entries[15].id": {
+          "response": "30",
+          "ground_truth": "29",
+          "score": 0.0
+        },
+        "entries[15].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[15].title": {
+          "response": "History and the Social Science Research Council",
+          "ground_truth": "In History or Beyond History",
+          "score": 0.4
+        },
+        "entries[15].author[0].family": {
+          "response": "Nichols",
+          "ground_truth": "McCown",
+          "score": 0.3076923076923077
+        },
+        "entries[15].author[0].given": {
+          "response": "Roy F.",
+          "ground_truth": "C.C",
+          "score": 0.2222222222222222
+        },
+        "entries[15].container_title": {
+          "response": "American Historical Review",
+          "ground_truth": "Harvard Theological Review",
+          "score": 0.5769230769230769
+        },
+        "entries[15].volume": {
+          "response": "L",
+          "ground_truth": "XXXVIII",
+          "score": 0.0
+        },
+        "entries[15].page": {
+          "response": "491-499",
+          "ground_truth": "151-175",
+          "score": 0.2857142857142857
+        },
+        "entries[16].id": {
+          "response": "31",
+          "ground_truth": "30",
+          "score": 0.5
+        },
+        "entries[16].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[16].title": {
+          "response": "The Poverty of Historicism. Part III",
+          "ground_truth": "History and the Social Science Research Council",
+          "score": 0.3373493975903614
+        },
+        "entries[16].author[0].family": {
+          "response": "Popper",
+          "ground_truth": "Nichols",
+          "score": 0.15384615384615385
+        },
+        "entries[16].author[0].given": {
+          "response": "Karl",
+          "ground_truth": "Roy F.",
+          "score": 0.0
+        },
+        "entries[16].container_title": {
+          "response": "Economica",
+          "ground_truth": "American Historical Review",
+          "score": 0.34285714285714286
+        },
+        "entries[16].volume": {
+          "response": "XII",
+          "ground_truth": "L",
+          "score": 0.0
+        },
+        "entries[16].page": {
+          "response": "69-89",
+          "ground_truth": "491-499",
+          "score": 0.5
+        },
+        "entries[17].id": {
+          "response": "32",
+          "ground_truth": "31",
+          "score": 0.5
+        },
+        "entries[17].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[17].title": {
+          "response": "History and the Historian",
+          "ground_truth": "The Poverty of Historicism, Part III",
+          "score": 0.42622950819672134
+        },
+        "entries[17].author[0].family": {
+          "response": "Weiss",
+          "ground_truth": "Popper",
+          "score": 0.18181818181818177
+        },
+        "entries[17].author[0].given": {
+          "response": "Paul",
+          "ground_truth": "Karl",
+          "score": 0.5
+        },
+        "entries[17].container_title": {
+          "response": "Journal of Philosophy",
+          "ground_truth": "Economica",
+          "score": 0.2666666666666667
+        },
+        "entries[17].volume": {
+          "response": "XLII",
+          "ground_truth": "XII",
+          "score": 0.8571428571428572
+        },
+        "entries[17].page": {
+          "response": "169-179",
+          "ground_truth": "69-89",
+          "score": 0.6666666666666667
+        },
+        "entries[17].note": {
+          "response": null,
+          "ground_truth": "(Part I and II appeared in 1944. Cf. also #1233)",
+          "score": 0.0
+        },
+        "entries[18].id": {
+          "response": "33",
+          "ground_truth": "32",
+          "score": 0.5
+        },
+        "entries[18].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[18].title": {
+          "response": "The Attack on the Historical Method",
+          "ground_truth": "History and the Historian",
+          "score": 0.5333333333333333
+        },
+        "entries[18].author[0].family": {
+          "response": "White",
+          "ground_truth": "Weiss",
+          "score": 0.4
+        },
+        "entries[18].author[0].given": {
+          "response": "Morton G.",
+          "ground_truth": "Paul",
+          "score": 0.0
+        },
+        "entries[18].container_title": {
+          "response": "Journal of Philosophy",
+          "ground_truth": "Journal of Philosphy",
+          "score": 0.975609756097561
+        },
+        "entries[18].volume": {
+          "response": "XLII",
+          "ground_truth": "XLII",
+          "score": 1.0
+        },
+        "entries[18].page": {
+          "response": "314-331",
+          "ground_truth": "169-179",
+          "score": 0.4285714285714286
+        },
+        "entries[19].id": {
+          "response": null,
+          "ground_truth": "33",
+          "score": 0.0
+        },
+        "entries[19].type": {
+          "response": null,
+          "ground_truth": "journal-article",
+          "score": 0.0
+        },
+        "entries[19].title": {
+          "response": null,
+          "ground_truth": "The Attack on the Historical Method",
+          "score": 0.0
+        },
+        "entries[19].author[0].family": {
+          "response": null,
+          "ground_truth": "White",
+          "score": 0.0
+        },
+        "entries[19].author[0].given": {
+          "response": null,
+          "ground_truth": "Morton G.",
+          "score": 0.0
+        },
+        "entries[19].container_title": {
+          "response": null,
+          "ground_truth": "Journal of Pholosophy",
+          "score": 0.0
+        },
+        "entries[19].volume": {
+          "response": null,
+          "ground_truth": "XLII",
+          "score": 0.0
+        },
+        "entries[19].page": {
+          "response": null,
+          "ground_truth": "314-331",
+          "score": 0.0
+        }
+      }
+    },
+    {
+      "id": "page_4",
+      "fold": 3,
+      "fuzzy": 0.8895,
+      "total_keys": 135,
+      "field_scores": {
+        "entries[0].id": {
+          "response": "34",
+          "ground_truth": "34",
+          "score": 1.0
+        },
+        "entries[0].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[0].title": {
+          "response": "Der Sinn der Geschichte",
+          "ground_truth": "Der Sinn der Geschichte",
+          "score": 1.0
+        },
+        "entries[0].author[0].family": {
+          "response": "Baeck",
+          "ground_truth": "Baeck",
+          "score": 1.0
+        },
+        "entries[0].author[0].given": {
+          "response": "Leo",
+          "ground_truth": "Leo",
+          "score": 1.0
+        },
+        "entries[0].publisher": {
+          "response": "Habel",
+          "ground_truth": "Habel",
+          "score": 1.0
+        },
+        "entries[0].publisher_place": {
+          "response": "Berlin",
+          "ground_truth": "Berlin",
+          "score": 1.0
+        },
+        "entries[1].id": {
+          "response": "35",
+          "ground_truth": "35",
+          "score": 1.0
+        },
+        "entries[1].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[1].title": {
+          "response": "The Art of Writing History",
+          "ground_truth": "The Art of Writing History",
+          "score": 1.0
+        },
+        "entries[1].author[0].family": {
+          "response": "Bryant",
+          "ground_truth": "Bryant",
+          "score": 1.0
+        },
+        "entries[1].author[0].given": {
+          "response": "Arthur",
+          "ground_truth": "Arthur",
+          "score": 1.0
+        },
+        "entries[1].publisher": {
+          "response": "Oxford University Press",
+          "ground_truth": "Oxford University Press",
+          "score": 1.0
+        },
+        "entries[1].publisher_place": {
+          "response": "Oxford",
+          "ground_truth": "Oxford",
+          "score": 1.0
+        },
+        "entries[2].id": {
+          "response": "36",
+          "ground_truth": "36",
+          "score": 1.0
+        },
+        "entries[2].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[2].title": {
+          "response": "Historia y destino",
+          "ground_truth": "Historia y destino",
+          "score": 1.0
+        },
+        "entries[2].author[0].family": {
+          "response": "Ca\u00f1al Barrachina",
+          "ground_truth": "Ca\u00f1al",
+          "score": 0.4761904761904761
+        },
+        "entries[2].author[0].given": {
+          "response": "Avelino",
+          "ground_truth": "Barrachina",
+          "score": 0.23529411764705888
+        },
+        "entries[2].publisher": {
+          "response": "Ucar, Garc\u00eda",
+          "ground_truth": "Ucar, Garcia",
+          "score": 0.9166666666666665
+        },
+        "entries[2].publisher_place": {
+          "response": "Havana",
+          "ground_truth": "Havanna",
+          "score": 0.923076923076923
+        },
+        "entries[3].id": {
+          "response": "37",
+          "ground_truth": "37",
+          "score": 1.0
+        },
+        "entries[3].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[3].title": {
+          "response": "The Idea of History",
+          "ground_truth": "The Idea of History",
+          "score": 1.0
+        },
+        "entries[3].author[0].family": {
+          "response": "Collingwood",
+          "ground_truth": "Collingwood",
+          "score": 1.0
+        },
+        "entries[3].author[0].given": {
+          "response": "R. G.",
+          "ground_truth": "R.G:",
+          "score": 0.6666666666666667
+        },
+        "entries[3].publisher": {
+          "response": "Clarendon",
+          "ground_truth": "Clarendon",
+          "score": 1.0
+        },
+        "entries[3].publisher_place": {
+          "response": "Oxford",
+          "ground_truth": "Ocford",
+          "score": 0.8333333333333335
+        },
+        "entries[3].note": {
+          "response": "(In German: Philosophie der Geschichte, trans. by Gertrud Herding, Stuttgart: Kohlhammer, 1955)",
+          "ground_truth": "In German: Philosophie der Geschichte, trans. by Gertrud Herding, Studdgart: Kohlhammer 1955",
+          "score": 0.9625668449197861
+        },
+        "entries[4].id": {
+          "response": "38",
+          "ground_truth": "38",
+          "score": 1.0
+        },
+        "entries[4].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[4].author[0].family": {
+          "response": "Webb",
+          "ground_truth": "Webb",
+          "score": 1.0
+        },
+        "entries[4].author[0].given": {
+          "response": "C. C. J.",
+          "ground_truth": "C.C.J",
+          "score": 0.7692307692307692
+        },
+        "entries[4].container_title": {
+          "response": "Hibbert Journal",
+          "ground_truth": "Hibbert Journal",
+          "score": 1.0
+        },
+        "entries[4].volume": {
+          "response": "XLV",
+          "ground_truth": "XLV",
+          "score": 1.0
+        },
+        "entries[4].page": {
+          "response": "83-86",
+          "ground_truth": "83-86",
+          "score": 1.0
+        },
+        "entries[4].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[5].id": {
+          "response": "39",
+          "ground_truth": "39",
+          "score": 1.0
+        },
+        "entries[5].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[5].title": {
+          "response": "Collingwood's Idea of History",
+          "ground_truth": "Collingwood's Idea of History",
+          "score": 1.0
+        },
+        "entries[5].author[0].family": {
+          "response": "Flenley",
+          "ground_truth": "Flenley",
+          "score": 1.0
+        },
+        "entries[5].author[0].given": {
+          "response": "R.",
+          "ground_truth": "R.",
+          "score": 1.0
+        },
+        "entries[5].container_title": {
+          "response": "Canadian Historical Review",
+          "ground_truth": "Canadian Historical Review",
+          "score": 1.0
+        },
+        "entries[5].volume": {
+          "response": "XXVIII",
+          "ground_truth": "XXVII",
+          "score": 0.9090909090909091
+        },
+        "entries[5].issued": {
+          "response": "1947",
+          "ground_truth": 1947,
+          "score": 1.0
+        },
+        "entries[5].page": {
+          "response": "68-72",
+          "ground_truth": "68-72",
+          "score": 1.0
+        },
+        "entries[5].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[6].id": {
+          "response": "40",
+          "ground_truth": "40",
+          "score": 1.0
+        },
+        "entries[6].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[6].author[0].family": {
+          "response": "Mandelbaum",
+          "ground_truth": "Mandelbaum",
+          "score": 1.0
+        },
+        "entries[6].author[0].given": {
+          "response": "M.",
+          "ground_truth": "M.",
+          "score": 1.0
+        },
+        "entries[6].container_title": {
+          "response": "Journal of Philosophy",
+          "ground_truth": "Journal of Philosophy",
+          "score": 1.0
+        },
+        "entries[6].volume": {
+          "response": "XLIV",
+          "ground_truth": "LVIV",
+          "score": 0.75
+        },
+        "entries[6].issued": {
+          "response": "1947",
+          "ground_truth": 1947,
+          "score": 1.0
+        },
+        "entries[6].page": {
+          "response": "184-188",
+          "ground_truth": "184-188",
+          "score": 1.0
+        },
+        "entries[6].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[7].id": {
+          "response": "41",
+          "ground_truth": "41",
+          "score": 1.0
+        },
+        "entries[7].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[7].author[0].family": {
+          "response": "Murphy",
+          "ground_truth": "Murphy",
+          "score": 1.0
+        },
+        "entries[7].author[0].given": {
+          "response": "A. E.",
+          "ground_truth": "A.E.",
+          "score": 0.8888888888888888
+        },
+        "entries[7].container_title": {
+          "response": "Philosophical Review",
+          "ground_truth": "Philosophical Review",
+          "score": 1.0
+        },
+        "entries[7].volume": {
+          "response": "LVI",
+          "ground_truth": "LVI",
+          "score": 1.0
+        },
+        "entries[7].issued": {
+          "response": "1947",
+          "ground_truth": 1947,
+          "score": 1.0
+        },
+        "entries[7].page": {
+          "response": "587-592",
+          "ground_truth": "587-592",
+          "score": 1.0
+        },
+        "entries[7].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[8].id": {
+          "response": "42",
+          "ground_truth": "42",
+          "score": 1.0
+        },
+        "entries[8].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[8].title": {
+          "response": "Discussion: R. G. Collingwood's Philosophy of History",
+          "ground_truth": "Discussion: R. G. Collingwood's Philosophy of History",
+          "score": 1.0
+        },
+        "entries[8].author[0].family": {
+          "response": "Walsh",
+          "ground_truth": "Walsh",
+          "score": 1.0
+        },
+        "entries[8].author[0].given": {
+          "response": "W. H.",
+          "ground_truth": "W.H.",
+          "score": 0.8888888888888888
+        },
+        "entries[8].container_title": {
+          "response": "Philosophy",
+          "ground_truth": "Philosophy",
+          "score": 1.0
+        },
+        "entries[8].volume": {
+          "response": "XXII",
+          "ground_truth": "XXII",
+          "score": 1.0
+        },
+        "entries[8].issued": {
+          "response": "1947",
+          "ground_truth": 1947,
+          "score": 1.0
+        },
+        "entries[8].page": {
+          "response": "153-160",
+          "ground_truth": "153-160",
+          "score": 1.0
+        },
+        "entries[8].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[9].id": {
+          "response": "43",
+          "ground_truth": "43",
+          "score": 1.0
+        },
+        "entries[9].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[9].title": {
+          "response": "Logic and History",
+          "ground_truth": "Logic and History",
+          "score": 1.0
+        },
+        "entries[9].author[0].family": {
+          "response": "Buchdahl",
+          "ground_truth": "Buchdahl",
+          "score": 1.0
+        },
+        "entries[9].author[0].given": {
+          "response": "G.",
+          "ground_truth": "G.",
+          "score": 1.0
+        },
+        "entries[9].container_title": {
+          "response": "Australasian Journal of Philosophy",
+          "ground_truth": "Australasian Journal of Philosophy",
+          "score": 1.0
+        },
+        "entries[9].volume": {
+          "response": "XXVI",
+          "ground_truth": "XXVI",
+          "score": 1.0
+        },
+        "entries[9].issued": {
+          "response": "1948",
+          "ground_truth": 1948,
+          "score": 1.0
+        },
+        "entries[9].page": {
+          "response": "94-114",
+          "ground_truth": "94-114",
+          "score": 1.0
+        },
+        "entries[9].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[10].id": {
+          "response": "44",
+          "ground_truth": "44",
+          "score": 1.0
+        },
+        "entries[10].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[10].title": {
+          "response": "On Collingwood's Philosophy of History",
+          "ground_truth": "On Collingwood's Philosophy of History",
+          "score": 1.0
+        },
+        "entries[10].author[0].family": {
+          "response": "Strauss",
+          "ground_truth": "Strauss",
+          "score": 1.0
+        },
+        "entries[10].author[0].given": {
+          "response": "Leo",
+          "ground_truth": "Leo",
+          "score": 1.0
+        },
+        "entries[10].container_title": {
+          "response": "Review of Metaphysics",
+          "ground_truth": "Review of Metaphysics",
+          "score": 1.0
+        },
+        "entries[10].volume": {
+          "response": "V",
+          "ground_truth": "XXIIV",
+          "score": 0.33333333333333337
+        },
+        "entries[10].issued": {
+          "response": "1952",
+          "ground_truth": 1952,
+          "score": 1.0
+        },
+        "entries[10].page": {
+          "response": "559-586",
+          "ground_truth": "559-586",
+          "score": 1.0
+        },
+        "entries[10].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[11].id": {
+          "response": "45",
+          "ground_truth": "45",
+          "score": 1.0
+        },
+        "entries[11].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[11].title": {
+          "response": "The 'Objects' of Historical Knowledge",
+          "ground_truth": "The 'Objects' of Historical Knowledge",
+          "score": 1.0
+        },
+        "entries[11].author[0].family": {
+          "response": "Gardiner",
+          "ground_truth": "Gardiner",
+          "score": 1.0
+        },
+        "entries[11].author[0].given": {
+          "response": "P. L.",
+          "ground_truth": "P.L.",
+          "score": 0.8888888888888888
+        },
+        "entries[11].container_title": {
+          "response": "Philosophy",
+          "ground_truth": "Philosophy",
+          "score": 1.0
+        },
+        "entries[11].volume": {
+          "response": "XXVII",
+          "ground_truth": "XXVII",
+          "score": 1.0
+        },
+        "entries[11].issued": {
+          "response": "1952",
+          "ground_truth": 1952,
+          "score": 1.0
+        },
+        "entries[11].page": {
+          "response": "211-220",
+          "ground_truth": "211-220",
+          "score": 1.0
+        },
+        "entries[11].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[12].id": {
+          "response": "46",
+          "ground_truth": "46",
+          "score": 1.0
+        },
+        "entries[12].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[12].title": {
+          "response": "Collingwood's Idea of History",
+          "ground_truth": "Collingwood's Idea of History",
+          "score": 1.0
+        },
+        "entries[12].author[0].family": {
+          "response": "Harris",
+          "ground_truth": "Harris",
+          "score": 1.0
+        },
+        "entries[12].author[0].given": {
+          "response": "R. W.",
+          "ground_truth": "R.W.",
+          "score": 0.8888888888888888
+        },
+        "entries[12].container_title": {
+          "response": "History N. S.",
+          "ground_truth": "History N. S.",
+          "score": 1.0
+        },
+        "entries[12].volume": {
+          "response": "XXXVII",
+          "ground_truth": "XXXVII",
+          "score": 1.0
+        },
+        "entries[12].issued": {
+          "response": "1952",
+          "ground_truth": 1952,
+          "score": 1.0
+        },
+        "entries[12].page": {
+          "response": "1-7",
+          "ground_truth": "1-7",
+          "score": 1.0
+        },
+        "entries[12].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[13].id": {
+          "response": "47",
+          "ground_truth": "47",
+          "score": 1.0
+        },
+        "entries[13].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[13].title": {
+          "response": "Metaphysics, History, and Civilization: Collingwood's Account of Their Interrelationship",
+          "ground_truth": "Metaphysics, History and Civilization: Collingwood's Account of Their Interrelationship",
+          "score": 0.9942857142857143
+        },
+        "entries[13].author[0].family": {
+          "response": "Hartt",
+          "ground_truth": "Hartt",
+          "score": 1.0
+        },
+        "entries[13].author[0].given": {
+          "response": "J. N.",
+          "ground_truth": "J.N.",
+          "score": 0.8888888888888888
+        },
+        "entries[13].container_title": {
+          "response": "Journal of Religion",
+          "ground_truth": "Journal of Religion",
+          "score": 1.0
+        },
+        "entries[13].volume": {
+          "response": "XXXIII",
+          "ground_truth": "XXXIII",
+          "score": 1.0
+        },
+        "entries[13].issued": {
+          "response": "1953",
+          "ground_truth": 1953,
+          "score": 1.0
+        },
+        "entries[13].page": {
+          "response": "198-211",
+          "ground_truth": "198-211",
+          "score": 1.0
+        },
+        "entries[13].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[14].id": {
+          "response": "48",
+          "ground_truth": "48",
+          "score": 1.0
+        },
+        "entries[14].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[14].title": {
+          "response": "Collingwood and the Idea of History",
+          "ground_truth": "Collingwood and the Idea of History",
+          "score": 1.0
+        },
+        "entries[14].author[0].family": {
+          "response": "Schneider",
+          "ground_truth": "Schneider",
+          "score": 1.0
+        },
+        "entries[14].author[0].given": {
+          "response": "Frederick D.",
+          "ground_truth": "Frederick D.",
+          "score": 1.0
+        },
+        "entries[14].container_title": {
+          "response": "University of Toronto Quarterly",
+          "ground_truth": "University of Toronto Quarterly",
+          "score": 1.0
+        },
+        "entries[14].volume": {
+          "response": "XXII",
+          "ground_truth": "XXII",
+          "score": 1.0
+        },
+        "entries[14].issued": {
+          "response": "1952-53",
+          "ground_truth": "1952-1953",
+          "score": 0.875
+        },
+        "entries[14].page": {
+          "response": "172-183",
+          "ground_truth": "172-183",
+          "score": 1.0
+        },
+        "entries[14].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        }
+      }
+    },
+    {
+      "id": "page_5",
+      "fold": 4,
+      "fuzzy": 0.9111,
+      "total_keys": 117,
+      "field_scores": {
+        "entries[0].id": {
+          "response": "49",
+          "ground_truth": "49",
+          "score": 1.0
+        },
+        "entries[0].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[0].author[0].family": {
+          "response": "Schlenke",
+          "ground_truth": "Schlenke",
+          "score": 1.0
+        },
+        "entries[0].author[0].given": {
+          "response": "Manfred",
+          "ground_truth": "Manfred",
+          "score": 1.0
+        },
+        "entries[0].container_title": {
+          "response": "CLXXXIV",
+          "ground_truth": "Historische Zeitschrift",
+          "score": 0.0
+        },
+        "entries[0].volume": {
+          "response": "CLXXXIV",
+          "ground_truth": "CLXXXIV",
+          "score": 1.0
+        },
+        "entries[0].issued": {
+          "response": "1957",
+          "ground_truth": 1957,
+          "score": 1.0
+        },
+        "entries[0].page": {
+          "response": "594-597",
+          "ground_truth": "594-597",
+          "score": 1.0
+        },
+        "entries[0].relation.reviewed": {
+          "response": null,
+          "ground_truth": "37",
+          "score": 0.0
+        },
+        "entries[0].note": {
+          "response": "[Review of the German translation]",
+          "ground_truth": "[Review of the German translation]",
+          "score": 1.0
+        },
+        "entries[1].id": {
+          "response": "50",
+          "ground_truth": "50",
+          "score": 1.0
+        },
+        "entries[1].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[1].title": {
+          "response": "Introduzione allo studio della storia",
+          "ground_truth": "Introduzione allo studio della storia",
+          "score": 1.0
+        },
+        "entries[1].author[0].family": {
+          "response": "Cusin",
+          "ground_truth": "Cusin",
+          "score": 1.0
+        },
+        "entries[1].author[0].given": {
+          "response": "Fabio",
+          "ground_truth": "Fabio",
+          "score": 1.0
+        },
+        "entries[1].publisher": {
+          "response": "Cedam",
+          "ground_truth": "Cedam",
+          "score": 1.0
+        },
+        "entries[1].publisher_place": {
+          "response": "Padova",
+          "ground_truth": "Padova",
+          "score": 1.0
+        },
+        "entries[2].id": {
+          "response": "51",
+          "ground_truth": "51",
+          "score": 1.0
+        },
+        "entries[2].type": {
+          "response": "journal-article",
+          "ground_truth": "book",
+          "score": 0.10526315789473684
+        },
+        "entries[2].title": {
+          "response": "Sophia I",
+          "ground_truth": "Sophia I",
+          "score": 1.0
+        },
+        "entries[2].author[0].family": {
+          "response": "Cafaro",
+          "ground_truth": "Cafaro",
+          "score": 1.0
+        },
+        "entries[2].author[0].given": {
+          "response": "F.",
+          "ground_truth": "F.",
+          "score": 1.0
+        },
+        "entries[2].issued": {
+          "response": "1947",
+          "ground_truth": 1947,
+          "score": 1.0
+        },
+        "entries[2].relation.reviewed": {
+          "response": null,
+          "ground_truth": "50",
+          "score": 0.0
+        },
+        "entries[3].id": {
+          "response": "52",
+          "ground_truth": "52",
+          "score": 1.0
+        },
+        "entries[3].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[3].title": {
+          "response": "L'histoire, science du concret",
+          "ground_truth": "L'histoir, science du concret",
+          "score": 0.9830508474576272
+        },
+        "entries[3].author[0].family": {
+          "response": "Dardel",
+          "ground_truth": "Dardel",
+          "score": 1.0
+        },
+        "entries[3].author[0].given": {
+          "response": "Eric",
+          "ground_truth": "Eric",
+          "score": 1.0
+        },
+        "entries[3].publisher": {
+          "response": "Presses Universitaires de France",
+          "ground_truth": "Presses Universitaires de France",
+          "score": 1.0
+        },
+        "entries[3].publisher_place": {
+          "response": "Paris",
+          "ground_truth": "Paris",
+          "score": 1.0
+        },
+        "entries[4].id": {
+          "response": "53",
+          "ground_truth": "53",
+          "score": 1.0
+        },
+        "entries[4].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[4].title": {
+          "response": "Historical Change",
+          "ground_truth": "Historical Changes",
+          "score": 0.9714285714285714
+        },
+        "entries[4].author[0].family": {
+          "response": "Einstein",
+          "ground_truth": "Einstein",
+          "score": 1.0
+        },
+        "entries[4].author[0].given": {
+          "response": "Lewis",
+          "ground_truth": "Lewis",
+          "score": 1.0
+        },
+        "entries[4].publisher": {
+          "response": "Cambridge University Press",
+          "ground_truth": "Cambridge University Press",
+          "score": 1.0
+        },
+        "entries[4].publisher_place": {
+          "response": "Cambridge",
+          "ground_truth": "Cambridge",
+          "score": 1.0
+        },
+        "entries[5].id": {
+          "response": "54",
+          "ground_truth": "54",
+          "score": 1.0
+        },
+        "entries[5].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[5].title": {
+          "response": "The Place of War in History",
+          "ground_truth": "The Place of War in History",
+          "score": 1.0
+        },
+        "entries[5].author[0].family": {
+          "response": "Falls",
+          "ground_truth": "Falls",
+          "score": 1.0
+        },
+        "entries[5].author[0].given": {
+          "response": "Cyril",
+          "ground_truth": "Cyril",
+          "score": 1.0
+        },
+        "entries[5].publisher": {
+          "response": "Clarendon",
+          "ground_truth": "Clarendon",
+          "score": 1.0
+        },
+        "entries[5].publisher_place": {
+          "response": "Oxford",
+          "ground_truth": "Oxford",
+          "score": 1.0
+        },
+        "entries[6].id": {
+          "response": "55",
+          "ground_truth": "55",
+          "score": 1.0
+        },
+        "entries[6].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[6].title": {
+          "response": "A Guide to Historical Method",
+          "ground_truth": "A Guide to Historcal Method",
+          "score": 0.9818181818181819
+        },
+        "entries[6].author[0].family": {
+          "response": "Garraghan",
+          "ground_truth": "Garraghan",
+          "score": 1.0
+        },
+        "entries[6].author[0].given": {
+          "response": "Gilbert J.",
+          "ground_truth": "Gilbert J.",
+          "score": 1.0
+        },
+        "entries[6].editor[0].family": {
+          "response": null,
+          "ground_truth": "Delanglez",
+          "score": 0.0
+        },
+        "entries[6].editor[0].given": {
+          "response": null,
+          "ground_truth": " Jean",
+          "score": 0.0
+        },
+        "entries[6].publisher": {
+          "response": "Fordham University Press",
+          "ground_truth": "Fordham University Press",
+          "score": 1.0
+        },
+        "entries[6].publisher_place": {
+          "response": "New York",
+          "ground_truth": "New York",
+          "score": 1.0
+        },
+        "entries[7].id": {
+          "response": "56",
+          "ground_truth": "56",
+          "score": 1.0
+        },
+        "entries[7].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[7].title": {
+          "response": "Le\u00e7ons sur la philosophie de l'histoire",
+          "ground_truth": "Le\u00e7ons sur la philosophie de l'histoire",
+          "score": 1.0
+        },
+        "entries[7].author[0].family": {
+          "response": "Gibelin",
+          "ground_truth": "Gibelin",
+          "score": 1.0
+        },
+        "entries[7].author[0].given": {
+          "response": "J.",
+          "ground_truth": "J.",
+          "score": 1.0
+        },
+        "entries[7].publisher": {
+          "response": "Vrin",
+          "ground_truth": "Vrin",
+          "score": 1.0
+        },
+        "entries[7].publisher_place": {
+          "response": "Paris",
+          "ground_truth": "Paris",
+          "score": 1.0
+        },
+        "entries[8].id": {
+          "response": "57",
+          "ground_truth": "57",
+          "score": 1.0
+        },
+        "entries[8].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[8].title": {
+          "response": "Bilan de l'histoire",
+          "ground_truth": "Bilan de l'histoire",
+          "score": 1.0
+        },
+        "entries[8].author[0].family": {
+          "response": "Grousset",
+          "ground_truth": "Grousset",
+          "score": 1.0
+        },
+        "entries[8].author[0].given": {
+          "response": "Ren\u00e9",
+          "ground_truth": "Ren\u00e9",
+          "score": 1.0
+        },
+        "entries[8].publisher": {
+          "response": "Plon",
+          "ground_truth": "Plon",
+          "score": 1.0
+        },
+        "entries[8].publisher_place": {
+          "response": "Paris",
+          "ground_truth": "Paris",
+          "score": 1.0
+        },
+        "entries[9].id": {
+          "response": "58",
+          "ground_truth": "58",
+          "score": 1.0
+        },
+        "entries[9].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[9].title": {
+          "response": "Introduction \u00e0 l'histoire",
+          "ground_truth": "Introduction \u00e0 l'histoire",
+          "score": 1.0
+        },
+        "entries[9].author[0].family": {
+          "response": "Halphen",
+          "ground_truth": "Halphen",
+          "score": 1.0
+        },
+        "entries[9].author[0].given": {
+          "response": "Louis",
+          "ground_truth": "Louis",
+          "score": 1.0
+        },
+        "entries[9].publisher": {
+          "response": "Presses Universitaires de France",
+          "ground_truth": "Presses Universitaires de France",
+          "score": 1.0
+        },
+        "entries[9].publisher_place": {
+          "response": "Paris",
+          "ground_truth": "Paris",
+          "score": 1.0
+        },
+        "entries[10].id": {
+          "response": "59",
+          "ground_truth": "59",
+          "score": 1.0
+        },
+        "entries[10].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[10].title": {
+          "response": "\"Sur une forme d'histoire qui n'est pas la n\u00f4tre\"",
+          "ground_truth": "Sur une forme d'histoire qui n'est pas la n\u00f4tre",
+          "score": 0.9791666666666665
+        },
+        "entries[10].author[0].family": {
+          "response": "Febvre",
+          "ground_truth": "Febvre",
+          "score": 1.0
+        },
+        "entries[10].author[0].given": {
+          "response": "Lucien",
+          "ground_truth": "Lucien",
+          "score": 1.0
+        },
+        "entries[10].container_title": {
+          "response": "Annales: Economies-soci\u00e9t\u00e9s-civilisations",
+          "ground_truth": "Annales: Economies-soci\u00e9t\u00e9s-civilisations",
+          "score": 1.0
+        },
+        "entries[10].volume": {
+          "response": "III",
+          "ground_truth": "III",
+          "score": 1.0
+        },
+        "entries[10].page": {
+          "response": "21-24*",
+          "ground_truth": "21-24",
+          "score": 0.9090909090909091
+        },
+        "entries[10].relation.reviewed": {
+          "response": null,
+          "ground_truth": "58",
+          "score": 0.0
+        },
+        "entries[10].note": {
+          "response": null,
+          "ground_truth": "Annales: Economies-soci\u00e9t\u00e9s-civilisations will be cited hereafter as Annales.",
+          "score": 0.0
+        },
+        "entries[11].id": {
+          "response": "60",
+          "ground_truth": "60",
+          "score": 1.0
+        },
+        "entries[11].type": {
+          "response": "journal-article",
+          "ground_truth": "journal-article",
+          "score": 1.0
+        },
+        "entries[11].title": {
+          "response": "\"Avenir de l'histoire\"",
+          "ground_truth": "Avenir de l'histoire",
+          "score": 0.9523809523809522
+        },
+        "entries[11].author[0].family": {
+          "response": "Lefebvre",
+          "ground_truth": "Lefebvre",
+          "score": 1.0
+        },
+        "entries[11].author[0].given": {
+          "response": "Georges",
+          "ground_truth": "Georges",
+          "score": 1.0
+        },
+        "entries[11].container_title": {
+          "response": "Revue historique",
+          "ground_truth": "Revue historique",
+          "score": 1.0
+        },
+        "entries[11].volume": {
+          "response": "CXCVII",
+          "ground_truth": "CXCII",
+          "score": 0.9090909090909091
+        },
+        "entries[11].page": {
+          "response": "55-61",
+          "ground_truth": "55-61",
+          "score": 1.0
+        },
+        "entries[11].issued": {
+          "response": "1947",
+          "ground_truth": 1947,
+          "score": 1.0
+        },
+        "entries[11].relation.reviewed": {
+          "response": null,
+          "ground_truth": "58",
+          "score": 0.0
+        },
+        "entries[12].id": {
+          "response": "61",
+          "ground_truth": "61",
+          "score": 1.0
+        },
+        "entries[12].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[12].title": {
+          "response": "Hoe bepaalt de geschiedenis het heden? Een niet gehouden rede",
+          "ground_truth": "Hoe bepaalt de geschiedenis het heden? Een niet gehouden rede",
+          "score": 1.0
+        },
+        "entries[12].author[0].family": {
+          "response": "Huizinga",
+          "ground_truth": "Huizinga",
+          "score": 1.0
+        },
+        "entries[12].author[0].given": {
+          "response": "J.",
+          "ground_truth": "J.",
+          "score": 1.0
+        },
+        "entries[12].publisher": {
+          "response": "Tjeenk Willink",
+          "ground_truth": "Tjeenk Wilink",
+          "score": 0.962962962962963
+        },
+        "entries[12].publisher_place": {
+          "response": "Haarlem",
+          "ground_truth": "Haarlem",
+          "score": 1.0
+        },
+        "entries[13].id": {
+          "response": "62",
+          "ground_truth": "62",
+          "score": 1.0
+        },
+        "entries[13].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[13].title": {
+          "response": "De mensch en de beschaving",
+          "ground_truth": "De mensch en de beschaving",
+          "score": 1.0
+        },
+        "entries[13].author[0].family": {
+          "response": "Huizinga",
+          "ground_truth": "Huizinga",
+          "score": 1.0
+        },
+        "entries[13].author[0].given": {
+          "response": "J.",
+          "ground_truth": "J.",
+          "score": 1.0
+        },
+        "entries[13].publisher": {
+          "response": "Pantheon",
+          "ground_truth": "Pantheon",
+          "score": 1.0
+        },
+        "entries[13].publisher_place": {
+          "response": "Amsterdam, Antwerpen",
+          "ground_truth": "Amsterdam, Antwerpen",
+          "score": 1.0
+        },
+        "entries[14].id": {
+          "response": "63",
+          "ground_truth": "63",
+          "score": 1.0
+        },
+        "entries[14].type": {
+          "response": "book",
+          "ground_truth": "book",
+          "score": 1.0
+        },
+        "entries[14].title": {
+          "response": "Historische Meditationen, 2 vols.",
+          "ground_truth": "Historische Meditationen",
+          "score": 0.8421052631578947
+        },
+        "entries[14].author[0].family": {
+          "response": "Kaegi",
+          "ground_truth": "Kaegi",
+          "score": 1.0
+        },
+        "entries[14].author[0].given": {
+          "response": "W.",
+          "ground_truth": "W.",
+          "score": 1.0
+        },
+        "entries[14].publisher": {
+          "response": "Fritz und Washmuth",
+          "ground_truth": "Fritz und Washmuth",
+          "score": 1.0
+        },
+        "entries[14].publisher_place": {
+          "response": "Z\u00fcrich",
+          "ground_truth": "Z\u00fcrich",
+          "score": 1.0
+        },
+        "entries[14].note": {
+          "response": null,
+          "ground_truth": "2 vols",
+          "score": 0.0
+        }
+      }
+    }
+  ]
+}

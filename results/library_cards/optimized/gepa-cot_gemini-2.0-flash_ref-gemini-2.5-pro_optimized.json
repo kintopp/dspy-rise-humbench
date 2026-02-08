@@ -1,0 +1,32 @@
+{
+  "predict.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Extract structured bibliographic data from a scanned Swiss library catalog card image.",
+      "fields": [
+        {
+          "prefix": "Card Image:",
+          "description": "Scanned image of a library catalog card"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Document:",
+          "description": "A JSON object with the extracted bibliographic data from the library card image.\nThe JSON must follow this exact schema:\n{\n  \"type\": {\"type\": \"Dissertation or thesis\" OR \"Reference\"},\n  \"author\": {\"last_name\": \"string\", \"first_name\": \"string\"},\n  \"publication\": {\n    \"title\": \"string\",\n    \"year\": \"string\",\n    \"place\": \"string or null\",\n    \"pages\": \"string or null\",\n    \"publisher\": \"string or null\",\n    \"format\": \"string or null\",\n    \"editor\": \"string or null\"\n  },\n  \"library_reference\": {\n    \"shelfmark\": \"string or null\",\n    \"subjects\": \"string or null\"\n  }\n}\n\nRules:\n- If the card contains \"s.\" on a separate line, type is \"Reference\"; otherwise \"Dissertation or thesis\".\n- Use null for missing optional fields.\n- Remove \" S.\" suffix from pages values.\n- Format is usually \"8°\", \"8'\" or \"4°\".\n- Shelfmark often begins with \"Diss.\" or \"AT\".\n"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

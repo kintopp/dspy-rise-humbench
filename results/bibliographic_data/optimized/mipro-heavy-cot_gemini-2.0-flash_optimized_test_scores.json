@@ -1,0 +1,24 @@
+{
+  "benchmark": "bibliographic_data",
+  "program": "results/bibliographic_data/optimized/mipro-heavy-cot_gemini-2.0-flash_optimized.json",
+  "module_type": "cot",
+  "refine_n": 0,
+  "refine_reward": null,
+  "aggregate": {
+    "fuzzy": 0.7072,
+    "total_instances": 2,
+    "total_keys": 304
+  },
+  "per_image": [
+    {
+      "id": "page_5",
+      "fuzzy": 0.9126,
+      "total_keys": 117
+    },
+    {
+      "id": "page_10",
+      "fuzzy": 0.5018,
+      "total_keys": 187
+    }
+  ]
+}
