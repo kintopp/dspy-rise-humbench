@@ -27,8 +27,8 @@ was not versioned, entries are grouped by date.
   - Library Cards: **0.9167 f1_macro** (+1.5 pts)
   - Personnel Cards: **0.8894 f1_macro** (+0.4 pts)
   - Bibliographic Data: 0.7043 fuzzy (-0.3 pts, within noise)
-- Output JSON now includes `"refine_reward": "quality"|"binary"|null` provenance
-  key for distinguishing reward function types.
+- Output JSON now includes `"refine_reward": "quality"|null` provenance key
+  for distinguishing reward function types.
 - DSPy best practices analysis document (`docs/dspy-best-practices.md`).
 - Reflection model name now included in GEPA output filenames for traceability
   (e.g., `gepa-cot_gemini-2.0-flash_reflect-gemini-2.5-pro_optimized.json`).
