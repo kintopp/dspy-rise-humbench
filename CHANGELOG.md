@@ -58,6 +58,9 @@ was not versioned, entries are grouped by date.
   (`_F1_METRICS` constant).
 
 ### Changed
+- README: added `data_helpers.py` to project structure tree, updated
+  `scoring_helpers.py` description to mention shared F1 factories, fixed
+  `configure_lm` → `configure_dspy` in code example.
 - README: added Refine(3) rows to all benchmark result tables, new
   "Inference-time refinement (Refine)" subsection under Cross-Benchmark
   Findings, updated Combined Results table, revised Future Work.
