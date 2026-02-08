@@ -5,7 +5,7 @@ was not versioned, entries are grouped by date.
 
 ---
 
-## 2026-02-08 (code review triage)
+## 2026-02-08
 
 ### Fixed
 - **`filter_parent_keys` bracket notation**: now also checks `key + "["` in
