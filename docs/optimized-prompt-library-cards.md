@@ -56,6 +56,8 @@
 
 ### Demo 0 (augmented, with bootstrapped reasoning)
 
+![Library card: Usunoff, Nedeltscho — Die fremden Kapitalien in Bulgarien](figures/library-cards-demo0.jpg)
+
 **Reasoning:**
 
 > The card contains "S." on the same line as the page number, so the type is "Dissertation or thesis". The author's last name is "Usunoff" and first name is "Nedeltscho". The title is "Die fremden Kapitalien in Bulgarien". The year is 1927. The place is Berlin. The pages are 89. The publisher is Rentsch. The format is 8°. The shelfmark is U 28. 689.
@@ -83,6 +85,8 @@
 
 ### Demo 1 (ground truth, no reasoning)
 
+![Library card: Schuster, Heinz — Über die Radiumtherapie der Haemangioma cavernosa](figures/library-cards-demo1.jpg)
+
 **Document:**
 
 ```json
@@ -104,7 +108,7 @@
 }
 ```
 
-*(Each demo also includes the corresponding card image, embedded as base64 in the JSON program file.)*
+*(Images resized from originals for web viewing. Full-resolution scans are in `data/library_cards/images/`.)*
 
 ## Insights
 

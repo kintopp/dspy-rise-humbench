@@ -87,7 +87,11 @@
 
 ### Demo 0 (ground truth, no reasoning)
 
-A complete worked example of a bibliography page extraction with ~15 entries, showing the full JSON output structure. *(The demo includes the page image embedded as base64 and a 3,678-character JSON document with all entries fully populated.)*
+![Bibliography page: "Books" section, 1945 — 14 entries starting with Alexander, "Time as Dimension and History"](figures/bibliographic-data-demo0.jpg)
+
+A complete worked example of a bibliography page extraction with ~15 entries, showing the full JSON output structure including metadata, entry types, author arrays, cross-references, and page ranges.
+
+*(Image resized from original for web viewing. Full-resolution scan is in `data/bibliographic_data/images/`.)*
 
 ## Insights
 

@@ -51,6 +51,12 @@
 
 ### Demo 0 (augmented, with bootstrapped reasoning)
 
+| Page 1 | Page 2 | Page 3 |
+|--------|--------|--------|
+| ![Letter 12, page 1](figures/business-letters-demo0-p1.jpg) | ![Letter 12, page 2](figures/business-letters-demo0-p2.jpg) | ![Letter 12, page 3](figures/business-letters-demo0-p3.jpg) |
+
+*3-page letter from Basler Rheinschiffahrt-Aktiengesellschaft to Dr. Max Vischer, dated August 13, 1926, regarding the use of landing stages.*
+
 **Reasoning:**
 
 > The letter is from Basler Rheinschiffahrt-Aktiengesellschaft, dated August 13, 1926. The subject is the use of landing stages. The letter is addressed to Dr. Max Vischer. The letter is signed by Groschupf and J.A. Ritter. The letter mentions Werner Stauffacher.
@@ -69,6 +75,8 @@
 
 ### Demo 1 (ground truth, no reasoning)
 
+![Letter 60, page 1 — regarding Personenschiffahrt, dated December 19, 1932](figures/business-letters-demo1-p1.jpg)
+
 **Document:**
 
 ```json
@@ -81,7 +89,7 @@
 }
 ```
 
-*(Each demo also includes the corresponding letter page images, embedded as base64 in the JSON program file.)*
+*(Images resized from originals for web viewing. Full-resolution scans are in `data/business_letters/images/`.)*
 
 ## Insights
 

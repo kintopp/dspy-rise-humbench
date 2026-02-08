@@ -74,6 +74,8 @@
 
 ### Demo 0 (augmented, reasoning not bootstrapped)
 
+![Personnel card: 2-row card with "Hilfsleiterin" position, salary changes from 1944-1945](figures/personnel-cards-demo0.jpg)
+
 **Reasoning:**
 
 > Not supplied for this particular example.
@@ -82,9 +84,11 @@
 
 ### Demo 1 (ground truth, no reasoning)
 
+![Personnel card: 7-row card with multiple positions, salary classes, and date entries](figures/personnel-cards-demo1.jpg)
+
 **Document:** A 4,769-character JSON object from a different card with more rows and richer content — salary changes, date formats, ditto mark handling.
 
-*(Each demo also includes the corresponding card image, embedded as base64 in the JSON program file.)*
+*(Images resized from originals for web viewing. Full-resolution scans are in `data/personnel_cards/images/`.)*
 
 ## Insights
 
