@@ -173,7 +173,8 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     model_tag = args.model.replace("/", "_")
     module_tag = f"-{args.module}" if args.module != "predict" else ""
-    save_path = out_dir / f"{args.optimizer}{module_tag}_{model_tag}_optimized.json"
+    ref_tag = f"_ref-{args.reflection_model.replace('/', '_')}" if getattr(args, "reflection_model", None) else ""
+    save_path = out_dir / f"{args.optimizer}{module_tag}_{model_tag}{ref_tag}_optimized.json"
     optimized.save(str(save_path))
     logger.info(f"Optimized program saved to {save_path}")
 
