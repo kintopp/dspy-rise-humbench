@@ -5,6 +5,27 @@ was not versioned, entries are grouped by date.
 
 ---
 
+## 2026-02-08 (demo visualizations & docs)
+
+### Added
+- **Interactive demo visualizations** (`results/demo/`): self-contained HTML pages
+  for all 4 benchmarks with embedded base64 images, field-level GT vs prediction
+  diff views, and an index page linking them together.
+- **`scripts/generate_demo_data.py`**: runs optimizer predictions on selected test
+  images (5 per benchmark) and saves raw prediction JSON alongside ground truth
+  and scores.
+- **`scripts/generate_demo_html.py`**: generates the HTML demo pages from exported
+  data.
+- **Tracked `results/` and `data/` directories**: baseline scores, optimized
+  programs, test score JSONs, and data symlinks to the upstream benchmark repo
+  are now committed (previously gitignored).
+
+### Fixed
+- **README directory tree**: added missing `__init__.py` files, `results/demo/`
+  directory, and `generate_demo_data.py` / `generate_demo_html.py` scripts.
+
+---
+
 ## 2026-02-08
 
 ### Fixed
