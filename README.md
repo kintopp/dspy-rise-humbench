@@ -232,13 +232,24 @@ We ran the full experiment matrix on Flash — baselines, three optimizers, cros
 
 Cross-model transfer also worked: running the Pro-optimized program directly on Flash scored 0.8743 — only 1.7 points below the Pro result. But Flash-native optimization still beats transfer by +2.7 points, confirming that per-model optimization is worthwhile when the target model is cheap. The search budget was also critical: MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have stopped at a dev score of ~85.9.
 
-The different optimizers revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g. "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. GEPA's genetic-evolutionary approach was limited by using Flash as its own reflection model — the model struggled to diagnose its own failures.
+The different optimizers revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g. "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. GEPA's genetic-evolutionary approach scored near the unoptimized baseline — even when re-run with a stronger reflection model (Gemini 2.5 Pro) in Phase 3.
 
 #### Key findings
 
 - **Optimization is most impactful on cheaper models.** The uplift on Flash (+14.3 pts) far exceeds the uplift on Pro (+7.4 pts).
 - **Programs partially transfer across models.** Pro-optimized demos scored 0.8743 on Flash — only 1.7 pts below the Pro result, but per-model optimization beats transfer by +2.7 pts.
 - **Search budget matters.** MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have missed this configuration.
+
+#### Phase 3: GEPA with stronger reflection model
+
+GEPA medium-CoT was re-run with Gemini 2.5 Pro as the reflection model (23 iterations, ~885 metric calls). Despite generating detailed, domain-specific instructions — teaching the model rules about "Ref." meaning "Referent" (not editor), "S." meaning "Seiten" (pages), bracket handling for shelfmarks, and the "Aus:" exclusion — no single candidate instruction beat the base CoT program on the full dev set. The Pareto front across dev examples reached 0.896, meaning the best instruction *per example* would have scored well, but no instruction generalised across the diverse card formats.
+
+| Configuration | f1_macro | f1_micro | Precision | Recall |
+|---|---|---|---|---|
+| MIPROv2 medium (CoT) | **0.9017** | **0.9070** | 0.9083 | **0.9057** |
+| GEPA medium (CoT, Pro reflection) | 0.8147 | 0.8231 | 0.8701 | 0.7809 |
+
+The result confirms that Library Cards' diverse formats — typed vs. handwritten, German vs. French, dissertations vs. monographs vs. reference cards — require few-shot demonstrations to cover the task space. Instruction-only optimisation, no matter how detailed, cannot substitute for showing the model concrete examples of each card type.
 
 **A note on comparability.** The leaderboard scores are computed over all 263 images using a single hand-crafted prompt, whereas our 0.9017 is evaluated on a 70% held-out test set (185 images) that the optimizer never saw. MIPROv2 needs train and dev sets to select instructions and demos, so the test set must remain separate. Making the comparison rigorous would require repeated random splits (Monte Carlo cross-validation): re-running the full optimization pipeline with different 15/15/70 partitions and reporting the mean and confidence interval. Based on standard power analysis, 10–30 repetitions would likely be needed depending on the variance across splits at ~$3–4 per run.
 
@@ -264,7 +275,7 @@ With only 5 images, multi-entry extraction per page, and a continuous metric (no
 
 **Ground truth normalization.** Before experiments could produce meaningful results, two rounds of annotation normalization were required. Page 10 used CSL-JSON hyphenated keys (`publisher-place`, `container-title`) while pages 2-5 used underscored keys, and used different type values (`article-journal`, `chapter`) than the rest of the dataset (`journal-article`, `book`). Both were normalised at data load time.
 
-#### Phase 2: Optimizer comparison (2/1/2 split)
+#### Phase 1: Optimizer comparison (2/1/2 split)
 
 All configurations use Gemini 2.0 Flash with ChainOfThought. Test set: page_5 + page_10.
 
@@ -279,7 +290,7 @@ All configurations use Gemini 2.0 Flash with ChainOfThought. Test set: page_5 + 
 
 MIPROv2 delivered the only meaningful uplift (+4.1 to +4.3 points). SIMBA and GEPA barely improved — their self-reflection and feedback mechanisms need more diverse training examples than 2 images can provide. The heavy search budget (27 trials) yielded only +0.13 points over medium (18 trials), suggesting diminishing returns from broader search when validation is limited to a single image.
 
-#### Phase 3: Leave-one-out cross-validation
+#### Phase 2: Leave-one-out cross-validation
 
 To address the tiny dataset constraint, we ran MIPROv2 medium across 5 LOO folds (3 train / 1 dev / 1 test per fold), producing a score on every image without data leakage.
 
@@ -322,7 +333,7 @@ An ID-aware scoring approach — matching entries by their `id` field rather tha
 
 This benchmark presents a different challenge from Library Cards: the schema is deeply nested (each cell has `diplomatic_transcript`, `interpretation`, and `is_crossed_out` sub-fields), the number of rows per card varies, and handwritten entries from the 1940s include abbreviations, ditto marks, currency formatting, and crossed-out text. JSON parse failures — where the model produces malformed output — were the biggest drag on baseline scores.
 
-#### Results
+#### Phase 1: Optimizer comparison
 
 | Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
 |---|---|---|---|---|---|
@@ -332,11 +343,23 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 
 **MIPROv2 medium-CoT achieved 0.8858 f1_macro — a +25.6 point lift over the predict baseline.** The optimized program exceeds the previously reported leaderboard top (~79.0) by nearly 10 points.
 
+#### Phase 2: GEPA with stronger reflection model
+
+GEPA medium-CoT was run with Gemini 2.5 Pro as the reflection model (84 iterations, ~735 metric calls). The reflection model generated detailed instructions covering ditto marks, salary formatting, date inference rules, and abbreviation expansion — domain knowledge that emerged entirely from automated reflection on extraction errors.
+
+| Configuration | f1_macro | f1_micro | Precision | Recall |
+|---|---|---|---|---|
+| MIPROv2 medium (CoT) | **0.8858** | **0.9311** | **0.9485** | **0.9144** |
+| GEPA medium (CoT, Pro reflection) | 0.8750 | 0.9153 | 0.9264 | 0.9044 |
+
+**GEPA came within 1.1 points of MIPROv2** — the closest result of any optimizer on any benchmark. Dev score (0.858) was actually exceeded on test (0.875), indicating good generalisation. The consistent table structure of personnel cards — unlike the diverse card formats in Library Cards — is well-suited to instruction-only optimisation: a single detailed instruction can cover the full range of table layouts.
+
 #### Key findings
 
 - **CoT helped the unoptimized baseline** (+16.9 pts), unlike Library Cards where it hurt. The difference: Personnel Cards' main problem was JSON parse failures (8/43 cards scoring 0.0), and CoT's reasoning step helped the model structure its output before committing to JSON.
 - **False positives dropped 75%** (376 → 94) and **recall jumped from 0.676 to 0.914**. The few-shot demonstrations taught the model what constitutes a valid row entry.
 - **3/43 cards still score 0.0** (down from 8/43 in predict baseline).
+- **GEPA's instruction-only approach nearly matched MIPROv2's few-shot approach** (-1.1 pts), confirming that tasks with consistent structure can be adequately described by instructions alone.
 
 ---
 
@@ -360,7 +383,7 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 
 The key challenge is person name matching: names must exactly match entries in the `persons.json` alias table (119 entries, all in "First Last" format, no fuzzy matching). Before adding explicit "First Last" format guidance to the prompt, the predict baseline scored only 0.2721 — the prompt change alone gave a +18 point lift to 0.4565.
 
-#### Results
+#### Phase 1: Optimizer comparison
 
 | Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
 |---|---|---|---|---|---|
@@ -370,11 +393,22 @@ The key challenge is person name matching: names must exactly match entries in t
 
 **MIPROv2 medium-CoT achieved 0.6378 f1_macro — a +18.1 point lift over the predict baseline.**
 
+#### Phase 2: GEPA with stronger reflection model
+
+GEPA medium-CoT was run with Gemini 2.5 Pro as the reflection model (96 iterations, ~840 metric calls). The best candidate emerged early (iteration 13, dev score 0.8958) and was never surpassed — despite 83 further iterations of genetic search. The reflection model generated detailed instructions about name format conventions, date extraction, and organisation identification, but these proved brittle on unseen letters.
+
+| Configuration | f1_macro | f1_micro | Precision | Recall |
+|---|---|---|---|---|
+| MIPROv2 medium (CoT) | **0.6378** | **0.6445** | **0.6182** | **0.6733** |
+| GEPA medium (CoT, Pro reflection) | 0.5472 | 0.5579 | 0.5263 | 0.5926 |
+
+**GEPA fell 9.1 points short of MIPROv2**, with the largest dev-test gap of any experiment: dev 89.58 → test 54.72 (-34.9 pts). For comparison, MIPROv2's dev-test gap was -25.8 pts. The instruction-only approach overfits even more severely than few-shot demonstrations when the dev set is this small (8 letters). Business Letters' exact-match name scoring particularly disadvantages prose instructions — MIPROv2's few-shot demos implicitly teach the "First Last" name format through examples, while GEPA must express this convention as a rule that may not transfer to unseen name variants.
+
 #### Key findings
 
 - **True positives jumped from 51 to 68** (+33%), while false negatives dropped from 50 to 33.
-- **Large dev-test gap.** Dev score was 89.58 but test dropped to 63.78 with only 8 dev letters.
-- **Scoring is the ceiling.** Any name variant not in `persons.json` scores zero regardless of extraction quality.
+- **Large dev-test gap — for all optimizers.** MIPROv2 dropped from 89.58 to 63.78 (-25.8 pts), GEPA dropped from 89.58 to 54.72 (-34.9 pts), both with only 8 dev letters. Instruction-only optimization overfits more severely than few-shot optimization on this benchmark.
+- **Scoring is the ceiling.** Any name variant not in `persons.json` scores zero regardless of extraction quality. Few-shot demonstrations communicate format conventions (like "First Last") more robustly than prose instructions.
 
 ---
 
@@ -403,14 +437,18 @@ Comparing the four optimized prompts reveals how MIPROv2's Bayesian search adapt
 
 #### Combined Results
 
-| Benchmark | Predict baseline | CoT baseline | MIPROv2 medium CoT | Gain |
-|---|---|---|---|---|
-| Library Cards (263 imgs) | 0.8134 | 0.7583 | **0.9017** | +8.8 pts |
-| Bibliographic Data (5 imgs) | 0.6732 | 0.6591 | **0.7072** | +3.4 pts |
-| Personnel Cards (61 imgs) | 0.6296 | 0.7983 | **0.8858** | +25.6 pts |
-| Business Letters (57 letters) | 0.4565 | 0.4713 | **0.6378** | +18.1 pts |
+| Benchmark | Predict | CoT | MIPROv2 CoT | GEPA CoT | Best |
+|---|---|---|---|---|---|
+| Library Cards (263 imgs) | 0.8134 | 0.7583 | **0.9017** | 0.8147 | MIPROv2 |
+| Bibliographic Data (5 imgs) | 0.6732 | 0.6591 | **0.7072** | — | MIPROv2 |
+| Personnel Cards (61 imgs) | 0.6296 | 0.7983 | **0.8858** | 0.8750 | MIPROv2 |
+| Business Letters (57 letters) | 0.4565 | 0.4713 | **0.6378** | 0.5472 | MIPROv2 |
+
+*GEPA CoT column uses Gemini 2.5 Pro as the reflection model. Bibliographic Data was not run (insufficient train+dev data).*
 
 **MIPROv2 medium + CoT is the universal winner.** The same configuration — MIPROv2 with medium search budget and ChainOfThought — produced the best results on all four benchmarks. No other optimizer or module combination beat it on any benchmark.
+
+**GEPA with a stronger reflection model narrows the gap — but only on structured tasks.** Using Gemini 2.5 Pro as the reflection model (instead of Flash reflecting on itself), GEPA came within 1.1 pts of MIPROv2 on Personnel Cards — the one benchmark with highly consistent task structure (tabular data). On Library Cards (diverse card formats) and Business Letters (exact name matching), GEPA's instruction-only approach fell well short. The pattern: few-shot demonstrations communicate extraction conventions more robustly than prose instructions, especially when the task requires matching specific output formats.
 
 **ChainOfThought as optimizer amplifier.** Unoptimized CoT can help or hurt: it hurt Library Cards (-5.5 pts) and Bibliographic Data (-0.55 pts) but helped Personnel Cards (+16.9 pts) and Business Letters (+1.5 pts). CoT helps when the main failure mode is output formatting (JSON parse failures), but hurts when the model already produces well-formed output. Once optimization is applied, CoT consistently wins — it widens the search space that MIPROv2 can exploit.
 
@@ -418,9 +456,9 @@ Comparing the four optimized prompts reveals how MIPROv2's Bayesian search adapt
 
 **Optimized Flash competes with expensive models.** On three of four benchmarks, optimized Gemini 2.0 Flash matched or exceeded the RISE leaderboard leaders — at roughly one-tenth the inference cost. Business Letters was the exception: optimized Flash (63.78) fell short of GPT-5's 77.0, likely because the exact-match alias lookup rewards stronger entity recognition that few-shot optimization alone cannot compensate for.
 
-**Small dev sets cause overfitting.** Business Letters showed the largest dev-test gap (89.58 dev → 63.78 test with 8 dev letters); Library Cards (39 dev) showed minimal gap. Practitioners should expect dev scores to overestimate test performance on small datasets.
+**Small dev sets cause overfitting — for all optimizers.** Business Letters showed the largest dev-test gap: MIPROv2 dropped from 89.58 to 63.78 (-25.8 pts), and GEPA dropped even further from 89.58 to 54.72 (-34.9 pts), both with only 8 dev letters. Library Cards (39 dev) showed minimal gap. Instruction-only optimization (GEPA) does not inherently generalise better than few-shot optimization (MIPROv2) — both overfit equally when dev sets are too small.
 
-**Total project cost: ~$3–4 on Gemini 2.0 Flash.** All four benchmarks — baselines, optimizations, and evaluations — used ~3,600 Flash API calls totalling ~7.9M input and ~4.6M output tokens, for a cost of ~$3.42 on AI Studio pricing. The early Gemini 2.5 Pro experiments added ~$12.71. A single MIPROv2 medium run costs roughly $1–2 per benchmark.
+**Total project cost: ~$3–4 on Gemini 2.0 Flash.** All four benchmarks — baselines, MIPROv2/SIMBA/GEPA optimizations, and evaluations — used ~3,600 Flash API calls totalling ~7.9M input and ~4.6M output tokens, for a cost of ~$3.42 on AI Studio pricing. The early Gemini 2.5 Pro experiments added ~$12.71. The GEPA experiments with Gemini 2.5 Pro as reflection model (~2,500 additional Flash extraction calls plus Pro reflection calls across three benchmarks) added further cost. A single MIPROv2 medium run costs roughly $1–2 per benchmark.
 
 ## Issues Encountered
 
@@ -454,9 +492,9 @@ The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manusc
 
 All experiments used Gemini 2.0 Flash as the target model. A natural next step is to apply MIPROv2 medium-CoT to the models that currently lead the RISE leaderboard and measure whether optimization yields meaningful gains when the unoptimized baseline is already strong. 
 
-### Revisiting GEPA with a stronger reflection model
+### GEPA with a stronger reflection model
 
-GEPA underperformed in our experiments (scoring only +0.14 pts over the Library Cards baseline), likely because Gemini 2.0 Flash served as both the target model and the reflection model — the model struggled to diagnose its own extraction failures. [Bogin et al. (2025)](https://arxiv.org/abs/2507.19457) show that GEPA can outperform MIPROv2 by over 10% when its reflective evolution loop works well. The reflection step — where the LM examines execution traces and proposes prompt mutations — is text-only, so using a stronger model for reflection adds minimal cost.
+GEPA initially underperformed (scoring only +0.14 pts over the Library Cards baseline with Flash as its own reflection model). Following [Bogin et al. (2025)](https://arxiv.org/abs/2507.19457), who show that GEPA can outperform MIPROv2 by over 10% when its reflective evolution loop works well, we re-ran GEPA medium-CoT with Gemini 2.5 Pro as the reflection model on three benchmarks (Bibliographic Data was skipped — only 3 train+dev examples). Results are reported in each benchmark's Phase 3 / Phase 2 sections. In summary: GEPA with a stronger reflection model came within 1.1 pts of MIPROv2 on Personnel Cards but fell short on Library Cards (returned the base program) and Business Letters (-9.1 pts vs MIPROv2). The reflection model quality matters, but few-shot demonstrations remain more robust than instruction-only optimization overall.
 
 ### Small and local models
 
