@@ -75,7 +75,8 @@ The project uses a multi-benchmark plugin architecture. Each benchmark is a self
 benchmarks/
   shared/
     config.py             # LM setup, model presets, results_dir() helper
-    scoring_helpers.py    # Generic fuzzy scoring, key traversal, FeedbackScore
+    scoring_helpers.py    # Fuzzy scoring, key traversal, FeedbackScore, shared F1 factories
+    data_helpers.py       # Generic split_data() and load_and_split() used by all benchmarks
   library_cards/          # Library Cards benchmark (F1 metric, 263 images)
     schema.py / signature.py / data.py / module.py / scoring.py
   bibliographic_data/     # Bibliographic Data benchmark (average fuzzy metric, 5 images)
@@ -171,11 +172,11 @@ To apply a program to arbitrary images in your own code:
 
 ```python
 import dspy
-from benchmarks.shared.config import configure_lm
+from benchmarks.shared.config import configure_dspy
 from benchmarks.library_cards.module import Extractor
 
 # Set up the LM
-configure_lm("gemini-2.0-flash")
+configure_dspy("gemini-2.0-flash")
 
 # Load the optimized program
 extractor = Extractor(module_type="cot")
