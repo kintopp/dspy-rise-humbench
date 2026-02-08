@@ -8,7 +8,7 @@ is not versioned, entries are grouped by date.
 ## 2026-02-08
 
 ### Fixed
-**README directory tree**: added missing `__init__.py` files, `results/demo/`
+- **README directory tree**: added missing `__init__.py` files, `results/demo/`
   directory, and `generate_demo_data.py` / `generate_demo_html.py` scripts.
 - **`filter_parent_keys` bracket notation**: now also checks `key + "["` in
   addition to `key + "."`, so parent keys like `"items"` are correctly filtered
@@ -19,7 +19,7 @@ is not versioned, entries are grouped by date.
 - **Dead code in `config.py`**: removed env-var re-assignment (lines that read
   `GEMINI_API_KEY`/`OPENROUTER_API_KEY` then wrote them back unchanged).
   `load_dotenv()` already handles `.env` loading.
-  - **Business Letters `refine_reward_fn`**: used `intersection` (any key present)
+- **Business Letters `refine_reward_fn`**: used `intersection` (any key present)
   instead of `issubset` (all keys present), inconsistent with other benchmarks.
   Now requires all three required keys (`send_date`, `sender_persons`,
   `receiver_persons`) to accept a prediction during Refine.
