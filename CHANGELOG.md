@@ -1,11 +1,22 @@
 # Changelog
 
 All notable changes to this project are documented here. Since the project
-was not versioned, entries are grouped by date.
+is not versioned, entries are grouped by date.
 
 ---
 
-## 2026-02-08 (demo visualizations & docs)
+### Fixed
+- **README directory tree**: added missing `__init__.py` files, `results/demo/`
+  directory, and `generate_demo_data.py` / `generate_demo_html.py` scripts.
+- **`filter_parent_keys` bracket notation**: now also checks `key + "["` in
+  addition to `key + "."`, so parent keys like `"items"` are correctly filtered
+  when child keys use bracket notation (`"items[0].name"`). Defensive fix — no
+  current benchmark affected.
+- **`pyproject.toml` description**: updated stale "Library Cards Benchmark" to
+  "HumBench benchmarks".
+- **Dead code in `config.py`**: removed env-var re-assignment (lines that read
+  `GEMINI_API_KEY`/`OPENROUTER_API_KEY` then wrote them back unchanged).
+  `load_dotenv()` already handles `.env` loading.
 
 ### Added
 - **Interactive demo visualizations** (`results/demo/`): self-contained HTML pages
@@ -19,27 +30,6 @@ was not versioned, entries are grouped by date.
 - **Tracked `results/` and `data/` directories**: baseline scores, optimized
   programs, test score JSONs, and data symlinks to the upstream benchmark repo
   are now committed (previously gitignored).
-
-### Fixed
-- **README directory tree**: added missing `__init__.py` files, `results/demo/`
-  directory, and `generate_demo_data.py` / `generate_demo_html.py` scripts.
-
----
-
-## 2026-02-08
-
-### Fixed
-- **`filter_parent_keys` bracket notation**: now also checks `key + "["` in
-  addition to `key + "."`, so parent keys like `"items"` are correctly filtered
-  when child keys use bracket notation (`"items[0].name"`). Defensive fix — no
-  current benchmark affected.
-- **`pyproject.toml` description**: updated stale "Library Cards Benchmark" to
-  "HumBench benchmarks".
-- **Dead code in `config.py`**: removed env-var re-assignment (lines that read
-  `GEMINI_API_KEY`/`OPENROUTER_API_KEY` then wrote them back unchanged).
-  `load_dotenv()` already handles `.env` loading.
-
-### Added
 - **`choices=` on `--benchmark` argparse** in all 5 scripts (`optimize.py`,
   `evaluate_baseline.py`, `evaluate_optimized.py`, `compare_results.py`,
   `loo_mipro.py`). Invalid benchmark names now produce a clean argparse error
