@@ -75,24 +75,26 @@ The project uses a multi-benchmark plugin architecture. Each benchmark is a self
 
 ```
 benchmarks/
+  __init__.py             # Package init (exports benchmark names)
   shared/
     config.py             # LM setup, model presets, results_dir() helper
     scoring_helpers.py    # Fuzzy scoring, key traversal, FeedbackScore, shared F1 factories
     data_helpers.py       # Generic split_data() and load_and_split() used by all benchmarks
   library_cards/          # Library Cards benchmark (F1 metric, 263 images)
-    schema.py / signature.py / data.py / module.py / scoring.py
+    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
   bibliographic_data/     # Bibliographic Data benchmark (average fuzzy metric, 5 images)
-    schema.py / signature.py / data.py / module.py / scoring.py
+    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
   personnel_cards/        # Personnel Cards benchmark (F1 metric, 61 images)
-    schema.py / signature.py / data.py / module.py / scoring.py
+    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
   business_letters/       # Business Letters benchmark (F1 metric, 57 letters / 98 pages)
-    schema.py / signature.py / data.py / module.py / scoring.py
+    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
 
 data/{benchmark}/         # Symlinks to humanities_data_benchmark repo
   images/ ground_truths/
 
 results/{benchmark}/      # Per-benchmark results
   baseline/ optimized/
+results/demo/             # Interactive HTML demo visualizations
 
 scripts/
   evaluate_baseline.py    # --benchmark flag, dynamic imports
@@ -101,6 +103,8 @@ scripts/
   loo_mipro.py            # Leave-one-out MIPROv2 for small datasets
   compare_results.py      # Side-by-side comparison (auto-discovers results)
   check_rate_limits.py    # Check provider API rate limits
+  generate_demo_data.py   # Export sample results as JSON for demo visualizations
+  generate_demo_html.py   # Generate interactive HTML demos from exported data
 ```
 
 ### Running the pipeline
