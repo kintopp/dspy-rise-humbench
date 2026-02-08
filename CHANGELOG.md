@@ -5,8 +5,10 @@ is not versioned, entries are grouped by date.
 
 ---
 
+## 2026-02-08
+
 ### Fixed
-- **README directory tree**: added missing `__init__.py` files, `results/demo/`
+**README directory tree**: added missing `__init__.py` files, `results/demo/`
   directory, and `generate_demo_data.py` / `generate_demo_html.py` scripts.
 - **`filter_parent_keys` bracket notation**: now also checks `key + "["` in
   addition to `key + "."`, so parent keys like `"items"` are correctly filtered
@@ -17,6 +19,14 @@ is not versioned, entries are grouped by date.
 - **Dead code in `config.py`**: removed env-var re-assignment (lines that read
   `GEMINI_API_KEY`/`OPENROUTER_API_KEY` then wrote them back unchanged).
   `load_dotenv()` already handles `.env` loading.
+  - **Business Letters `refine_reward_fn`**: used `intersection` (any key present)
+  instead of `issubset` (all keys present), inconsistent with other benchmarks.
+  Now requires all three required keys (`send_date`, `sender_persons`,
+  `receiver_persons`) to accept a prediction during Refine.
+- **`EvalReward` fallback path**: unreachable fallback called `refine_reward_fn`
+  with wrong argument types (`dict` instead of `dspy.Example`). Replaced with
+  explicit `RuntimeError` and removed unused `_fallback_fn` attribute.
+- Removed unused `SKIP_SUFFIXES` constant from `personnel_cards/scoring.py`.
 
 ### Added
 - **Interactive demo visualizations** (`results/demo/`): self-contained HTML pages
@@ -40,31 +50,7 @@ is not versioned, entries are grouped by date.
   plus `choices=["bibliographic_data"]` since only that benchmark supports LOO.
 - **`docs/code-review-triage.md`**: documents triage principles, deferred items
   (D1–D7), and rejected items (R1–R3) from two independent code reviews.
-
-### Changed
-- **`dspy-costs/results.json`**: added GEPA and Refine(3) experiment costs
-  across all 4 benchmarks; updated model totals.
-
-### Removed
-- **`docs/poss-dspy-improvements.md`**: superseded by the two independent code
-  reviews and `docs/code-review-triage.md`.
-
----
-
-## 2026-02-08
-
-### Fixed
-- **Business Letters `refine_reward_fn`**: used `intersection` (any key present)
-  instead of `issubset` (all keys present), inconsistent with other benchmarks.
-  Now requires all three required keys (`send_date`, `sender_persons`,
-  `receiver_persons`) to accept a prediction during Refine.
-- **`EvalReward` fallback path**: unreachable fallback called `refine_reward_fn`
-  with wrong argument types (`dict` instead of `dspy.Example`). Replaced with
-  explicit `RuntimeError` and removed unused `_fallback_fn` attribute.
-- Removed unused `SKIP_SUFFIXES` constant from `personnel_cards/scoring.py`.
-
-### Added
-- **Quality-aware Refine(3)** inference-time refinement: `EvalReward` class in
+  - **Quality-aware Refine(3)** inference-time refinement: `EvalReward` class in
   `evaluate_optimized.py` uses the actual benchmark metric (F1 or fuzzy) as
   reward instead of binary JSON-valid check. Auto-detects metric key by probing
   `score_single_prediction({}, {})`. Threshold=0.95 enables early stopping.
@@ -104,7 +90,9 @@ is not versioned, entries are grouped by date.
   (`_F1_METRICS` constant).
 
 ### Changed
-- README: added `data_helpers.py` to project structure tree, updated
+- **`dspy-costs/results.json`**: added GEPA and Refine(3) experiment costs
+  across all 4 benchmarks; updated model totals.
+  - README: added `data_helpers.py` to project structure tree, updated
   `scoring_helpers.py` description to mention shared F1 factories, fixed
   `configure_lm` → `configure_dspy` in code example.
 - README: added Refine(3) rows to all benchmark result tables, new
@@ -124,6 +112,10 @@ is not versioned, entries are grouped by date.
   images (600px width, ~477KB total in `docs/figures/`) so readers can see the
   source scans alongside extraction output. Images matched to originals via
   MD5 hash of base64-decoded program data.
+
+### Removed
+  - **`docs/poss-dspy-improvements.md`**: superseded by the two independent code
+  reviews and `docs/code-review-triage.md`.
 
 ---
 
