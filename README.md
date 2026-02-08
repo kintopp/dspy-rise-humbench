@@ -482,8 +482,9 @@ The impact scales inversely with baseline quality. Business Letters — the benc
 
 The cost is up to 3× more API calls per image (in practice less, since images scoring ≥ 0.95 on the first attempt stop early). On Gemini 2.0 Flash, the total cost for all 4 benchmarks was approximately $3-4 for the full Refine(3) evaluation.
 
-**Total project cost.**
-// to be added
+**Total project cost**
+
+Total API usage across all 4 benchmarks: 5,879 calls, ~14.2M input tokens, ~6.7M output tokens at a total cost of $27.64. Gemini 2.0 Flash accounted for 75% of the API calls but only ~ $4.20 of the overall cost. 
 
 ## Issues Encountered
 
