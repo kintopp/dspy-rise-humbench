@@ -138,7 +138,17 @@ uv run python scripts/compare_results.py --benchmark bibliographic_data
 # Leave-one-out optimization (for small datasets):
 uv run python scripts/loo_mipro.py --benchmark bibliographic_data --model gemini-2.0-flash --auto medium
 ```
+---
 
+### Viewing the optimized prompts
+
+Each benchmark's optimized program is a JSON file containing three components: an instruction, a set of signature field descriptions (input/output specifications with embedded schema rules), and few-shot demonstrations with images. The full prompts are documented here:
+
+- [Library Cards](docs/optimized-prompt-library-cards.md) — 5-sentence instruction, 2 demos
+- [Bibliographic Data](docs/optimized-prompt-bibliographic-data.md) — 40-line instruction with inline schema, 1 demo
+- [Personnel Cards](docs/optimized-prompt-personnel-cards.md) — persona-framed instruction, 2 demos
+- [Business Letters](docs/optimized-prompt-business-letters.md) — 2-sentence instruction, 2 demos
+  
 ### Using the optimized programs
 
 Each benchmark's best optimized program is a JSON file under `results/{benchmark}/optimized/`. These files contain the optimized instruction text and few-shot demonstrations (with embedded images) that MIPROv2 selected:
@@ -185,7 +195,7 @@ The pipeline supports multiple LLM providers via [litellm](https://docs.litellm.
 
 Available presets: `gpt-4o`, `gpt-4o-mini`, `gemini-3-pro-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, `claude-sonnet`, `claude-haiku`, and OpenRouter variants (`or-gemini-2.5-pro`, `or-claude-sonnet`, `or-gpt-4o`). Any full litellm model string also works.
 
-## Results
+## Individual Benchmark Results 
 
 The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters as much as accuracy. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimization make a cheap model competitive?
 
@@ -417,15 +427,6 @@ GEPA medium-CoT was run with Gemini 2.5 Pro as the reflection model (96 iteratio
 ---
 
 ### Cross-Benchmark Findings
-
-#### What the optimized prompts look like
-
-Each benchmark's optimized program is a JSON file containing three components: an instruction, a set of signature field descriptions (input/output specifications with embedded schema rules), and few-shot demonstrations with images. The full prompts are documented here:
-
-- [Library Cards](docs/optimized-prompt-library-cards.md) — 5-sentence instruction, 2 demos
-- [Bibliographic Data](docs/optimized-prompt-bibliographic-data.md) — 40-line instruction with inline schema, 1 demo
-- [Personnel Cards](docs/optimized-prompt-personnel-cards.md) — persona-framed instruction, 2 demos
-- [Business Letters](docs/optimized-prompt-business-letters.md) — 2-sentence instruction, 2 demos
 
 Comparing the four optimized prompts reveals how MIPROv2's Bayesian search adapted its strategy to each benchmark's characteristics:
 
