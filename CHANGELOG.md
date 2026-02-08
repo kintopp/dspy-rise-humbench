@@ -8,11 +8,25 @@ was not versioned, entries are grouped by date.
 ## 2026-02-08
 
 ### Added
+- **Quality-aware Refine(3)** inference-time refinement: `EvalReward` class in
+  `evaluate_optimized.py` uses the actual benchmark metric (F1 or fuzzy) as
+  reward instead of binary JSON-valid check. Auto-detects metric key by probing
+  `score_single_prediction({}, {})`. Threshold=0.95 enables early stopping.
+- Refine(3) experiment results across all 4 benchmarks:
+  - Business Letters: **0.7312 f1_macro** (+9.3 pts over MIPROv2 CoT alone)
+  - Library Cards: **0.9167 f1_macro** (+1.5 pts)
+  - Personnel Cards: **0.8894 f1_macro** (+0.4 pts)
+  - Bibliographic Data: 0.7043 fuzzy (-0.3 pts, within noise)
+- Output JSON now includes `"refine_reward": "quality"|"binary"|null` provenance
+  key for distinguishing reward function types.
 - DSPy best practices analysis document (`docs/dspy-best-practices.md`).
 - Reflection model name now included in GEPA output filenames for traceability
   (e.g., `gepa-cot_gemini-2.0-flash_reflect-gemini-2.5-pro_optimized.json`).
 
 ### Changed
+- README: added Refine(3) rows to all benchmark result tables, new
+  "Inference-time refinement (Refine)" subsection under Cross-Benchmark
+  Findings, updated Combined Results table, revised Future Work.
 - README restructured: all benchmark sections now use consistent Phase 1 / Phase 2
   numbering (optimizer comparison → GEPA with stronger reflection model).
 - GEPA results integrated into each benchmark section and the cross-benchmark

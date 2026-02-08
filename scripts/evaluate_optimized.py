@@ -17,6 +17,50 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Quality-aware reward for dspy.Refine
+# ---------------------------------------------------------------------------
+
+
+class EvalReward:
+    """Reward function that uses the actual benchmark metric when GT is available.
+
+    DSPy's Refine calls ``reward_fn(kwargs, outputs)`` where *kwargs* is the
+    input dict and *outputs* is a Prediction object.  At evaluation time we
+    know the ground truth for each image, so we inject it via ``set_gt()``
+    before calling the extractor and ``clear_gt()`` afterwards.
+
+    When GT is not set, falls back to the benchmark's binary
+    ``refine_reward_fn`` (valid-JSON check).
+    """
+
+    def __init__(self, scoring_mod):
+        self._score_single = scoring_mod.score_single_prediction
+        self._fallback_fn = scoring_mod.refine_reward_fn
+        self._gt = None
+        # Auto-detect primary metric key: bibliographic_data → "fuzzy", others → "f1_score"
+        probe = scoring_mod.score_single_prediction({}, {})
+        self._metric_key = "fuzzy" if "fuzzy" in probe else "f1_score"
+
+    def set_gt(self, gt_dict):
+        self._gt = gt_dict
+
+    def clear_gt(self):
+        self._gt = None
+
+    def __call__(self, kwargs, outputs):
+        if self._gt is None:
+            return self._fallback_fn(kwargs, outputs)
+        try:
+            pred_dict = parse_prediction_document(outputs)
+        except Exception:
+            return 0.0
+        if pred_dict is None:
+            return 0.0
+        score = self._score_single(pred_dict, self._gt)
+        return score.get(self._metric_key, 0.0)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Evaluate an optimized program")
     parser.add_argument("--benchmark", default="library_cards",
@@ -49,15 +93,20 @@ def main():
     logger.info(f"Loaded optimized program from {args.program}")
 
     # Optionally wrap with Refine for inference-time retries
+    eval_reward = None
     if args.refine > 0:
         import dspy
+        eval_reward = EvalReward(scoring_mod)
         extractor = dspy.Refine(
             module=extractor,
             N=args.refine,
-            reward_fn=scoring_mod.refine_reward_fn,
-            threshold=1.0,
+            reward_fn=eval_reward,
+            threshold=0.95,
         )
-        logger.info(f"Wrapped extractor with Refine(N={args.refine}, threshold=1.0)")
+        logger.info(
+            f"Wrapped extractor with Refine(N={args.refine}, threshold=0.95, "
+            f"metric={eval_reward._metric_key})"
+        )
 
     # Load test split
     samples = data_mod.load_matched_samples()
@@ -75,6 +124,8 @@ def main():
     for i, (example, raw) in enumerate(zip(test_examples, test_raw)):
         image_id = raw["id"]
         logger.info(f"[{i+1}/{len(test_examples)}] Processing {image_id}...")
+        if eval_reward is not None:
+            eval_reward.set_gt(raw["ground_truth"])
         try:
             prediction = extractor(**{input_field: getattr(example, input_field)})
             pred_dict = parse_prediction_document(prediction)
@@ -86,6 +137,9 @@ def main():
         except Exception as e:
             logger.error(f"  Error processing {image_id}: {e}")
             score = scoring_mod.score_single_prediction({}, raw["ground_truth"])
+        finally:
+            if eval_reward is not None:
+                eval_reward.clear_gt()
 
         all_scores.append(score)
         per_image_results.append({"id": image_id, **score})
@@ -109,6 +163,7 @@ def main():
         "program": args.program,
         "module_type": args.module,
         "refine_n": args.refine,
+        "refine_reward": "quality" if eval_reward is not None else "binary" if args.refine > 0 else None,
         "aggregate": aggregate,
         "per_image": [
             {k: v for k, v in r.items() if k != "field_scores"}
