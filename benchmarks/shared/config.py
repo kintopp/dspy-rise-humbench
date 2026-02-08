@@ -1,6 +1,5 @@
 """Configuration: LM setup, model presets, and path helpers."""
 
-import os
 from pathlib import Path
 
 import dspy
@@ -55,15 +54,6 @@ def configure_dspy(model: str = DEFAULT_MODEL, temperature: float = 0.0) -> dspy
         temperature: Sampling temperature.
     """
     model_id = resolve_model(model)
-
-    # Set provider-specific API key env vars that litellm expects
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if gemini_key and gemini_key != "your-gemini-key-here":
-        os.environ["GEMINI_API_KEY"] = gemini_key
-
-    openrouter_key = os.getenv("OPENROUTER_API_KEY")
-    if openrouter_key and openrouter_key != "your-openrouter-key-here":
-        os.environ["OPENROUTER_API_KEY"] = openrouter_key
 
     lm = dspy.LM(model_id, temperature=temperature)
     dspy.configure(lm=lm)

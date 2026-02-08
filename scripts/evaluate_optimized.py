@@ -63,7 +63,8 @@ class EvalReward:
 def main():
     parser = argparse.ArgumentParser(description="Evaluate an optimized program")
     parser.add_argument("--benchmark", default="library_cards",
-                        help="Benchmark name (e.g. library_cards, bibliographic_data)")
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters"],
+                        help="Benchmark name")
     parser.add_argument(
         "--program",
         type=str,

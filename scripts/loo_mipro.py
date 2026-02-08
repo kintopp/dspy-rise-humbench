@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(description="LOO MIPROv2 optimization")
-    parser.add_argument("--benchmark", default="bibliographic_data")
+    parser.add_argument("--benchmark", default="bibliographic_data",
+                        choices=["bibliographic_data"],
+                        help="Benchmark name (only bibliographic_data supports LOO folds)")
     parser.add_argument("--model", default="gemini-2.0-flash")
     parser.add_argument("--module", default="cot")
     parser.add_argument("--auto", default="medium", choices=["light", "medium", "heavy"])
@@ -42,6 +44,8 @@ def main():
     configure_dspy(model=args.model)
     model_tag = args.model.replace("/", "_")
 
+    if not hasattr(data_mod, "load_loo_folds"):
+        parser.error(f"benchmark '{args.benchmark}' does not support LOO folds (no load_loo_folds function)")
     folds = data_mod.load_loo_folds()
     out_dir = results_dir(args.benchmark) / "optimized"
     out_dir.mkdir(parents=True, exist_ok=True)

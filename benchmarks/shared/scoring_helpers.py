@@ -148,10 +148,17 @@ def compute_f1(tp: int, fp: int, fn: int) -> tuple[float, float, float]:
 
 
 def filter_parent_keys(keys: list[str]) -> list[str]:
-    """Remove parent keys when child keys exist (e.g. drop 'a' if 'a.b' is present)."""
+    """Remove parent keys when child keys exist.
+
+    Checks both dot notation (drop 'a' if 'a.b' exists) and bracket
+    notation (drop 'items' if 'items[0]' exists).
+    """
     return [
         key for key in keys
-        if not any(other.startswith(key + ".") for other in keys if other != key)
+        if not any(
+            other.startswith(key + ".") or other.startswith(key + "[")
+            for other in keys if other != key
+        )
     ]
 
 

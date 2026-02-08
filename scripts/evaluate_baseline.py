@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(description="Evaluate baseline")
     parser.add_argument("--benchmark", default="library_cards",
-                        help="Benchmark name (e.g. library_cards, bibliographic_data)")
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters"],
+                        help="Benchmark name")
     parser.add_argument("--model", default="gpt-4o", help="Model preset or full model string")
     parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
     parser.add_argument("--seed", type=int, default=42)

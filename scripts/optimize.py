@@ -88,7 +88,8 @@ def run_gepa(trainset, devset, feedback_metric, ExtractorClass, auto="light", mo
 def main():
     parser = argparse.ArgumentParser(description="Optimize extraction with DSPy")
     parser.add_argument("--benchmark", default="library_cards",
-                        help="Benchmark name (e.g. library_cards, bibliographic_data)")
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters"],
+                        help="Benchmark name")
     parser.add_argument(
         "--optimizer",
         choices=["mipro", "bootstrap", "simba", "gepa"],

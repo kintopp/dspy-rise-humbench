@@ -59,7 +59,8 @@ def print_row(label: str, scores: dict | None, metric_keys: list[str], ref: dict
 def main():
     parser = argparse.ArgumentParser(description="Compare results")
     parser.add_argument("--benchmark", default="library_cards",
-                        help="Benchmark name (e.g. library_cards, bibliographic_data)")
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters"],
+                        help="Benchmark name")
     args = parser.parse_args()
 
     benchmark = args.benchmark

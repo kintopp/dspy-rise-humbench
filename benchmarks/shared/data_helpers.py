@@ -38,6 +38,10 @@ def split_data(
         n_train = int(n * train_frac)
         n_dev = int(n * dev_frac)
 
+    assert n_train + n_dev < n, (
+        f"train ({n_train}) + dev ({n_dev}) >= total ({n}); test split would be empty"
+    )
+
     return (
         shuffled[:n_train],
         shuffled[n_train : n_train + n_dev],
