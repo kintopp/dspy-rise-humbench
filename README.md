@@ -422,7 +422,7 @@ GEPA medium-CoT was run with Gemini 2.5 Pro as the reflection model (96 iteratio
 
 Each benchmark's optimized program is a JSON file containing three components: an instruction, a set of signature field descriptions (input/output specifications with embedded schema rules), and few-shot demonstrations with images. The full prompts are documented here:
 
-- [Library Cards](docs/optimized-prompt-library-cards.md) — 2-sentence instruction, 2 demos
+- [Library Cards](docs/optimized-prompt-library-cards.md) — 5-sentence instruction, 2 demos
 - [Bibliographic Data](docs/optimized-prompt-bibliographic-data.md) — 40-line instruction with inline schema, 1 demo
 - [Personnel Cards](docs/optimized-prompt-personnel-cards.md) — persona-framed instruction, 2 demos
 - [Business Letters](docs/optimized-prompt-business-letters.md) — 2-sentence instruction, 2 demos
