@@ -138,7 +138,6 @@ uv run python scripts/compare_results.py --benchmark bibliographic_data
 # Leave-one-out optimization (for small datasets):
 uv run python scripts/loo_mipro.py --benchmark bibliographic_data --model gemini-2.0-flash --auto medium
 ```
----
 
 ### Viewing the optimized prompts
 
