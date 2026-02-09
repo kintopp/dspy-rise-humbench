@@ -178,6 +178,25 @@ BENCHMARK_CONFIG = {
             },
         ],
     },
+    "company_lists": {
+        "display_name": "Company Lists",
+        "metric_key": "f1_score",
+        "reference_scores": "results/company_lists/optimized/mipro-cot_gemini-2.0-flash_optimized_test_scores.json",
+        "optimizers": [
+            {
+                "name": "Predict Baseline",
+                "module_type": "predict",
+                "program": None,
+                "refine": 0,
+            },
+            {
+                "name": "MIPROv2 CoT",
+                "module_type": "cot",
+                "program": "results/company_lists/optimized/mipro-cot_gemini-2.0-flash_optimized.json",
+                "refine": 0,
+            },
+        ],
+    },
 }
 
 
@@ -282,12 +301,14 @@ def run_benchmark(benchmark: str, model: str, n_images: int = 5):
     # Build lookup from test set
     test_by_id = {s["id"]: s for s in test_raw}
 
-    # Determine input field name from the module's forward signature
+    # Determine input field name(s) from the module's forward signature
     input_field = "card_image"
     if benchmark == "bibliographic_data":
         input_field = "page_image"
     elif benchmark == "business_letters":
         input_field = "page_images"
+    elif benchmark == "company_lists":
+        input_field = "page_image"  # also needs page_id, handled below
 
     # Process each image × optimizer
     image_results = []
@@ -333,17 +354,20 @@ def run_benchmark(benchmark: str, model: str, n_images: int = 5):
                     )
 
                 # Build input kwargs
+                input_kwargs = {}
                 if input_field == "page_images":
-                    input_val = [dspy.Image(p) for p in image_paths]
+                    input_kwargs[input_field] = [dspy.Image(p) for p in image_paths]
                 else:
-                    input_val = dspy.Image(image_paths[0])
+                    input_kwargs[input_field] = dspy.Image(image_paths[0])
+                if benchmark == "company_lists":
+                    input_kwargs["page_id"] = img_id
 
                 # Set GT for Refine reward
                 if eval_reward is not None:
                     eval_reward.set_gt(gt)
 
                 # Run prediction
-                prediction = extractor(**{input_field: input_val})
+                prediction = extractor(**input_kwargs)
                 pred_dict = parse_prediction_document(prediction)
 
                 if eval_reward is not None:
