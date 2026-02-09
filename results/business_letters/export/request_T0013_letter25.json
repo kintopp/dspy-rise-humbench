@@ -1,0 +1,38 @@
+{
+    "text": "{\"letter_title\": [\"Betrifft Kauf \\\"Rheinfelden\\\"\"], \"send_date\": [\"1928-04-04\"], \"sender_persons\": [\"Groschupf\", \"Ritter\"], \"receiver_persons\": [\"null\"], \"has_signatures\": \"TRUE\"}",
+    "model": "gemini/gemini-2.0-flash",
+    "provider": "dspy+litellm",
+    "finish_reason": "STOP",
+    "duration": 4.6061,
+    "timestamp": "2026-02-09T10:42:24.421995+00:00",
+    "parsed": {
+        "metadata": {
+            "letter_title": [
+                "Betrifft Kauf \"Rheinfelden\""
+            ],
+            "send_date": [
+                "1928-04-04"
+            ],
+            "sender_persons": [
+                "Groschupf",
+                "Ritter"
+            ],
+            "receiver_persons": [
+                "null"
+            ],
+            "has_signatures": "TRUE",
+            "document_number": "letter25"
+        }
+    },
+    "score": {
+        "send_date_tp": 1,
+        "send_date_fp": 0,
+        "send_date_fn": 0,
+        "sender_persons_tp": 2,
+        "sender_persons_fp": 0,
+        "sender_persons_fn": 0,
+        "receiver_persons_tp": 0,
+        "receiver_persons_fp": 0,
+        "receiver_persons_fn": 0
+    }
+}

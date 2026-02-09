@@ -1,0 +1,37 @@
+{
+    "text": "{\"letter_title\": [\"null\"], \"send_date\": [\"1928-03-26\"], \"sender_persons\": [\"null\"], \"receiver_persons\": [\"null\"], \"has_signatures\": \"TRUE\"}",
+    "model": "gemini/gemini-2.0-flash",
+    "provider": "dspy+litellm",
+    "finish_reason": "STOP",
+    "duration": 13.8219,
+    "timestamp": "2026-02-09T10:41:57.002948+00:00",
+    "parsed": {
+        "metadata": {
+            "letter_title": [
+                "null"
+            ],
+            "send_date": [
+                "1928-03-26"
+            ],
+            "sender_persons": [
+                "null"
+            ],
+            "receiver_persons": [
+                "null"
+            ],
+            "has_signatures": "TRUE",
+            "document_number": "letter21"
+        }
+    },
+    "score": {
+        "send_date_tp": 1,
+        "send_date_fp": 0,
+        "send_date_fn": 0,
+        "sender_persons_tp": 0,
+        "sender_persons_fp": 0,
+        "sender_persons_fn": 0,
+        "receiver_persons_tp": 0,
+        "receiver_persons_fp": 0,
+        "receiver_persons_fn": 0
+    }
+}

@@ -5,6 +5,24 @@ is not versioned, entries are grouped by date.
 
 ---
 
+## 2026-02-09
+
+### Added
+- **HumBench export script** (`scripts/export_humbench_results.py`): runs the
+  optimized DSPy program on all letters and outputs per-letter JSONs in the
+  upstream `humanities_data_benchmark` results format, including `usage`,
+  `duration`, `score`, and `scoring.json`. Supports `--refine N` for
+  quality-aware retries. Exported results in `results/business_letters/export/`
+  (f1_macro = 0.74 with Refine(3)).
+- **RISE infrastructure run (T0623)**: ran the MIPROv2-optimized prompt through
+  the upstream `humanities_data_benchmark` pipeline for native-format results
+  with all fields (`raw_response`, `conversation_id`, etc.). Scored f1_macro =
+  0.52 — lower than DSPy pipeline (0.64 single-pass / 0.73 with Refine) due to
+  loss of explicit chain-of-thought (structured output forces direct JSON),
+  multi-modal few-shot demos, and Refine retries.
+
+---
+
 ## 2026-02-08
 
 ### Fixed

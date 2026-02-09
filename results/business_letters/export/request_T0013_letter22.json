@@ -1,0 +1,35 @@
+{
+    "text": "{\"letter_title\": [\"Schiffahrt Basel-Rheinfelden\"], \"send_date\": [\"1928-04-02\"], \"sender_persons\": [\"Basler Rheinschiffahrt-Aktiengesellschaft\"], \"receiver_persons\": [], \"has_signatures\": \"TRUE\"}",
+    "model": "gemini/gemini-2.0-flash",
+    "provider": "dspy+litellm",
+    "finish_reason": "STOP",
+    "duration": 10.5288,
+    "timestamp": "2026-02-09T10:42:07.533046+00:00",
+    "parsed": {
+        "metadata": {
+            "letter_title": [
+                "Schiffahrt Basel-Rheinfelden"
+            ],
+            "send_date": [
+                "1928-04-02"
+            ],
+            "sender_persons": [
+                "Basler Rheinschiffahrt-Aktiengesellschaft"
+            ],
+            "receiver_persons": [],
+            "has_signatures": "TRUE",
+            "document_number": "letter22"
+        }
+    },
+    "score": {
+        "send_date_tp": 1,
+        "send_date_fp": 0,
+        "send_date_fn": 0,
+        "sender_persons_tp": 0,
+        "sender_persons_fp": 1,
+        "sender_persons_fn": 2,
+        "receiver_persons_tp": 0,
+        "receiver_persons_fp": 0,
+        "receiver_persons_fn": 0
+    }
+}

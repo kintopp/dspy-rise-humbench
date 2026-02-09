@@ -1,0 +1,37 @@
+{
+    "text": "{\"letter_title\": [\"Kaufofferte der Basler Rheinschiffahrt A.-G.\"], \"send_date\": [\"1929-05-27\"], \"sender_persons\": [\"null\"], \"receiver_persons\": [\"F. Lüsselschwab\"], \"has_signatures\": \"FALSE\"}",
+    "model": "gemini/gemini-2.0-flash",
+    "provider": "dspy+litellm",
+    "finish_reason": "STOP",
+    "duration": 9.2327,
+    "timestamp": "2026-02-09T10:44:20.304397+00:00",
+    "parsed": {
+        "metadata": {
+            "letter_title": [
+                "Kaufofferte der Basler Rheinschiffahrt A.-G."
+            ],
+            "send_date": [
+                "1929-05-27"
+            ],
+            "sender_persons": [
+                "null"
+            ],
+            "receiver_persons": [
+                "F. Lüsselschwab"
+            ],
+            "has_signatures": "FALSE",
+            "document_number": "letter46"
+        }
+    },
+    "score": {
+        "send_date_tp": 1,
+        "send_date_fp": 0,
+        "send_date_fn": 0,
+        "sender_persons_tp": 0,
+        "sender_persons_fp": 0,
+        "sender_persons_fn": 1,
+        "receiver_persons_tp": 0,
+        "receiver_persons_fp": 1,
+        "receiver_persons_fn": 1
+    }
+}

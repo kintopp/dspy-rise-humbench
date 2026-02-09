@@ -1,0 +1,38 @@
+{
+    "text": "{\"letter_title\": [\"betreffend Benutzung der Landungsstege\"], \"send_date\": [\"1926-08-13\"], \"sender_persons\": [\"Groschupf\", \"J.A. Ritter\"], \"receiver_persons\": [\"Dr. Max Vischer\"], \"has_signatures\": \"TRUE\"}",
+    "model": "gemini/gemini-2.0-flash",
+    "provider": "dspy+litellm",
+    "finish_reason": "STOP",
+    "duration": 2.9154,
+    "timestamp": "2026-02-09T10:40:27.994013+00:00",
+    "parsed": {
+        "metadata": {
+            "letter_title": [
+                "betreffend Benutzung der Landungsstege"
+            ],
+            "send_date": [
+                "1926-08-13"
+            ],
+            "sender_persons": [
+                "Groschupf",
+                "J.A. Ritter"
+            ],
+            "receiver_persons": [
+                "Dr. Max Vischer"
+            ],
+            "has_signatures": "TRUE",
+            "document_number": "letter12"
+        }
+    },
+    "score": {
+        "send_date_tp": 1,
+        "send_date_fp": 0,
+        "send_date_fn": 0,
+        "sender_persons_tp": 2,
+        "sender_persons_fp": 0,
+        "sender_persons_fn": 0,
+        "receiver_persons_tp": 1,
+        "receiver_persons_fp": 0,
+        "receiver_persons_fn": 0
+    }
+}

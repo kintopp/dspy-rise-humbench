@@ -1,0 +1,38 @@
+{
+    "text": "{\"letter_title\": [\"null\"], \"send_date\": [\"1928-02-18\"], \"sender_persons\": [\"Groschupf\", \"Ritter\"], \"receiver_persons\": [\"null\"], \"has_signatures\": \"TRUE\"}",
+    "model": "gemini/gemini-2.0-flash",
+    "provider": "dspy+litellm",
+    "finish_reason": "STOP",
+    "duration": 0.1352,
+    "timestamp": "2026-02-09T10:40:37.760427+00:00",
+    "parsed": {
+        "metadata": {
+            "letter_title": [
+                "null"
+            ],
+            "send_date": [
+                "1928-02-18"
+            ],
+            "sender_persons": [
+                "Groschupf",
+                "Ritter"
+            ],
+            "receiver_persons": [
+                "null"
+            ],
+            "has_signatures": "TRUE",
+            "document_number": "letter14"
+        }
+    },
+    "score": {
+        "send_date_tp": 1,
+        "send_date_fp": 0,
+        "send_date_fn": 0,
+        "sender_persons_tp": 2,
+        "sender_persons_fp": 0,
+        "sender_persons_fn": 0,
+        "receiver_persons_tp": 0,
+        "receiver_persons_fp": 0,
+        "receiver_persons_fn": 0
+    }
+}
