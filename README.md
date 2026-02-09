@@ -4,7 +4,7 @@ This project applies [DSPy](https://dspy.ai/) — a framework for programming an
 
 ## TLDR;
 
-DSPy's automated prompt optimization for Gemini 2.0 Flash — a cheap vision model at ~1/10th the cost of frontier models — matches or beats custom prompts on expensive models across five RISE benchmarks, with gains of +4 to +27 points. The biggest wins came from the weakest baselines (Personnel Cards: 0.63 → 0.89, Business Letters: 0.46 → 0.73), while even near-ceiling benchmarks improved (Blacklist Cards: 0.93 → 0.97).
+DSPy's automated prompt optimization for Gemini 2.0 Flash — a cheap vision model at ~1/10th the cost of frontier models — matches or beats custom prompts on expensive models across six RISE benchmarks, with gains of +4 to +27 points. The biggest wins came from the weakest baselines (Personnel Cards: 0.63 → 0.89, Business Letters: 0.46 → 0.73), while even near-ceiling benchmarks improved (Blacklist Cards: 0.93 → 0.97).
 
 ## Aims
 
@@ -69,6 +69,7 @@ How these per-field scores are aggregated into a benchmark score differs:
 - **Personnel Cards** uses **F1** (same threshold logic as Library Cards): field-level fuzzy ≥ 0.92 counts as TP. Each card's rows contain sub-fields (diplomatic_transcript, interpretation, is_crossed_out) that are scored individually.
 - **Business Letters** uses **category-level set matching**: persons are matched against a `persons.json` alias table using exact string match (no fuzzy), dates require exact match, and locations/organizations use set intersection. Per-letter F1 is macro-averaged.
 - **Blacklist Cards** uses **average fuzzy score** (same as Bibliographic Data): raw fuzzy similarity for every leaf field, averaged directly. Null values (None or "null") are normalized to empty string before comparison.
+- **Company Lists** uses **F1 with null normalization**: a hybrid of Library Cards' F1 threshold (fuzzy ≥ 0.92 = TP) and Blacklist Cards' null handling (None/"null" → empty string before comparison). This is needed because ground-truth locations use the string "null" for missing values.
 
 ### Running the pipeline
 
@@ -134,6 +135,7 @@ Each benchmark's best optimized program is a JSON file under `results/{benchmark
 | Personnel Cards | `results/personnel_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
 | Business Letters | `results/business_letters/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
 | Blacklist Cards | `results/blacklist_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
+| Company Lists | `results/company_lists/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
 
 To evaluate an optimized program on the benchmark's held-out test split:
 
@@ -162,7 +164,7 @@ result = extractor(card_image=dspy.Image.from_url("path/to/image.jpg"))
 json_output = result.document  # Raw JSON string
 ```
 
-The input field name varies per benchmark: `card_image` (Library Cards, Personnel Cards), `page_image` (Bibliographic Data), or `page_images` (Business Letters — a list of images).
+The input field name varies per benchmark: `card_image` (Library Cards, Personnel Cards, Blacklist Cards), `page_image` (Bibliographic Data), `page_images` (Business Letters — a list of images), or `page_image` + `page_id` (Company Lists — two inputs).
 
 ### Multi-provider support
 
@@ -172,7 +174,7 @@ Available presets include: `gemini-3-pro-preview`, `gemini-2.5-pro`, `gemini-2.5
 
 ## Individual Benchmark Results 
 
-The RISE benchmarks are designed for practical deployment on large archival collections, where [inference cost](https://www.llm-prices.com) matters. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimizations make a cheap model competitive? To this end, all five benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). 
+The RISE benchmarks are designed for practical deployment on large archival collections, where [inference cost](https://www.llm-prices.com) matters. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimizations make a cheap model competitive? To this end, all six benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). 
 
 ---
 
@@ -494,9 +496,52 @@ This benchmark tests optimization at the ceiling: the unoptimized Flash baseline
 
 ---
 
+### [Company Lists](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/company_lists)
+
+*15 images of printed Swiss company trade index pages from the British Swiss Chamber of Commerce (1925-1958). Each page lists 15-31 company entries — alphabetical or grouped by trade category. Task: extract each company's name and location into a flat JSON list, with sequentially numbered entry IDs.*
+
+**Metric**: Field-level fuzzy F1 (macro-averaged across images, 0.92 threshold). Null values (None/"null") normalised to empty string before comparison. **Data split**: 2 train (15%) / 2 dev (15%) / 11 test (70%), seed=42.
+
+**RISE leaderboard reference** (full 15 images, hand-crafted prompts, [dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/benchmarks/?id=company_lists)):
+
+| Rank | Model | f1_macro |
+|------|-------|----------|
+| 1 | GPT-5 | 58.4 |
+| 2 | GPT-4.1 | 49.7 |
+| 3 | GPT-4o | 47.9 |
+| 4 | Gemini 2.0 Flash | 47.9 |
+| 5 | Gemini 2.5 Flash (preview) | 47.6 |
+
+*Last accessed: 2026-02-09. Scores are best results per model across all benchmark runs.*
+
+This is the hardest benchmark in the RISE suite — the leaderboard's best score (GPT-5: 58.4) is well below the other benchmarks. The difficulty comes from list extraction with variable entry counts (15-31 per page), position-based scoring where off-by-one errors cascade, and alphabetical entries with filling dots that must be ignored. This is also the first benchmark in the project to use **two input fields**: `page_image` (the scanned page) and `page_id` (needed to generate correct entry IDs in the format `"{page_id}-N"`).
+
+#### Phase 1: Optimizer comparison
+
+| Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
+|---|---|---|---|---|---|
+| **MIPROv2 medium (CoT)** | **0.8771** | **0.8925** | **0.8950** | **0.8900** | **+0.1128** |
+| MIPROv2 medium (CoT) + Refine(3) | 0.8663 | 0.8780 | 0.8830 | 0.8731 | +0.1020 |
+| CoT baseline (unoptimized) | 0.7774 | 0.7493 | 0.7482 | 0.7504 | +0.0131 |
+| Predict baseline (unoptimized) | 0.7643 | 0.7451 | 0.7440 | 0.7461 | — |
+
+**MIPROv2 medium-CoT achieved 0.8771 f1_macro — a +11.3 point lift over the predict baseline.** This far exceeds the RISE leaderboard's top score (GPT-5: 58.4) by nearly 29 points. Even the unoptimized predict baseline (0.7643) already exceeded the leaderboard, likely because our pipeline provides `page_id` as an explicit input — enabling correct entry ID generation — while the upstream benchmark injects it as a template variable that models may not utilise correctly.
+
+Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program already scored well on most pages (7/11 scored ≥ 0.88). Refine's threshold of 0.95 triggered retries on pages scoring just below — but retries on two pages (0.9455 → 0.7818 and 0.9538 → 0.8571) found worse outputs, outweighing the one page that improved (0.5000 → 0.6471). When first-attempt quality is already high, retrying introduces variance that can go either way.
+
+The dev-test gap was -7.4 pts (95.1% dev → 87.7% test), smaller than Business Letters' -25.8 pts despite having fewer dev images (2 vs 8). This suggests Company Lists' consistent page structure — all pages are trade index entries with the same layout conventions — reduces overfitting risk compared to the varied letter formats in Business Letters.
+
+#### Key findings
+
+- **Explicit `page_id` input is critical for scoring.** Entry IDs follow the format `"{page_id}-N"`. Without the page ID, the model would invent IDs that don't match ground truth — losing ~1/3 of true positives (one `entry_id` field per 3 scored fields per entry). This likely explains the gap between our baseline (76.4) and the upstream leaderboard (58.4).
+- **CoT gives a small lift** (+1.3 pts unoptimized), consistent with list extraction tasks where reasoning before JSON output helps with entry boundary detection and counting.
+- **Refine hurts when first-attempt quality is high.** This is the second benchmark (after Bibliographic Data) where Refine degraded the score. The pattern is clear: Refine helps with stochastic errors (name format in Business Letters, parse failures in Personnel Cards) but hurts when the main risk is regression on pages already scoring well.
+
+---
+
 ### Cross-Benchmark Findings
 
-Comparing the five optimized prompts reveals a consistent trade-off: with more training data available, the optimizer relied on demonstrations; with less, it compensated with longer instructions. Bibliographic Data (2 training images) received a 40-line instruction embedding the full schema; the other four benchmarks received 1-3 sentence instructions with 2 demonstrations each. Across all benchmarks, the output field description — not the instruction — carries the detailed extraction rules (schema, conventions, edge cases), a division of labour that emerges naturally from DSPy's signature architecture.
+Comparing the six optimized prompts reveals a consistent trade-off: with more training data available, the optimizer relied on demonstrations; with less, it compensated with longer instructions. Bibliographic Data (2 training images) received a 40-line instruction embedding the full schema; the other five benchmarks received 1-3 sentence instructions with 2 demonstrations each. Across all benchmarks, the output field description — not the instruction — carries the detailed extraction rules (schema, conventions, edge cases), a division of labour that emerges naturally from DSPy's signature architecture.
 
 #### Combined Results
 
@@ -507,18 +552,19 @@ Comparing the five optimized prompts reveals a consistent trade-off: with more t
 | Personnel Cards (61 imgs) | 0.6296 | 0.7983 | 0.8858 | **0.8894** | 0.8750 | MIPROv2 + Refine |
 | Business Letters (57 letters) | 0.4565 | 0.4713 | 0.6378 | **0.7312** | 0.5472 | MIPROv2 + Refine |
 | Blacklist Cards (33 imgs) | 0.9295 | 0.9338 | 0.9599 | **0.9713** | — | MIPROv2 + Refine |
+| Company Lists (15 imgs) | 0.7643 | 0.7774 | **0.8771** | 0.8663 | — | MIPROv2 |
 
-*GEPA CoT uses Gemini 2.5 Pro as reflection model. Bibliographic Data and Blacklist Cards GEPA were not run (insufficient train+dev data). Refine(3) uses quality-aware reward with threshold=0.95.*
+*GEPA CoT uses Gemini 2.5 Pro as reflection model. Bibliographic Data, Blacklist Cards, and Company Lists GEPA were not run (insufficient train+dev data). Refine(3) uses quality-aware reward with threshold=0.95.*
 
 The individual benchmark experiments, taken together, reveal four cross-cutting patterns:
 
-**Optimisation gains scale inversely with baseline quality, making a cheap model competitive.** Business Letters (+27.5 pts from 0.46) and Personnel Cards (+26.0 from 0.63) improved most; Blacklist Cards (+4.2 from 0.93) improved least. On 4 of 5 benchmarks, optimised Flash matched or exceeded the RISE leaderboard's best hand-crafted prompts on GPT-5, GPT-4.1, and GPT-4o — at ~1/10th the inference cost.
+**Optimisation gains scale inversely with baseline quality, making a cheap model competitive.** Business Letters (+27.5 pts from 0.46) and Personnel Cards (+26.0 from 0.63) improved most; Blacklist Cards (+4.2 from 0.93) improved least. Company Lists (+11.3 from 0.76) falls in between. On 5 of 6 benchmarks, optimised Flash matched or exceeded the RISE leaderboard's best hand-crafted prompts on GPT-5, GPT-4.1, and GPT-4o — at ~1/10th the inference cost.
 
 **Task structure determines whether instructions or demonstrations are more effective.** GEPA's instruction-only optimisation came within 1.1 pts of MIPROv2 on Personnel Cards (consistent table layout), but fell 8.7 pts short on Library Cards (diverse card formats where no single instruction generalised) and 9.1 pts short on Business Letters (where exact name format matching is taught implicitly by examples but expressed as brittle rules in prose). The more varied the inputs, the more demonstrations matter.
 
-**Scoring methodology, not model capability, was the binding constraint on two benchmarks.** Bibliographic Data's position-based entry matching causes cascading alignment errors — largely correct extraction, scored against the wrong ground-truth entries. Business Letters' exact-match alias table means any unrecognised name variant scores zero. Both benchmarks saw the smallest optimisation gains and the weakest response to inference-time remedies (two-stage pipeline, verify-and-correct). The three benchmarks with fuzzy-threshold metrics (Library Cards, Personnel Cards, Blacklist Cards) all benefited more from both optimisation and Refine.
+**Scoring methodology, not model capability, was the binding constraint on two benchmarks.** Bibliographic Data's position-based entry matching causes cascading alignment errors — largely correct extraction, scored against the wrong ground-truth entries. Business Letters' exact-match alias table means any unrecognised name variant scores zero. Both benchmarks saw the smallest optimisation gains and the weakest response to inference-time remedies (two-stage pipeline, verify-and-correct). The four benchmarks with fuzzy-threshold metrics (Library Cards, Personnel Cards, Blacklist Cards, Company Lists) all benefited more from optimisation. Company Lists also uses position-based entry matching (like Bibliographic Data), but its simpler schema (3 flat fields vs 18+ nested fields) makes alignment cascades less catastrophic.
 
-**Stochastic errors yield to retries; structural errors resist all remedies.** Quality-aware Refine(3) — retrying the same optimised program with the benchmark metric as reward — helped most where errors vary between attempts: Business Letters +9.3 pts, Library Cards +1.5, Blacklist Cards +1.1. It gave nothing on Bibliographic Data (-0.3, structural alignment errors). Four module-level techniques (KNN demos, MultiChainComparison, verify-and-correct, two-stage pipeline) also failed to improve any benchmark — MIPROv2's jointly optimised instruction+demo programs are tightly coupled, and modifying any component disrupts the balance without adding compensating value.
+**Stochastic errors yield to retries; structural errors resist all remedies.** Quality-aware Refine(3) — retrying the same optimised program with the benchmark metric as reward — helped most where errors vary between attempts: Business Letters +9.3 pts, Library Cards +1.5, Blacklist Cards +1.1, Personnel Cards +0.4. It hurt on Company Lists (-1.1, near-threshold page regressions on retry) and did nothing on Bibliographic Data (-0.3, structural alignment errors). The pattern: Refine helps when errors are stochastic (name format, parse failures) and hurts when the model's first attempt is already good enough that retries add more variance than improvement. Four module-level techniques (KNN demos, MultiChainComparison, verify-and-correct, two-stage pipeline) also failed to improve any benchmark — MIPROv2's jointly optimised instruction+demo programs are tightly coupled, and modifying any component disrupts the balance without adding compensating value.
 
 | Benchmark | MIPROv2 CoT | + Refine(3) | Gain |
 |---|---|---|---|
@@ -527,6 +573,7 @@ The individual benchmark experiments, taken together, reveal four cross-cutting 
 | Blacklist Cards | 0.9599 | **0.9713** | +1.14 pts |
 | Personnel Cards | 0.8858 | **0.8894** | +0.36 pts |
 | Bibliographic Data | **0.7072** | 0.7043 | -0.29 pts |
+| Company Lists | **0.8771** | 0.8663 | -1.08 pts |
 
 ## Issues Encountered
 

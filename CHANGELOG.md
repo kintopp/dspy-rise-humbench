@@ -8,6 +8,19 @@ is not versioned, entries are grouped by date.
 ## 2026-02-09
 
 ### Added
+- **Company Lists benchmark** (`benchmarks/company_lists/`): 6th benchmark added
+  to the pipeline. 15 images of printed Swiss company trade index pages
+  (1925-1958) with 15-31 entries per page. F1 metric with hybrid scoring:
+  0.92 fuzzy threshold (Library Cards pattern) + null normalization (Blacklist
+  Cards pattern). First multi-input benchmark (`page_image` + `page_id`).
+  Best result: **MIPROv2 medium-CoT = 0.8771 f1_macro** (+11.3 pts over
+  predict baseline), far exceeding the upstream leaderboard top (GPT-5 at
+  58.40). Refine(3) hurt here (-1.1 pts) due to near-threshold page
+  regressions on retry.
+- **Multi-input support** in `evaluate_baseline.py` and `evaluate_optimized.py`:
+  replaced single `input_field` lookup with `input_keys` dict comprehension,
+  enabling benchmarks with multiple input fields (backward-compatible with all
+  existing single-input benchmarks).
 - **Blacklist Cards benchmark** (`benchmarks/blacklist_cards/`): 5th benchmark
   added to the pipeline. 33 images of 1940s British blacklist index cards with
   average fuzzy metric. Near-ceiling baseline (93.0) pushed to **97.1** with

@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(description="Evaluate baseline")
     parser.add_argument("--benchmark", default="library_cards",
-                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards"],
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists"],
                         help="Benchmark name")
     parser.add_argument("--model", default="gpt-4o", help="Model preset or full model string")
     parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
@@ -42,8 +42,8 @@ def main():
     _, _, test_raw = data_mod.split_data(samples, seed=args.seed)
     test_examples = data_mod.samples_to_examples(test_raw)
 
-    # Determine input field name from examples
-    input_field = list(test_examples[0].inputs().keys())[0]
+    # Determine input field names from examples
+    input_keys = list(test_examples[0].inputs().keys())
 
     logger.info(f"Evaluating baseline on {len(test_examples)} test images...")
 
@@ -54,7 +54,7 @@ def main():
         image_id = raw["id"]
         logger.info(f"[{i+1}/{len(test_examples)}] Processing {image_id}...")
         try:
-            prediction = extractor(**{input_field: getattr(example, input_field)})
+            prediction = extractor(**{k: getattr(example, k) for k in input_keys})
             pred_dict = parse_prediction_document(prediction)
             if pred_dict is None:
                 logger.warning(f"  Failed to parse prediction for {image_id}")
