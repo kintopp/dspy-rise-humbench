@@ -41,7 +41,7 @@ class KNNDemoExtractor(dspy.Module):
             base_module: MIPROv2-optimized extractor (will be modified in-place).
             trainset: List of dspy.Example with 'document' field containing GT JSON.
             k: Number of nearest neighbors to retrieve.
-            embedder: dspy.Embedder instance. Defaults to Gemini text-embedding-004.
+            embedder: dspy.Embedder instance. Defaults to gemini-embedding-001.
         """
         super().__init__()
         self.base = base_module
@@ -49,9 +49,7 @@ class KNNDemoExtractor(dspy.Module):
         if embedder is not None:
             self.embedder = embedder
         else:
-            from sentence_transformers import SentenceTransformer
-            st_model = SentenceTransformer("all-MiniLM-L6-v2")
-            self.embedder = dspy.Embedder(st_model.encode)
+            self.embedder = dspy.Embedder("gemini/gemini-embedding-001")
 
         # Pre-compute training embeddings from GT JSON
         logger.info(f"Embedding {len(trainset)} training examples for KNN index...")
