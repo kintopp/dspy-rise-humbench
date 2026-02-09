@@ -287,11 +287,9 @@ MIPROv2 selects 2 static demonstrations that are fixed for all images. A KNN app
 
 #### Key findings
 
-- **Optimization is most impactful on cheaper models.** The uplift on Flash (+14.3 pts) far exceeds the uplift on Pro (+7.4 pts).
-- **Programs partially transfer across models.** Pro-optimized demos scored 0.8743 on Flash — only 1.7 pts below the Pro result, but per-model optimization beats transfer by +2.7 pts.
-- **Search budget matters.** MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have missed this configuration.
-- **Diverse tasks need demos, not instructions.** GEPA's instruction-only optimization — even with a stronger reflection model (Gemini 2.5 Pro) — couldn't match MIPROv2's few-shot approach (-8.7 pts). The diverse card formats (typed vs. handwritten, German vs. French, dissertations vs. reference cards) are better communicated through worked examples than through rules.
-- **Static MIPROv2 demos are already well-adapted.** KNN dynamic demo selection produced identical results to MIPROv2's static demos. Joint instruction+demo optimization creates tight coupling — swapping demos at inference breaks this without adding value.
+- **Cheap models benefit most from optimization.** Flash gained +14.3 pts vs. Pro's +7.4 pts — and optimized Flash (0.9167) surpassed optimized Pro (0.8912) at one-tenth the cost.
+- **Diverse tasks need demos, not instructions.** GEPA's instruction-only optimization couldn't generalise across the varied card formats (-8.7 pts vs. MIPROv2). Few-shot examples communicate extraction conventions more robustly than rules.
+- **Joint optimization resists post-hoc changes.** Neither cross-model transfer, KNN demo selection, nor increased search budget improved on MIPROv2's jointly optimized instruction+demo package. The components are tightly coupled — swapping any one part doesn't help.
 
 ---
 
