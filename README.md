@@ -70,49 +70,6 @@ How these per-field scores are aggregated into a benchmark score differs:
 - **Business Letters** uses **category-level set matching**: persons are matched against a `persons.json` alias table using exact string match (no fuzzy), dates require exact match, and locations/organizations use set intersection. Per-letter F1 is macro-averaged.
 - **Blacklist Cards** uses **average fuzzy score** (same as Bibliographic Data): raw fuzzy similarity for every leaf field, averaged directly. Null values (None or "null") are normalized to empty string before comparison.
 
-### Project structure
-
-The project uses a multi-benchmark plugin architecture. Each benchmark is a self-contained package under `benchmarks/` that exports the same interface (`Extractor`, `load_and_split`, `dspy_metric`, `score_single_prediction`, etc.). Scripts select a benchmark at runtime via `--benchmark`.
-
-```
-benchmarks/
-  __init__.py             # Package init (exports benchmark names)
-  shared/
-    config.py             # LM setup, model presets, results_dir() helper
-    scoring_helpers.py    # Fuzzy scoring, key traversal, FeedbackScore, shared F1 factories
-    data_helpers.py       # Generic split_data() and load_and_split() used by all benchmarks
-  library_cards/          # Library Cards benchmark (F1 metric, 263 images)
-    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
-  bibliographic_data/     # Bibliographic Data benchmark (average fuzzy metric, 5 images)
-    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
-  personnel_cards/        # Personnel Cards benchmark (F1 metric, 61 images)
-    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
-  business_letters/       # Business Letters benchmark (F1 metric, 57 letters / 98 pages)
-    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
-  blacklist_cards/        # Blacklist Cards benchmark (fuzzy metric, 33 images)
-    __init__.py / schema.py / signature.py / data.py / module.py / scoring.py
-
-data/{benchmark}/         # Symlinks to humanities_data_benchmark repo
-  images/ ground_truths/
-
-results/{benchmark}/      # Per-benchmark results
-  baseline/ optimized/
-results/demo/             # Interactive HTML demo visualizations
-
-scripts/
-  evaluate_baseline.py    # --benchmark flag, dynamic imports
-  optimize.py             # MIPROv2, BootstrapFewShot, SIMBA, or GEPA
-  evaluate_optimized.py   # Evaluate saved optimized program (supports Refine)
-  evaluate_knn.py         # KNN dynamic demo selection evaluation
-  evaluate_multi_chain.py # MultiChainComparison evaluation
-  evaluate_verify.py      # Verify-and-correct evaluation
-  loo_mipro.py            # Leave-one-out MIPROv2 for small datasets
-  compare_results.py      # Side-by-side comparison (auto-discovers results)
-  check_rate_limits.py    # Check provider API rate limits
-  generate_demo_data.py   # Export sample results as JSON for demo visualizations
-  generate_demo_html.py   # Generate interactive HTML demos from exported data
-```
-
 ### Running the pipeline
 
 ```bash
