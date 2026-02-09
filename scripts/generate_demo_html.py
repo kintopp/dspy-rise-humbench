@@ -565,7 +565,7 @@ def main():
                         help="Single benchmark to generate (default: all available)")
     args = parser.parse_args()
 
-    benchmarks = ["library_cards", "bibliographic_data", "personnel_cards", "business_letters"]
+    benchmarks = ["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards"]
     if args.benchmark:
         benchmarks = [args.benchmark]
 

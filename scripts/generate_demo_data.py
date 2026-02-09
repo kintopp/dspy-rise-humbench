@@ -153,6 +153,31 @@ BENCHMARK_CONFIG = {
             },
         ],
     },
+    "blacklist_cards": {
+        "display_name": "Blacklist Cards",
+        "metric_key": "fuzzy",
+        "reference_scores": "results/blacklist_cards/optimized/mipro-cot_gemini-2.0-flash_optimized_test_scores.json",
+        "optimizers": [
+            {
+                "name": "Predict Baseline",
+                "module_type": "predict",
+                "program": None,
+                "refine": 0,
+            },
+            {
+                "name": "MIPROv2 CoT",
+                "module_type": "cot",
+                "program": "results/blacklist_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json",
+                "refine": 0,
+            },
+            {
+                "name": "MIPROv2 CoT + Refine(3)",
+                "module_type": "cot",
+                "program": "results/blacklist_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json",
+                "refine": 3,
+            },
+        ],
+    },
 }
 
 
