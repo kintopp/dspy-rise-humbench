@@ -528,11 +528,9 @@ The individual benchmark experiments, taken together, reveal four cross-cutting 
 | Personnel Cards | 0.8858 | **0.8894** | +0.36 pts |
 | Bibliographic Data | **0.7072** | 0.7043 | -0.29 pts |
 
-**Total project cost:** 5,879 API calls, ~14.2M input tokens, ~6.7M output tokens, $27.64 total. Gemini 2.0 Flash accounted for 75% of calls but only $4.20.
-
 ## Issues Encountered
 
-**Rate limiting is the main practical challenge for DSPy optimization with vision models:**
+**Rate limiting is the main practical challenge:**
 
 - **OpenAI (GPT-4o):** The initial MIPROv2 run with GPT-4o was severely degraded by a 30,000 TPM (tokens per minute) rate limit. With image inputs consuming thousands of tokens per call and 16 concurrent threads, most trials hit rate limit errors, causing JSON parse failures that were scored as 0.0. The best trial scored only 78.3 on the dev set.
 - **Gemini 3 Pro Preview:** Attempted optimizations hit a 25 RPM (requests per minute) per-model limit — far more restrictive than GA models. Only 2 of 11 trials completed (best: 84.59). The daily quota was also exhausted mid-run.
@@ -540,37 +538,11 @@ The individual benchmark experiments, taken together, reveal four cross-cutting 
 
 Use `scripts/check_rate_limits.py` to verify provider limits before running optimizations.
 
-### Other RISE benchmarks
-
-The following RISE benchmark follows the image → JSON pattern and is a candidate for future work:
-
-| Benchmark | Top score | Notes |
-|---|---|---|
-| **[Company Lists](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/company_lists)** | ~49.7 | Very low top scores — can optimization help where all models struggle? |
-
-The remaining RISE benchmarks (Book Advert XML, Fraktur Adverts, Medieval Manuscripts) use different task types (text-to-XML, OCR transcription, page segmentation) that would require a different pipeline architecture.
-
-## Potential Future Work
-
-### Optimizing stronger models
-
-All experiments used Gemini 2.0 Flash as the target model. A natural next step is to apply MIPROv2 medium-CoT to the models that currently lead the RISE leaderboard and measure whether optimization yields meaningful gains when the unoptimized baseline is already strong. 
+## Potential Future Work 
 
 ### Small and local models
 
 Since optimization is most impactful on cheaper models, it's conceivable that small, locally-run vision models could see similar gains. The RISE benchmark already includes a [local MLX runner](https://github.com/RISE-UNIBAS/humanities_data_benchmark), making it straightforward to establish local model baselines. 
-
-### Scoring improvements
-
-Two benchmarks hit metric ceilings: Bibliographic Data's position-based scoring causes cascading alignment errors, and Business Letters' exact-match alias lookup means any name variant not in `persons.json` scores zero. Implementing ID-aware entry matching and fuzzy name matching in the RISE benchmark would make optimization gains more meaningful.
-
-### Ensemble and self-consistency
-
-Quality-aware Refine(3) already addresses part of this: by running the optimized program up to 3 times and keeping the best attempt, it reduced zero-scoring outliers and added +1.1 to +9.3 pts across benchmarks. We also tested MultiChainComparison (M=3) on Personnel Cards, which generates diverse attempts and synthesises the best answer through a comparator — but it scored 0.95 pts below single-pass MIPROv2, suggesting that the comparator introduces as much noise as it resolves. A field-level majority vote (rather than whole-output comparison) could potentially do better by combining correct fields from different attempts, but this would require custom merge logic per benchmark schema.
-
-### Multi-step agentic pipelines
-
-We tested a two-stage pipeline on Bibliographic Data (image → text → JSON), which scored 8.1 pts below the single-stage approach — the structuring stage lost access to visual cues without the image. A tool-augmented ReAct agent for Business Letters (with access to the `persons.json` alias table during extraction) remains untested but is a natural next step: the verify-and-correct post-processing showed that name format is not the bottleneck (MIPROv2's demos already teach correct formats), but a tool-using agent could help with entity *detection* rather than entity *formatting*.
 
 ## Credits
 
