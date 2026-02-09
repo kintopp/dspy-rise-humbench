@@ -65,6 +65,11 @@ is not versioned, entries are grouped by date.
 - Reflection model name now included in GEPA output filenames for traceability
   (e.g., `gepa-cot_gemini-2.0-flash_reflect-gemini-2.5-pro_optimized.json`).
 
+### Changed
+- **README prose**: trimmed verbose descriptions, removed Gemini JSON quirk
+  and GEPA compatibility notes (implementation details better suited to code
+  comments), and removed demo screenshot.
+
 ### Refactored
 - Extracted shared `compute_f1()` and `filter_parent_keys()` helpers into
   `benchmarks/shared/scoring_helpers.py`, replacing 8 inline F1 computations
