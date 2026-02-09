@@ -15,8 +15,9 @@ is not versioned, entries are grouped by date.
 - **Module-level experiments** across four benchmarks:
   - **KNN dynamic demo selection** (`benchmarks/library_cards/knn_module.py`,
     `scripts/evaluate_knn.py`): two-pass inference with nearest-neighbor demo
-    retrieval using sentence-transformers. Result: 0.9017 f1_macro (equal to
-    static MIPROv2 demos — no improvement).
+    retrieval. Tested with both `sentence-transformers/all-MiniLM-L6-v2`
+    (English-only) and `gemini-embedding-001` (multilingual) — identical
+    results: 0.9017 f1_macro (equal to static MIPROv2 demos — no improvement).
   - **MultiChainComparison** (`benchmarks/personnel_cards/multi_chain_module.py`,
     `scripts/evaluate_multi_chain.py`): M=3 diverse attempts synthesized by a
     comparator. Includes `FullMultiChainComparison` subclass fixing DSPy's
@@ -43,6 +44,20 @@ is not versioned, entries are grouped by date.
   0.52 — lower than DSPy pipeline (0.64 single-pass / 0.73 with Refine) due to
   loss of explicit chain-of-thought (structured output forces direct JSON),
   multi-modal few-shot demos, and Refine retries.
+- **Blacklist Cards demo visualization** (`results/demo/demo_blacklist_cards.html`):
+  added 5th benchmark to the interactive HTML demo pages and updated the index.
+- **Blacklist Cards optimized prompt documentation**
+  (`docs/optimized-prompt-blacklist-cards.md`): 9-guideline instruction with
+  2 demos, matching the format of the other four benchmark prompt docs.
+- **Experiment planning docs** (`docs/experiment-plan.md`,
+  `docs/cross-model-transfer.md`): experiment matrix and cross-model transfer
+  analysis.
+
+### Changed
+- **README — Library Cards key findings**: moved from between Phase 2 and
+  Phase 3 to after Phase 4, and tightened from five overlapping bullets to
+  three distinct findings (cheap-model uplift, demos vs. instructions, joint
+  optimization coupling).
 
 ---
 
