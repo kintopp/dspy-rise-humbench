@@ -538,12 +538,6 @@ The individual benchmark experiments, taken together, reveal four cross-cutting 
 
 Use `scripts/check_rate_limits.py` to verify provider limits before running optimizations.
 
-## Potential Future Work 
-
-### Small and local models
-
-Since optimization is most impactful on cheaper models, it's conceivable that small, locally-run vision models could see similar gains. The RISE benchmark already includes a [local MLX runner](https://github.com/RISE-UNIBAS/humanities_data_benchmark), making it straightforward to establish local model baselines. 
-
 ## Credits
 
 This project was conceived by [Arno Bosse](https://orcid.org/0000-0003-3681-1289) ([RISE](https://rise.unibas.ch/en/), University of Basel) and coded and co-written by [Claude Code](https://claude.ai/claude-code) (Anthropic). The benchmark tasks and evaluation framework are from the [RISE Humanities Data Benchmark](https://github.com/RISE-UNIBAS/humanities_data_benchmark/).
