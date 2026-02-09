@@ -261,12 +261,6 @@ Cross-model transfer also worked: running the Pro-optimized program directly on 
 
 The different optimizers revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g. "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. 
 
-#### Key findings
-
-- **Optimization is most impactful on cheaper models.** The uplift on Flash (+14.3 pts) far exceeds the uplift on Pro (+7.4 pts).
-- **Programs partially transfer across models.** Pro-optimized demos scored 0.8743 on Flash — only 1.7 pts below the Pro result, but per-model optimization beats transfer by +2.7 pts.
-- **Search budget matters.** MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have missed this configuration.
-
 #### Phase 3: GEPA with stronger reflection model
 
 GEPA medium-CoT was re-run with Gemini 2.5 Pro as the reflection model (23 iterations, ~885 metric calls). Despite generating detailed, domain-specific instructions — teaching the model rules about "Ref." meaning "Referent" (not editor), "S." meaning "Seiten" (pages), bracket handling for shelfmarks, and the "Aus:" exclusion — no single candidate instruction beat the base CoT program on the full dev set. The Pareto front across dev examples reached 0.896, meaning the best instruction *per example* would have scored well, but no instruction generalised across the diverse card formats.
@@ -290,6 +284,16 @@ MIPROv2 selects 2 static demonstrations that are fixed for all images. A KNN app
 **KNN demo selection produced identical results to static MIPROv2 demos.** The TP/FP/FN counts were unchanged (1546/156/161). Two factors explain this: (1) MIPROv2's instruction and demos were jointly optimized — swapping demos at inference breaks this coupling, and (2) the sentence-transformer embeddings of prediction JSON may not capture the visual card-type diversity that determines which demos are most useful. The result suggests that MIPROv2's static demo selection is already effective across the full card-type distribution.
 
 **A note on comparability.** The leaderboard scores are computed over all 263 images using a single hand-crafted prompt, whereas our 0.9017 is evaluated on a 70% held-out test set (185 images) that the optimizer never saw. MIPROv2 needs train and dev sets to select instructions and demos, so the test set must remain separate. Making the comparison rigorous would require repeated random splits (Monte Carlo cross-validation): re-running the full optimization pipeline with different 15/15/70 partitions and reporting the mean and confidence interval. Based on standard power analysis, 10–30 repetitions would likely be needed depending on the variance across splits at ~$3–4 per run.
+
+#### Key findings
+
+- **Optimization is most impactful on cheaper models.** The uplift on Flash (+14.3 pts) far exceeds the uplift on Pro (+7.4 pts).
+- **Programs partially transfer across models.** Pro-optimized demos scored 0.8743 on Flash — only 1.7 pts below the Pro result, but per-model optimization beats transfer by +2.7 pts.
+- **Search budget matters.** MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have missed this configuration.
+- **Diverse tasks need demos, not instructions.** GEPA's instruction-only optimization — even with a stronger reflection model (Gemini 2.5 Pro) — couldn't match MIPROv2's few-shot approach (-8.7 pts). The diverse card formats (typed vs. handwritten, German vs. French, dissertations vs. reference cards) are better communicated through worked examples than through rules.
+- **Static MIPROv2 demos are already well-adapted.** KNN dynamic demo selection produced identical results to MIPROv2's static demos. Joint instruction+demo optimization creates tight coupling — swapping demos at inference breaks this without adding value.
+
+---
 
 ### [Bibliographic Data](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/bibliographic_data)
 
