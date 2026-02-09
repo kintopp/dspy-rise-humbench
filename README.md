@@ -207,7 +207,7 @@ Available presets include: `gemini-3-pro-preview`, `gemini-2.5-pro`, `gemini-2.5
 
 ## Individual Benchmark Results 
 
-The RISE benchmarks are designed for practical deployment on large archival collections, where inference cost matters. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimizations make a cheap model competitive? To this end, all four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). 
+The RISE benchmarks are designed for practical deployment on large archival collections, where [inference cost](https://www.llm-prices.com) matters. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimizations make a cheap model competitive? To this end, all four benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). 
 
 ---
 
