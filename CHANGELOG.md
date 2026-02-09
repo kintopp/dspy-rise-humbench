@@ -17,10 +17,10 @@ is not versioned, entries are grouped by date.
   predict baseline), far exceeding the upstream leaderboard top (GPT-5 at
   58.40). Refine(3) hurt here (-1.1 pts) due to near-threshold page
   regressions on retry.
-- **Multi-input support** in `evaluate_baseline.py` and `evaluate_optimized.py`:
-  replaced single `input_field` lookup with `input_keys` dict comprehension,
-  enabling benchmarks with multiple input fields (backward-compatible with all
-  existing single-input benchmarks).
+- **Multi-input support** in `evaluate_baseline.py`, `evaluate_optimized.py`,
+  and `generate_demo_data.py`: replaced single `input_field` lookup with
+  `input_keys` dict comprehension, enabling benchmarks with multiple input
+  fields (backward-compatible with all existing single-input benchmarks).
 - **Blacklist Cards benchmark** (`benchmarks/blacklist_cards/`): 5th benchmark
   added to the pipeline. 33 images of 1940s British blacklist index cards with
   average fuzzy metric. Near-ceiling baseline (93.0) pushed to **97.1** with
@@ -57,6 +57,11 @@ is not versioned, entries are grouped by date.
   0.52 — lower than DSPy pipeline (0.64 single-pass / 0.73 with Refine) due to
   loss of explicit chain-of-thought (structured output forces direct JSON),
   multi-modal few-shot demos, and Refine retries.
+- **Company Lists demo visualization** (`results/demo/demo_company_lists.html`):
+  added 6th benchmark to the interactive HTML demo pages and updated the index.
+- **Company Lists optimized prompt documentation**
+  (`docs/optimized-prompt-company-lists.md`): persona-framed instruction with
+  2 demos covering alphabetical and thematic page types, dual input fields.
 - **Blacklist Cards demo visualization** (`results/demo/demo_blacklist_cards.html`):
   added 5th benchmark to the interactive HTML demo pages and updated the index.
 - **Blacklist Cards optimized prompt documentation**
