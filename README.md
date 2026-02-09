@@ -614,7 +614,6 @@ Total API usage across all 4 benchmarks: 5,879 calls, ~14.2M input tokens, ~6.7M
 
 - **OpenAI (GPT-4o):** The initial MIPROv2 run with GPT-4o was severely degraded by a 30,000 TPM (tokens per minute) rate limit. With image inputs consuming thousands of tokens per call and 16 concurrent threads, most trials hit rate limit errors, causing JSON parse failures that were scored as 0.0. The best trial scored only 78.3 on the dev set.
 - **Gemini 3 Pro Preview:** Attempted optimizations hit a 25 RPM (requests per minute) per-model limit — far more restrictive than GA models. Only 2 of 11 trials completed (best: 84.59). The daily quota was also exhausted mid-run.
-- **Gemini 2.5 Pro:** No rate limit issues. The GA model has generous limits (1M+ TPM), making it well-suited for optimization workloads with many parallel calls.
 - **Gemini 2.0 Flash:** Even Flash’s 4M TPM limit can be hit when running multiple optimization jobs in parallel. Running SIMBA, GEPA, and baseline concurrently caused sporadic 429 errors. Sequential execution or reduced thread counts (`--num-threads 4`) mitigate this.
 
 Use `scripts/check_rate_limits.py` to verify provider limits before running optimizations.
