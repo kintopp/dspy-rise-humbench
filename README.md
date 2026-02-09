@@ -160,7 +160,7 @@ Each benchmark's optimized program is a JSON file containing an instruction, a s
 - [Bibliographic Data](docs/optimized-prompt-bibliographic-data.md) — 40-line instruction with inline schema, 1 demo
 - [Personnel Cards](docs/optimized-prompt-personnel-cards.md) — persona-framed instruction, 2 demos
 - [Business Letters](docs/optimized-prompt-business-letters.md) — 2-sentence instruction, 2 demos
-- Blacklist Cards — optimized program at `results/blacklist_cards/optimized/`
+- [Blacklist Cards](docs/optimized-prompt-blacklist-cards.md) — 9-guideline instruction, 2 demos
   
 ### Viewing sample predictions
 
