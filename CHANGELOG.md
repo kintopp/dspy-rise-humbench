@@ -8,6 +8,29 @@ is not versioned, entries are grouped by date.
 ## 2026-02-09
 
 ### Added
+- **Blacklist Cards benchmark** (`benchmarks/blacklist_cards/`): 5th benchmark
+  added to the pipeline. 33 images of 1940s British blacklist index cards with
+  average fuzzy metric. Near-ceiling baseline (93.0) pushed to **97.1** with
+  MIPROv2 medium-CoT + Refine(3), exceeding the upstream leaderboard top (~95.7).
+- **Module-level experiments** across four benchmarks:
+  - **KNN dynamic demo selection** (`benchmarks/library_cards/knn_module.py`,
+    `scripts/evaluate_knn.py`): two-pass inference with nearest-neighbor demo
+    retrieval using sentence-transformers. Result: 0.9017 f1_macro (equal to
+    static MIPROv2 demos — no improvement).
+  - **MultiChainComparison** (`benchmarks/personnel_cards/multi_chain_module.py`,
+    `scripts/evaluate_multi_chain.py`): M=3 diverse attempts synthesized by a
+    comparator. Includes `FullMultiChainComparison` subclass fixing DSPy's
+    truncation bug on multi-line JSON. Result: 0.8763 f1_macro (-0.95 pts below
+    MIPROv2 CoT).
+  - **Verify-and-correct** (`benchmarks/business_letters/verify_module.py`,
+    `benchmarks/business_letters/tools.py`, `scripts/evaluate_verify.py`):
+    post-hoc person name lookup against `persons.json` alias table. Result:
+    0.6378 f1_macro (neutral — zero corrections with exact-match-only mode).
+  - **Two-stage pipeline** (`benchmarks/bibliographic_data/two_stage_module.py`,
+    `benchmarks/bibliographic_data/two_stage_signature.py`): split OCR from
+    structuring. Result: 0.6265 fuzzy (worse than single-stage 0.7072).
+- **New evaluation scripts**: `evaluate_knn.py`, `evaluate_multi_chain.py`,
+  `evaluate_verify.py` for the module-level experiments.
 - **HumBench export script** (`scripts/export_humbench_results.py`): runs the
   optimized DSPy program on all letters and outputs per-letter JSONs in the
   upstream `humanities_data_benchmark` results format, including `usage`,

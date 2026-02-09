@@ -1,0 +1,21 @@
+{
+  "benchmark": "bibliographic_data",
+  "module_type": "two_stage_cot",
+  "aggregate": {
+    "fuzzy": 0.6265,
+    "total_instances": 2,
+    "total_keys": 304
+  },
+  "per_image": [
+    {
+      "id": "page_5",
+      "fuzzy": 0.8615,
+      "total_keys": 117
+    },
+    {
+      "id": "page_10",
+      "fuzzy": 0.3915,
+      "total_keys": 187
+    }
+  ]
+}
