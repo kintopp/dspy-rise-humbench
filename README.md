@@ -561,19 +561,15 @@ Comparing the five optimized prompts reveals how MIPROv2's Bayesian search adapt
 | Business Letters (57 letters) | 0.4565 | 0.4713 | 0.6378 | **0.7312** | 0.5472 | MIPROv2 + Refine |
 | Blacklist Cards (33 imgs) | 0.9295 | 0.9338 | 0.9599 | **0.9713** | — | MIPROv2 + Refine |
 
-*GEPA CoT column uses Gemini 2.5 Pro as the reflection model. Bibliographic Data and Blacklist Cards GEPA were not run (insufficient train+dev data). Refine(3) uses quality-aware reward with threshold=0.95.*
+*GEPA CoT uses Gemini 2.5 Pro as reflection model. Bibliographic Data and Blacklist Cards GEPA were not run (insufficient train+dev data). Refine(3) uses quality-aware reward with threshold=0.95.*
 
-**MIPROv2 medium + CoT + Refine(3) is the universal winner.** Adding quality-aware inference-time refinement (see below) on top of MIPROv2-optimized programs improved results on 4 of 5 benchmarks, with the largest gain on Business Letters (+9.3 pts). Only Bibliographic Data showed no gain, because its scoring bottleneck is positional alignment — not extraction quality.
+Three cross-benchmark patterns:
 
-**GEPA with a stronger reflection model narrows the gap — but only on structured tasks.** Using Gemini 2.5 Pro as the reflection model (instead of Flash reflecting on itself), GEPA came within 1.1 pts of MIPROv2 on Personnel Cards — the one benchmark with highly consistent task structure (tabular data). On Library Cards (diverse card formats) and Business Letters (exact name matching), GEPA's instruction-only approach fell well short. The pattern: few-shot demonstrations communicate extraction conventions more robustly than prose instructions, especially when the task requires matching specific output formats.
+**Optimized Flash competes with frontier models at ~1/10th the cost.** On 4 of 5 benchmarks, MIPROv2+Refine on Gemini 2.0 Flash matched or exceeded the RISE leaderboard's best hand-crafted prompts on GPT-5, GPT-4.1, and GPT-4o. Gains scale inversely with baseline quality: Business Letters (+27.5 pts from 0.46) and Personnel Cards (+26.0 pts from 0.63) improved most, while near-ceiling Blacklist Cards still gained +4.2 pts from 0.93.
 
-**ChainOfThought as optimizer amplifier.** Unoptimized CoT can help or hurt: it hurt Library Cards (-5.5 pts) and Bibliographic Data (-0.55 pts) but helped Personnel Cards (+16.9 pts) and Business Letters (+1.5 pts). CoT helps when the main failure mode is output formatting (JSON parse failures), but hurts when the model already produces well-formed output. Once optimization is applied, CoT consistently wins — it widens the search space that MIPROv2 can exploit.
+**Few-shot demonstrations beat instruction-only optimization.** GEPA (instruction-only, with Gemini 2.5 Pro reflection) came within 1.1 pts of MIPROv2 on Personnel Cards — the one task with consistent tabular structure — but fell 8.7–9.1 pts short on Library Cards (diverse formats) and Business Letters (exact format matching). Worked examples communicate extraction conventions more robustly than prose rules.
 
-**Biggest gains where baselines are weakest.** Personnel Cards (baseline 0.63) gained +26.0 pts, Business Letters (0.46) gained +27.5 pts, Library Cards (0.81) gained +10.3 pts, Blacklist Cards (0.93) gained +4.2 pts, Bibliographic Data (0.67) gained +3.4 pts.
-
-**Optimized Flash 2.0 competes with expensive models.** On four of five benchmarks, optimized Gemini 2.0 Flash matched or exceeded the RISE leaderboard leaders — at roughly one-tenth the inference cost. Business Letters was the exception: even with Refine, optimized Flash (73.12) falls short of GPT-5's 77.0 — though the gap narrowed from 13.2 pts to 3.9 pts.
-
-**Small dev sets cause overfitting — for all optimizers.** Business Letters showed the largest dev-test gap: MIPROv2 dropped from 89.58 to 63.78 (-25.8 pts), and GEPA dropped even further from 89.58 to 54.72 (-34.9 pts), both with only 8 dev letters. Library Cards (39 dev) showed minimal gap. Instruction-only optimization (GEPA) does not inherently generalise better than few-shot optimization (MIPROv2) — both overfit equally when dev sets are too small.
+**CoT is an optimizer amplifier, not a standalone improvement.** Unoptimized CoT hurt Library Cards (-5.5 pts) but helped Personnel Cards (+16.9 pts) — it helps when the main failure mode is JSON formatting, not extraction. But once MIPROv2 is applied, CoT consistently wins: it widens the instruction/demo search space that the optimizer can exploit.
 
 #### Inference-time refinement (Refine)
 
