@@ -496,17 +496,7 @@ This benchmark tests optimization at the ceiling: the unoptimized Flash baseline
 
 ### Cross-Benchmark Findings
 
-Comparing the five optimized prompts reveals how MIPROv2's Bayesian search adapted its strategy to each benchmark's characteristics:
-
-**Instruction length trades off against demonstration count.** Bibliographic Data — the most complex schema (18 fields per entry, nested authors, cross-references) with the smallest training set (2 images) — received a 40-line instruction that embeds the full JSON schema twice (once in the instruction, once in the output field description). The other three benchmarks received 1-3 sentence instructions with 2 demonstrations each. With fewer training examples to learn from, the optimizer compensated with more explicit instructions; with more training examples, it relied on demonstrations to implicitly teach the schema.
-
-**The optimizer independently discovered established prompting patterns.** Personnel Cards' instruction frames the model as "a highly skilled data entry specialist working for the Swiss Federal Archives" with stakes ("errors could significantly impact the historical analysis"). This persona + consequences pattern is well-known in prompt engineering — it's notable that MIPROv2's automated search converged on it without human guidance. Similarly, Bibliographic Data's instruction includes "explicitly detail your thought process step by step" — a manual reinforcement of the CoT module's built-in reasoning prefix, discovered by the optimizer as beneficial for complex multi-entry extraction.
-
-**Bootstrapped reasoning quality varies by task type.** All four programs use ChainOfThought ("Let's think step by step..."), but the quality of the optimizer's bootstrapped reasoning traces differs dramatically. Library Cards produced detailed step-by-step field extraction reasoning ("The card contains 'S.' on the same line as the page number, so the type is..."). Business Letters produced brief summaries ("The letter is from..., dated..."). Personnel Cards couldn't bootstrap reasoning at all ("Not supplied for this particular example."). The pattern: reasoning quality tracks how well the model can articulate *why* each extraction decision was made — field-by-field decisions (Library Cards) are easier to reason about than tabular transcription (Personnel Cards) or entity recognition (Business Letters).
-
-**Output field descriptions do the heavy lifting.** Across all four benchmarks, the Document field description — not the instruction — contains the detailed extraction rules: JSON schema, field-by-field conventions, edge case handling. The instruction sets the overall framing and approach; the output field description specifies exactly what to produce and how. This division of labour emerges naturally from DSPy's signature architecture, where field descriptions are fixed at module definition time while instructions are optimized by MIPROv2.
-
-**A single prompt element can dominate all other optimization gains.** Business Letters' "First Last" name format rule is the clearest example: because the `persons.json` alias table uses exact string matching with all 119 entries in "First Last" format, adding this single rule to the output field description lifted the baseline by +18 points — more than MIPROv2 optimization contributed on top. The lesson: when scoring depends on format conventions that the model cannot infer from the task alone, explicit format rules in the prompt are more valuable than any amount of optimizer search.
+Comparing the five optimized prompts reveals a consistent trade-off: with more training data available, the optimizer relied on demonstrations; with less, it compensated with longer instructions. Bibliographic Data (2 training images) received a 40-line instruction embedding the full schema; the other four benchmarks received 1-3 sentence instructions with 2 demonstrations each. Across all benchmarks, the output field description — not the instruction — carries the detailed extraction rules (schema, conventions, edge cases), a division of labour that emerges naturally from DSPy's signature architecture.
 
 #### Combined Results
 
@@ -520,19 +510,15 @@ Comparing the five optimized prompts reveals how MIPROv2's Bayesian search adapt
 
 *GEPA CoT uses Gemini 2.5 Pro as reflection model. Bibliographic Data and Blacklist Cards GEPA were not run (insufficient train+dev data). Refine(3) uses quality-aware reward with threshold=0.95.*
 
-Three cross-benchmark patterns:
+The individual benchmark experiments, taken together, reveal four cross-cutting patterns:
 
-**Optimized Flash competes with frontier models at ~1/10th the cost.** On 4 of 5 benchmarks, MIPROv2+Refine on Gemini 2.0 Flash matched or exceeded the RISE leaderboard's best hand-crafted prompts on GPT-5, GPT-4.1, and GPT-4o. Gains scale inversely with baseline quality: Business Letters (+27.5 pts from 0.46) and Personnel Cards (+26.0 pts from 0.63) improved most, while near-ceiling Blacklist Cards still gained +4.2 pts from 0.93.
+**Optimisation gains scale inversely with baseline quality, making a cheap model competitive.** Business Letters (+27.5 pts from 0.46) and Personnel Cards (+26.0 from 0.63) improved most; Blacklist Cards (+4.2 from 0.93) improved least. On 4 of 5 benchmarks, optimised Flash matched or exceeded the RISE leaderboard's best hand-crafted prompts on GPT-5, GPT-4.1, and GPT-4o — at ~1/10th the inference cost.
 
-**Few-shot demonstrations beat instruction-only optimization.** GEPA (instruction-only, with Gemini 2.5 Pro reflection) came within 1.1 pts of MIPROv2 on Personnel Cards — the one task with consistent tabular structure — but fell 8.7–9.1 pts short on Library Cards (diverse formats) and Business Letters (exact format matching). Worked examples communicate extraction conventions more robustly than prose rules.
+**Task structure determines whether instructions or demonstrations are more effective.** GEPA's instruction-only optimisation came within 1.1 pts of MIPROv2 on Personnel Cards (consistent table layout), but fell 8.7 pts short on Library Cards (diverse card formats where no single instruction generalised) and 9.1 pts short on Business Letters (where exact name format matching is taught implicitly by examples but expressed as brittle rules in prose). The more varied the inputs, the more demonstrations matter.
 
-**CoT is an optimizer amplifier, not a standalone improvement.** Unoptimized CoT hurt Library Cards (-5.5 pts) but helped Personnel Cards (+16.9 pts) — it helps when the main failure mode is JSON formatting, not extraction. But once MIPROv2 is applied, CoT consistently wins: it widens the instruction/demo search space that the optimizer can exploit.
+**Scoring methodology, not model capability, was the binding constraint on two benchmarks.** Bibliographic Data's position-based entry matching causes cascading alignment errors — largely correct extraction, scored against the wrong ground-truth entries. Business Letters' exact-match alias table means any unrecognised name variant scores zero. Both benchmarks saw the smallest optimisation gains and the weakest response to inference-time remedies (two-stage pipeline, verify-and-correct). The three benchmarks with fuzzy-threshold metrics (Library Cards, Personnel Cards, Blacklist Cards) all benefited more from both optimisation and Refine.
 
-#### Inference-time refinement (Refine)
-
-DSPy's `Refine` wrapper reruns the optimized program up to *N* times per input, keeping the best attempt according to a reward function. The initial reward function was binary: 1.0 if the output is valid JSON with required keys, 0.0 otherwise. Combined with `threshold=1.0`, this stops on the first structurally valid output — even if its extraction quality is poor.
-
-We replaced this with a **quality-aware reward**: at evaluation time, the actual benchmark metric (F1 or fuzzy score) is computed against the ground truth for each attempt, and Refine keeps the best-scoring one. With `threshold=0.95`, easy images (first attempt ≥ 0.95) stop early, while harder images use all *N* attempts. This gives the model a chance to self-correct on images where it initially makes errors.
+**Stochastic errors yield to retries; structural errors resist all remedies.** Quality-aware Refine(3) — retrying the same optimised program with the benchmark metric as reward — helped most where errors vary between attempts: Business Letters +9.3 pts, Library Cards +1.5, Blacklist Cards +1.1. It gave nothing on Bibliographic Data (-0.3, structural alignment errors). Four module-level techniques (KNN demos, MultiChainComparison, verify-and-correct, two-stage pipeline) also failed to improve any benchmark — MIPROv2's jointly optimised instruction+demo programs are tightly coupled, and modifying any component disrupts the balance without adding compensating value.
 
 | Benchmark | MIPROv2 CoT | + Refine(3) | Gain |
 |---|---|---|---|
@@ -542,28 +528,7 @@ We replaced this with a **quality-aware reward**: at evaluation time, the actual
 | Personnel Cards | 0.8858 | **0.8894** | +0.36 pts |
 | Bibliographic Data | **0.7072** | 0.7043 | -0.29 pts |
 
-The impact scales inversely with baseline quality. Business Letters — the benchmark with the lowest MIPROv2 score and the most scoring variability (exact name matching, date formats) — benefited the most. Library Cards and Blacklist Cards each gained ~1.1-1.5 pts. Personnel Cards showed modest improvement — the base model was already very strong. Bibliographic Data showed no gain because its low scores come from position-based alignment errors, which retrying the same prompt cannot fix.
-
-The cost is up to 3× more API calls per image (in practice less, since images scoring ≥ 0.95 on the first attempt stop early). On Gemini 2.0 Flash, the total cost for all 5 benchmarks was approximately $4-5 for the full Refine(3) evaluation.
-
-#### Module-level techniques
-
-Beyond optimizer-level search (MIPROv2, GEPA, SIMBA), we tested four module-level techniques that modify *how* the program runs at inference time, each targeting a specific benchmark's failure mode:
-
-| Technique | Benchmark | Target failure mode | Result | vs MIPROv2 CoT |
-|---|---|---|---|---|
-| KNN dynamic demos (k=3) | Library Cards | Static demos miss rare card types | 0.9017 | ±0.00 |
-| MultiChainComparison (M=3) | Personnel Cards | Residual FPs from single attempts | 0.8763 | -0.95 pts |
-| Verify-and-correct | Business Letters | Name format mismatches | 0.6378 | ±0.00 |
-| Two-stage pipeline | Bibliographic Data | Alignment cascade errors | 0.6265 | -8.07 pts |
-
-**None of the module-level techniques improved over the standard MIPROv2+Refine recipe.** Two were neutral (KNN, verify), two were negative (MultiChain, two-stage). The pattern: MIPROv2's joint instruction+demo optimization creates tightly coupled programs where changing one component (swapping demos, adding pipeline stages, introducing a comparator) disrupts the balance without adding compensating value. Refine(3) — which merely retries the *same* optimized program with quality-aware reward — remains the most effective way to spend additional LM calls at inference time.
-
-The results suggest a practical heuristic: when the optimized program's errors are *stochastic* (the model sometimes gets it right, sometimes wrong), Refine helps. When errors are *structural* (alignment cascades, missing entities), neither retries nor module-level changes address the root cause — the bottleneck is either the scoring metric or the model's fundamental capability.
-
-**Total project cost**
-
-Total API usage across all 4 benchmarks: 5,879 calls, ~14.2M input tokens, ~6.7M output tokens at a total cost of $27.64. Gemini 2.0 Flash accounted for 75% of the API calls but only $4.20 of the overall cost. 
+**Total project cost:** 5,879 API calls, ~14.2M input tokens, ~6.7M output tokens, $27.64 total. Gemini 2.0 Flash accounted for 75% of calls but only $4.20.
 
 ## Issues Encountered
 
