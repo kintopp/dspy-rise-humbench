@@ -449,18 +449,13 @@ Cross-model transfer **improved scores on 4 of 6 benchmarks** — without any re
 
 **The pattern: larger models help where format compliance matters, hurt where the optimized program already fits the model.** Business Letters saw the most consistent improvement across both transfer models — the "First Last" name format taught by few-shot demonstrations transfers well to models with stronger instruction following. Bibliographic Data was fragile under 2.5 Flash (a single parse failure on one of two test images collapses the score) but robust under 2.5 Pro. Benchmarks where 2.0 Flash was already near-ceiling (Blacklist Cards, Personnel Cards) saw slight regressions — the optimized demonstrations were tuned to Flash's behaviour, and a different model may not benefit from the same examples.
 
-#### Key findings
-
-- **Prompt optimization is partially model-transferable.** The instruction + demonstration signal carries across Gemini model versions, improving scores on 4/6 benchmarks without re-optimization. But format compliance can break — 2.5 Flash's parse failure on Bibliographic Data shows that even closely related models handle edge cases differently.
-- **2.5 Pro is the safer transfer target.** Its regressions were all < 1.2 pts (narrower than 2.5 Flash's range of −0.2 to −24.7), and it produced the highest scores on the two benchmarks with the most complex schemas (Bibliographic Data, Company Lists).
-
 ---
 
 ## Issues Encountered
 
 **Rate limiting is the main practical challenge:**
 
-- **OpenAI (GPT-4o):** The initial MIPROv2 run with GPT-4o was severely degraded by a 30,000 TPM (tokens per minute) rate limit. With image inputs consuming thousands of tokens per call and 16 concurrent threads, most trials hit rate limit errors, causing JSON parse failures that were scored as 0.0. The best trial scored only 78.3 on the dev set.
+- **OpenAI (GPT-4o):** An initial MIPROv2 run with GPT-4o was severely degraded by a 30,000 TPM (tokens per minute) rate limit. With image inputs consuming thousands of tokens per call and 16 concurrent threads, most trials hit rate limit errors, causing JSON parse failures that were scored as 0.0. The best trial scored only 78.3 on the dev set.
 - **Gemini 3 Pro Preview:** Attempted optimizations hit a 25 RPM (requests per minute) per-model limit — far more restrictive than GA models. Only 2 of 11 trials completed (best: 84.59). The daily quota was also exhausted mid-run.
 - **Gemini 2.0 Flash:** Even Flash’s 4M TPM limit can be hit when running multiple optimization jobs in parallel. Running SIMBA, GEPA, and baseline concurrently caused sporadic 429 errors. Sequential execution or reduced thread counts (`--num-threads 4`) mitigate this.
 
