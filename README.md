@@ -393,22 +393,22 @@ Comparing the six optimized prompts reveals a consistent trade-off: with more tr
 
 #### Combined Results
 
-| Benchmark | Predict | CoT | MIPROv2 CoT | + Refine(3) | GEPA CoT | Best |
-|---|---|---|---|---|---|---|
-| Library Cards (263 imgs) | 0.8134 | 0.7583 | 0.9017 | **0.9167** | 0.8147 | MIPROv2 + Refine |
-| Bibliographic Data (5 imgs) | 0.6732 | 0.6591 | **0.7072** | 0.7043 | — | MIPROv2 |
-| Personnel Cards (61 imgs) | 0.6296 | 0.7983 | 0.8858 | **0.8894** | 0.8750 | MIPROv2 + Refine |
-| Business Letters (57 letters) | 0.4565 | 0.4713 | 0.6378 | **0.7312** | 0.5472 | MIPROv2 + Refine |
-| Blacklist Cards (33 imgs) | 0.9295 | 0.9338 | 0.9599 | **0.9713** | — | MIPROv2 + Refine |
-| Company Lists (15 imgs) | 0.7643 | 0.7774 | **0.8771** | 0.8663 | — | MIPROv2 |
+| Benchmark | Predict | CoT | MIPROv2 CoT | + Refine(3) | Best |
+|---|---|---|---|---|---|
+| Library Cards (263 imgs) | 0.8134 | 0.7583 | 0.9017 | **0.9167** | MIPROv2 + Refine |
+| Bibliographic Data (5 imgs) | 0.6732 | 0.6591 | **0.7072** | 0.7043 | MIPROv2 |
+| Personnel Cards (61 imgs) | 0.6296 | 0.7983 | 0.8858 | **0.8894** | MIPROv2 + Refine |
+| Business Letters (57 letters) | 0.4565 | 0.4713 | 0.6378 | **0.7312** | MIPROv2 + Refine |
+| Blacklist Cards (33 imgs) | 0.9295 | 0.9338 | 0.9599 | **0.9713** | MIPROv2 + Refine |
+| Company Lists (15 imgs) | 0.7643 | 0.7774 | **0.8771** | 0.8663 | MIPROv2 |
 
-*GEPA CoT uses Gemini 2.5 Pro as reflection model. Bibliographic Data, Blacklist Cards, and Company Lists GEPA were not run (insufficient train+dev data). Refine(3) uses quality-aware reward with threshold=0.95.*
+*Refine(3) uses quality-aware reward with threshold=0.95.*
 
 The individual benchmark experiments, taken together, reveal four cross-cutting patterns:
 
 **Optimisation gains scale inversely with baseline quality, making a cheap model competitive.** Business Letters (+27.5 pts from 0.46) and Personnel Cards (+26.0 from 0.63) improved most; Blacklist Cards (+4.2 from 0.93) improved least. Company Lists (+11.3 from 0.76) falls in between. On 5 of 6 benchmarks, optimised Flash matched or exceeded the RISE leaderboard's best hand-crafted prompts on GPT-5, GPT-4.1, and GPT-4o — at ~1/10th the inference cost.
 
-**Task structure determines whether instructions or demonstrations are more effective.** GEPA's instruction-only optimisation came within 1.1 pts of MIPROv2 on Personnel Cards (consistent table layout), but fell 8.7 pts short on Library Cards (diverse card formats where no single instruction generalised) and 9.1 pts short on Business Letters (where exact name format matching is taught implicitly by examples but expressed as brittle rules in prose). The more varied the inputs, the more demonstrations matter.
+**Task structure determines whether instructions or demonstrations are more effective.** Instruction-only optimisation nearly matched MIPROv2 on Personnel Cards (consistent table layout, -1.1 pts), but fell far short on Library Cards (-8.7 pts, diverse card formats where no single instruction generalised) and Business Letters (-9.1 pts, where exact name format is taught implicitly by examples). The more varied the inputs, the more demonstrations matter.
 
 **Scoring methodology, not model capability, was the binding constraint on two benchmarks.** Bibliographic Data's position-based entry matching causes cascading alignment errors — largely correct extraction, scored against the wrong ground-truth entries. Business Letters' exact-match alias table means any unrecognised name variant scores zero. Both benchmarks saw the smallest optimisation gains. The four benchmarks with fuzzy-threshold metrics (Library Cards, Personnel Cards, Blacklist Cards, Company Lists) all benefited more from optimisation.
 
