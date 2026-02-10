@@ -31,7 +31,9 @@ Pricing retrieved February 2026:
 
 | Model | AI Studio (in/out per 1M) | Vertex AI (in/out per 1M) |
 |---|---|---|
+| Gemini 1.5 Pro | $1.25 / $5.00 | $1.25 / $5.00 |
 | Gemini 2.0 Flash | $0.10 / $0.40 | $0.15 / $0.60 |
+| Gemini 2.5 Flash | $0.15 / $0.60 | $0.15 / $0.60 |
 | Gemini 2.5 Pro | $1.25 / $10.00 | $1.25 / $10.00 |
 | Gemini 3 Pro Preview | $2.00 / $12.00 | $2.00 / $12.00 |
 

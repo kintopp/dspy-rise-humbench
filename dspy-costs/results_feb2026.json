@@ -7,14 +7,19 @@
   },
   "totals_by_model": {
     "gemini-2.0-flash": {
-      "calls": 2896,
-      "input_tokens": 6310200,
-      "output_tokens": 3724800
+      "calls": 5275,
+      "input_tokens": 13160700,
+      "output_tokens": 6231200
     },
     "gemini-2.5-pro": {
-      "calls": 505,
-      "input_tokens": 1184000,
-      "output_tokens": 404000
+      "calls": 1124,
+      "input_tokens": 2910000,
+      "output_tokens": 1014400
+    },
+    "gemini-2.5-flash": {
+      "calls": 1189,
+      "input_tokens": 4145000,
+      "output_tokens": 1085100
     },
     "gemini-3-pro-preview": {
       "calls": 320,
@@ -60,6 +65,24 @@
       "notes": "gepa-cot_gemini-2.0-flash_optimized_test_scores.json"
     },
     {
+      "name": "Optimize: gepa",
+      "benchmark": "library_cards",
+      "model": "gemini-2.5-pro",
+      "calls": 150,
+      "input_tokens": 277500,
+      "output_tokens": 120000,
+      "notes": "gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized.json"
+    },
+    {
+      "name": "Test eval: gepa",
+      "benchmark": "library_cards",
+      "model": "gemini-2.5-pro",
+      "calls": 185,
+      "input_tokens": 592000,
+      "output_tokens": 148000,
+      "notes": "gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized_test_scores.json"
+    },
+    {
       "name": "Optimize: mipro-medium",
       "benchmark": "library_cards",
       "model": "gemini-2.0-flash",
@@ -67,6 +90,42 @@
       "input_tokens": 592000,
       "output_tokens": 256000,
       "notes": "mipro-cot_gemini-2.0-flash_optimized.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "library_cards",
+      "model": "gemini-2.5-flash",
+      "calls": 185,
+      "input_tokens": 592000,
+      "output_tokens": 148000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "library_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 185,
+      "input_tokens": 592000,
+      "output_tokens": 148000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_knn3_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "library_cards",
+      "model": "gemini-2.5-flash",
+      "calls": 555,
+      "input_tokens": 1776000,
+      "output_tokens": 444000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "library_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 555,
+      "input_tokens": 1776000,
+      "output_tokens": 444000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_test_scores.json"
     },
     {
       "name": "Test eval: mipro-medium",
@@ -206,6 +265,24 @@
     {
       "name": "Test eval: mipro-heavy",
       "benchmark": "bibliographic_data",
+      "model": "gemini-2.5-flash",
+      "calls": 2,
+      "input_tokens": 7000,
+      "output_tokens": 6000,
+      "notes": "mipro-heavy-cot_gemini-2.0-flash_optimized_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-heavy +Refine(3)",
+      "benchmark": "bibliographic_data",
+      "model": "gemini-2.0-flash",
+      "calls": 6,
+      "input_tokens": 21000,
+      "output_tokens": 18000,
+      "notes": "mipro-heavy-cot_gemini-2.0-flash_optimized_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-heavy",
+      "benchmark": "bibliographic_data",
       "model": "gemini-2.0-flash",
       "calls": 2,
       "input_tokens": 7000,
@@ -229,38 +306,352 @@
       "input_tokens": 7000,
       "output_tokens": 6000,
       "notes": "simba-cot_gemini-2.0-flash_optimized_test_scores.json"
+    },
+    {
+      "name": "Baseline cot",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 61,
+      "input_tokens": 36600,
+      "output_tokens": 122000,
+      "notes": "scores_cot_gemini-2.0-flash.json"
+    },
+    {
+      "name": "Baseline predict",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 61,
+      "input_tokens": 36600,
+      "output_tokens": 122000,
+      "notes": "scores_gemini-2.0-flash.json"
+    },
+    {
+      "name": "Optimize: gepa",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.5-pro",
+      "calls": 100,
+      "input_tokens": 230000,
+      "output_tokens": 200000,
+      "notes": "gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized.json"
+    },
+    {
+      "name": "Test eval: gepa",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.5-pro",
+      "calls": 43,
+      "input_tokens": 172000,
+      "output_tokens": 86000,
+      "notes": "gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized_test_scores.json"
+    },
+    {
+      "name": "Optimize: mipro-medium",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 212,
+      "input_tokens": 487600,
+      "output_tokens": 424000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.5-flash",
+      "calls": 43,
+      "input_tokens": 172000,
+      "output_tokens": 86000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 43,
+      "input_tokens": 172000,
+      "output_tokens": 86000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_multichain3_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.5-flash",
+      "calls": 129,
+      "input_tokens": 516000,
+      "output_tokens": 258000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 129,
+      "input_tokens": 516000,
+      "output_tokens": 258000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "personnel_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 43,
+      "input_tokens": 172000,
+      "output_tokens": 86000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_test_scores.json"
+    },
+    {
+      "name": "Baseline cot",
+      "benchmark": "business_letters",
+      "model": "gemini-2.0-flash",
+      "calls": 57,
+      "input_tokens": 51300,
+      "output_tokens": 22800,
+      "notes": "scores_cot_gemini-2.0-flash.json"
+    },
+    {
+      "name": "Baseline predict",
+      "benchmark": "business_letters",
+      "model": "gemini-2.0-flash",
+      "calls": 57,
+      "input_tokens": 51300,
+      "output_tokens": 22800,
+      "notes": "scores_gemini-2.0-flash.json"
+    },
+    {
+      "name": "Optimize: gepa",
+      "benchmark": "business_letters",
+      "model": "gemini-2.5-pro",
+      "calls": 100,
+      "input_tokens": 270000,
+      "output_tokens": 40000,
+      "notes": "gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized.json"
+    },
+    {
+      "name": "Test eval: gepa",
+      "benchmark": "business_letters",
+      "model": "gemini-2.5-pro",
+      "calls": 41,
+      "input_tokens": 184500,
+      "output_tokens": 16400,
+      "notes": "gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized_test_scores.json"
+    },
+    {
+      "name": "Optimize: mipro-medium",
+      "benchmark": "business_letters",
+      "model": "gemini-2.0-flash",
+      "calls": 194,
+      "input_tokens": 523800,
+      "output_tokens": 77600,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "business_letters",
+      "model": "gemini-2.5-flash",
+      "calls": 41,
+      "input_tokens": 184500,
+      "output_tokens": 16400,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "business_letters",
+      "model": "gemini-2.5-flash",
+      "calls": 123,
+      "input_tokens": 553500,
+      "output_tokens": 49200,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "business_letters",
+      "model": "gemini-2.0-flash",
+      "calls": 123,
+      "input_tokens": 553500,
+      "output_tokens": 49200,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "business_letters",
+      "model": "gemini-2.0-flash",
+      "calls": 41,
+      "input_tokens": 184500,
+      "output_tokens": 16400,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "business_letters",
+      "model": "gemini-2.0-flash",
+      "calls": 123,
+      "input_tokens": 553500,
+      "output_tokens": 49200,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_verify_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "business_letters",
+      "model": "gemini-2.0-flash",
+      "calls": 41,
+      "input_tokens": 184500,
+      "output_tokens": 16400,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_verify_test_scores.json"
+    },
+    {
+      "name": "Baseline cot",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 33,
+      "input_tokens": 16500,
+      "output_tokens": 16500,
+      "notes": "scores_cot_gemini-2.0-flash.json"
+    },
+    {
+      "name": "Baseline predict",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 33,
+      "input_tokens": 16500,
+      "output_tokens": 16500,
+      "notes": "scores_gemini-2.0-flash.json"
+    },
+    {
+      "name": "Optimize: mipro-medium",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 122,
+      "input_tokens": 213500,
+      "output_tokens": 61000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.5-flash",
+      "calls": 25,
+      "input_tokens": 75000,
+      "output_tokens": 12500,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.5-flash",
+      "calls": 75,
+      "input_tokens": 225000,
+      "output_tokens": 37500,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 75,
+      "input_tokens": 225000,
+      "output_tokens": 37500,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.0-flash",
+      "calls": 25,
+      "input_tokens": 75000,
+      "output_tokens": 12500,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_test_scores.json"
+    },
+    {
+      "name": "Baseline cot",
+      "benchmark": "company_lists",
+      "model": "gemini-2.0-flash",
+      "calls": 15,
+      "input_tokens": 9000,
+      "output_tokens": 37500,
+      "notes": "scores_cot_gemini-2.0-flash.json"
+    },
+    {
+      "name": "Baseline predict",
+      "benchmark": "company_lists",
+      "model": "gemini-2.0-flash",
+      "calls": 15,
+      "input_tokens": 9000,
+      "output_tokens": 37500,
+      "notes": "scores_gemini-2.0-flash.json"
+    },
+    {
+      "name": "Optimize: mipro-medium",
+      "benchmark": "company_lists",
+      "model": "gemini-2.0-flash",
+      "calls": 86,
+      "input_tokens": 197800,
+      "output_tokens": 215000,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "company_lists",
+      "model": "gemini-2.5-flash",
+      "calls": 11,
+      "input_tokens": 44000,
+      "output_tokens": 27500,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium +Refine(3)",
+      "benchmark": "company_lists",
+      "model": "gemini-2.0-flash",
+      "calls": 33,
+      "input_tokens": 132000,
+      "output_tokens": 82500,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "company_lists",
+      "model": "gemini-2.0-flash",
+      "calls": 11,
+      "input_tokens": 44000,
+      "output_tokens": 27500,
+      "notes": "mipro-cot_gemini-2.0-flash_optimized_test_scores.json"
     }
   ],
   "costs": {
     "ai_studio": {
       "gemini-2.0-flash": {
-        "base_cost": 2.1209,
-        "adjusted_cost": 2.7572
+        "base_cost": 3.8086,
+        "adjusted_cost": 4.9511
       },
       "gemini-2.5-pro": {
-        "base_cost": 5.52,
-        "adjusted_cost": 7.176
+        "base_cost": 13.7815,
+        "adjusted_cost": 17.916
+      },
+      "gemini-2.5-flash": {
+        "base_cost": 1.2728,
+        "adjusted_cost": 1.6547
       },
       "gemini-3-pro-preview": {
         "base_cost": 4.256,
         "adjusted_cost": 5.5328
       },
-      "total": 15.47
+      "total": 30.05
     },
     "vertex_ai": {
       "gemini-2.0-flash": {
-        "base_cost": 3.1814,
-        "adjusted_cost": 4.1358
+        "base_cost": 5.7128,
+        "adjusted_cost": 7.4267
       },
       "gemini-2.5-pro": {
-        "base_cost": 5.52,
-        "adjusted_cost": 7.176
+        "base_cost": 13.7815,
+        "adjusted_cost": 17.916
+      },
+      "gemini-2.5-flash": {
+        "base_cost": 1.2728,
+        "adjusted_cost": 1.6547
       },
       "gemini-3-pro-preview": {
         "base_cost": 4.256,
         "adjusted_cost": 5.5328
       },
-      "total": 16.84
+      "total": 32.53
     }
   }
 }

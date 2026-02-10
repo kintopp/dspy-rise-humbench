@@ -7,6 +7,30 @@ is not versioned, entries are grouped by date.
 
 ## 2026-02-10
 
+### Added
+- **Cross-model evaluation** (`experiment/cross-model-eval` branch): evaluated
+  all 6 benchmarks with Gemini 2.5 Flash using existing MIPROv2-optimized
+  programs (trained on 2.0 Flash). Tests prompt transferability across model
+  versions without re-optimizing. 10 evaluation runs (6 base + 4 Refine).
+  - **Library Cards**: new best **92.58** f1_macro (+0.9 pts, Refine)
+  - **Business Letters**: new best **80.87** f1_macro (+7.8 pts, Refine) —
+    now beats RISE leaderboard #1 (77.0 GPT-5)
+  - Personnel Cards: 88.74 (-0.2 pts), Company Lists: 86.82 (-0.9 pts),
+    Blacklist Cards: 94.74 (-2.4 pts), Bibliographic Data: 46.07 (-24.7 pts,
+    parse failure on page 10)
+- **`--output-tag` flag** for `evaluate_optimized.py`: namespaces output score
+  files by inference model (e.g. `--output-tag gemini-2.5-flash`). Also records
+  model ID in score file metadata.
+- **Branch-specific experiment notes pattern**: `EXPERIMENT_NOTES.md` in repo
+  root provides branch-aware context for Claude Code sessions. Referenced from
+  local `CLAUDE.md`.
+- **Issue #93 response draft** (`offline/issue93-response-draft.md`): analysis
+  of upstream reviewer's comments on Business Letters inferred-sender claims.
+  Verified all claims correct (14/41 test letters with angle-bracket markers,
+  24/57 total). Max's persons.json alias update has zero impact on scores.
+  Cross-benchmark spot-check confirmed all 15 factual claims across 6
+  benchmarks.
+
 ### Changed
 - **Demo visualizations updated**: Bibliographic Data demo now shows all 5
   images (was 3); added Refine comparison columns for Bibliographic Data and
@@ -14,14 +38,6 @@ is not versioned, entries are grouped by date.
 - **Business Letters demo**: added letter60 (the residual format-mismatch case
   flagged by upstream reviewer on issue #93); fixed note background color in
   Bibliographic Data demo.
-
-### Added
-- **Issue #93 response draft** (`offline/issue93-response-draft.md`): analysis
-  of upstream reviewer's comments on Business Letters inferred-sender claims.
-  Verified all claims correct (14/41 test letters with angle-bracket markers,
-  24/57 total). Max's persons.json alias update has zero impact on scores.
-  Cross-benchmark spot-check confirmed all 15 factual claims across 6
-  benchmarks.
 
 ---
 

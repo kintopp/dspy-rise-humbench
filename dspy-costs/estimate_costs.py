@@ -26,12 +26,16 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 
 PRICING = {
     "ai_studio": {
+        "gemini-1.5-pro":        {"input": 1.25,  "output": 5.00},
         "gemini-2.0-flash":      {"input": 0.10,  "output": 0.40},
+        "gemini-2.5-flash":      {"input": 0.15,  "output": 0.60},
         "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
         "gemini-3-pro-preview":  {"input": 2.00,  "output": 12.00},
     },
     "vertex_ai": {
+        "gemini-1.5-pro":        {"input": 1.25,  "output": 5.00},
         "gemini-2.0-flash":      {"input": 0.15,  "output": 0.60},
+        "gemini-2.5-flash":      {"input": 0.15,  "output": 0.60},
         "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
         "gemini-3-pro-preview":  {"input": 2.00,  "output": 12.00},
     },
@@ -82,6 +86,26 @@ BENCHMARKS = {
         "avg_output_tokens": 400,             # flat JSON (persons, orgs, dates — small output)
         "image_field": "page_images",
     },
+    "blacklist_cards": {
+        "total_images": 33,
+        "train": 4,
+        "dev": 4,
+        "test": 25,
+        "avg_input_tokens_baseline": 500,     # prompt + card image
+        "avg_input_tokens_optimized": 3000,   # instructions + 2 demos w/ images + query
+        "avg_output_tokens": 500,             # flat JSON (5 fields: company, location, b_id, date, information)
+        "image_field": "card_image",
+    },
+    "company_lists": {
+        "total_images": 15,
+        "train": 2,
+        "dev": 2,
+        "test": 11,
+        "avg_input_tokens_baseline": 600,     # prompt + page image + page_id
+        "avg_input_tokens_optimized": 4000,   # instructions + 2 demos w/ images + query (multi-input)
+        "avg_output_tokens": 2500,            # list JSON (15-31 entries per page × 5 fields)
+        "image_field": "page_image",
+    },
 }
 
 
@@ -97,14 +121,36 @@ class Experiment:
     notes: str = ""
 
 
+MODEL_NAMES = [
+    "gemini-3-pro-preview",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-pro",
+]
+
+
 def detect_model(filename: str) -> str:
-    """Extract the Gemini model from a result filename."""
-    if "gemini-3-pro-preview" in filename:
-        return "gemini-3-pro-preview"
-    if "gemini-2.5-pro" in filename:
-        return "gemini-2.5-pro"
-    if "gemini-2.0-flash" in filename:
-        return "gemini-2.0-flash"
+    """Extract the Gemini model from a result filename.
+
+    For cross-model eval files (e.g. mipro-cot_gemini-2.0-flash_optimized_gemini-2.5-flash_test_scores.json),
+    the inference model (output-tag) appears after the last '_optimized' or '_refineN' segment.
+    We use that as the actual model since it's what ran at inference time.
+    """
+    # Strip _test_scores.json suffix to isolate the model tag area
+    stem = filename.replace("_test_scores.json", "").replace("_test_scores", "")
+
+    # Check for an inference model tag at the END of the stem (cross-model eval pattern)
+    # e.g. "mipro-cot_gemini-2.0-flash_optimized_refine3_gemini-2.5-flash"
+    for model in MODEL_NAMES:
+        if stem.endswith(model):
+            return model
+
+    # Fallback: find any model name in the filename (training model)
+    for model in MODEL_NAMES:
+        if model in filename:
+            return model
+
     return "unknown"
 
 
