@@ -31,6 +31,13 @@ is not versioned, entries are grouped by date.
   Cross-benchmark spot-check confirmed all 15 factual claims across 6
   benchmarks.
 
+- **Cross-model transfer findings** added to README: new section documenting
+  results of running 2.0 Flash-optimized programs on 2.5 Flash and 2.5 Pro.
+  Includes transfer results table (best config per model, deltas, new-best
+  column) and analysis of when transfer helps vs hurts.
+- **Gemini 2.5 Pro cross-model scores** committed for all 6 benchmarks (9 files:
+  6 base + 3 Refine). Library Cards Refine interrupted at ~110/185 images.
+
 ### Changed
 - **README streamlined**: Individual benchmark sections cut from ~380 to ~225
   lines (~41% reduction). Removed experiment-phase headers and detailed
@@ -38,10 +45,17 @@ is not versioned, entries are grouped by date.
   verify-and-correct. Each benchmark now shows a simplified results table
   (baseline → best) and 2 key findings. Cross-benchmark summary table dropped
   GEPA column; "Task structure" paragraph generalized to "instruction-only
-  optimisation." Optimizer description section also simplified for readability.
+  optimisation."
+- **README TLDR** updated with cross-model transfer findings (4/6 benchmarks
+  improved without re-optimization).
+- **Optimizer section** restructured: MIPROv2 leads as the winner on all 6
+  benchmarks; GEPA, SIMBA, BootstrapFewShot condensed to brief summaries.
 - **Demo visualizations updated**: Bibliographic Data demo now shows all 5
   images (was 3); added Refine comparison columns for Bibliographic Data and
   Company Lists demos.
+- **GEPA removed from demo pages**: filtered GEPA optimizer from 4 HTML demo
+  pages, 4 demo data JSON files, demo index score pills, and
+  `generate_demo_data.py` config.
 - **Business Letters demo**: added letter60 (the residual format-mismatch case
   flagged by upstream reviewer on issue #93); fixed note background color in
   Bibliographic Data demo.
