@@ -74,6 +74,14 @@ How these per-field scores are aggregated into a benchmark score differs:
 - **Blacklist Cards** uses **average fuzzy score** (same as Bibliographic Data): raw fuzzy similarity for every leaf field, averaged directly. Null values (None or "null") are normalized to empty string before comparison.
 - **Company Lists** uses **F1 with null normalization**: a hybrid of Library Cards' F1 threshold (fuzzy ≥ 0.92 = TP) and Blacklist Cards' null handling (None/"null" → empty string before comparison). This is needed because ground-truth locations use the string "null" for missing values.
 
+### Inference-time refinement (Refine)
+
+[`dspy.Refine`](https://dspy.ai/api/modules/Refine/) wraps a module with inference-time retries: if the first output does not meet a quality threshold, the same prompt is re-run up to N times and the highest-scoring output is kept. No re-training is involved — it is purely an evaluation-time technique that trades additional API calls for output quality.
+
+The natural reward function for these benchmarks is a binary structural check: does the output parse as valid JSON with the expected top-level keys? But since the optimised models already produce valid JSON on nearly every attempt, binary Refine stops on the first output with no room for improvement. An early experiment on Library Cards confirmed this: binary Refine actually *hurt* the score (0.8481 → 0.8396) because it forces temperature=1.0 for diversity on retries, adding noise when the base output was already structurally valid.
+
+The fix was to replace the binary check with the **actual benchmark metric** (F1 or fuzzy score) as a continuous reward, and set the stopping threshold to 0.95. Now Refine only stops early for outputs scoring ≥95% on the real metric; below that, it retries up to N=3 times and keeps the best. This concentrates the extra API calls on images where the model's first attempt was valid but imperfect — most images pass on the first call. Quality-aware Refine helped on 4 of 6 benchmarks — most dramatically on Business Letters (+9.3 pts), where name format errors vary between attempts. It hurt on 2 benchmarks where retries introduced more variance than improvement (see [Cross-Benchmark Findings](#cross-benchmark-findings)).
+
 ### Running the pipeline
 
 ```bash
@@ -405,7 +413,7 @@ Comparing the six optimized prompts reveals a consistent trade-off: with more tr
 | Blacklist Cards (33 imgs) | 0.9295 | 0.9338 | 0.9599 | **0.9713** | MIPROv2 + Refine |
 | Company Lists (15 imgs) | 0.7643 | 0.7774 | **0.8771** | 0.8663 | MIPROv2 |
 
-*Refine(3) uses quality-aware reward with threshold=0.95.*
+*Refine(3) retries up to 3 times using the benchmark metric as reward (see [Inference-time refinement](#inference-time-refinement-refine)).*
 
 The individual benchmark experiments, taken together, reveal four cross-cutting patterns:
 
