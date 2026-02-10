@@ -1,12 +1,12 @@
 # New Experiment Options for DSPy RISE HumBench
 
-*Report prepared 2026-02-09. DSPy version: 3.1.3 (latest). All four original benchmarks complete.*
+*Report prepared 2026-02-09. Updated 2026-02-10 with experiment outcomes. DSPy version: 3.1.3 (latest). All six benchmarks complete.*
 
 ---
 
 ## 1. Current State
 
-Four RISE benchmarks have been optimized with a consistent pipeline: `dspy.ChainOfThought` module → MIPROv2 medium optimizer → quality-aware Refine(3) at inference time. All use Gemini 2.0 Flash.
+Six RISE benchmarks have been optimized with a consistent pipeline: `dspy.ChainOfThought` module → MIPROv2 medium optimizer → quality-aware Refine(3) at inference time. All use Gemini 2.0 Flash.
 
 | Benchmark | Images | Metric | Best score | Technique |
 |-----------|--------|--------|------------|-----------|
@@ -14,8 +14,10 @@ Four RISE benchmarks have been optimized with a consistent pipeline: `dspy.Chain
 | Bibliographic Data | 5 | Avg fuzzy | **0.7072** | MIPROv2 heavy CoT |
 | Personnel Cards | 61 | F1 macro | **0.8894** | MIPROv2 CoT + Refine(3) |
 | Business Letters | 57 (98 pg) | F1 macro | **0.7312** | MIPROv2 CoT + Refine(3) |
+| Blacklist Cards | 33 | Avg fuzzy | **0.9713** | MIPROv2 CoT + Refine(3) |
+| Company Lists | 15 | F1 macro | **0.8771** | MIPROv2 CoT |
 
-Optimizers tested: MIPROv2 (all), SIMBA (Library Cards), GEPA with Gemini 2.5 Pro reflection (Library Cards, Personnel Cards, Business Letters), BootstrapFewShot (Library Cards). Inference wrappers tested: Refine(3) with quality-aware reward (all).
+Optimizers tested: MIPROv2 (all), SIMBA (Library Cards), GEPA with Gemini 2.5 Pro reflection (Library Cards, Personnel Cards, Business Letters), BootstrapFewShot (Library Cards). Inference wrappers tested: Refine(3) with quality-aware reward (all). Module-level experiments tested: KNN demos (Library Cards), MultiChainComparison (Personnel Cards), verify-and-correct (Business Letters), two-stage pipeline (Bibliographic Data) — none improved on MIPROv2+Refine (see §4 outcomes).
 
 ---
 
@@ -220,6 +222,8 @@ Printed book pages listing Swiss companies. List-based schema: `page_id` + `entr
 
 **Risk**: The embedding space may not capture visual card-type similarity well from text descriptions alone. If OCR quality varies, the nearest neighbors may be noisy.
 
+**Outcome**: KNN (k=3) produced **identical results** to static MIPROv2 demos (0.9017 f1_macro, TP/FP/FN unchanged at 1546/156/161). Tested with both `sentence-transformers/all-MiniLM-L6-v2` (English-only) and `gemini-embedding-001` (multilingual) — identical results with both. The bottleneck was not embedding quality but instruction-demo coupling: MIPROv2's instruction and demos were jointly optimized, and swapping demos at inference broke this coupling without adding value. The prediction-JSON embeddings did not capture the visual card-type diversity that determines which demos are most useful.
+
 ### 4.2 Bibliographic Data → RLM (Recursive Language Model)
 
 **Current situation**: 0.7072 average fuzzy. The bimodal score distribution (pages 2/4/5 at 0.89-0.91, pages 3/10 at ~0.39) is caused by position-based alignment cascades, not poor extraction. When the model inserts an extra entry or flattens nested entries, every subsequent entry is scored against the wrong ground truth.
@@ -245,6 +249,8 @@ This decomposes the monolithic extraction into an iterative, controllable proces
 
 **Risk**: High. RLM is designed for text contexts, and it's unclear how well it handles vision inputs. The model may struggle to write useful code for image-based extraction. The REPL sandbox may not support the `llm_query()` calls with image inputs. This is the most experimental recommendation — if RLM proves infeasible with vision, fall back to a **multi-stage pipeline** (Stage 1: image → raw text listing all entries; Stage 2: RLM on the text to structure them).
 
+**Outcome**: RLM was not tested (vision feasibility concerns remained unresolved). The **fallback two-stage pipeline** was tested instead — Stage 1: image → structured text listing, Stage 2: text → JSON. Result: **0.6265 fuzzy, -8.1 pts below single-stage MIPROv2** (0.7072). Both pages degraded: page 5 dropped from 0.9126 to 0.8615 (-5.1 pts) and page 10 from 0.5018 to 0.3915 (-11.0 pts). The structuring stage lost access to the original image, missing visual cues for entry boundaries. The alignment cascade errors on page 10 were not reduced — the text listing inherited the same ordering errors from the model's interpretation of the image.
+
 ### 4.3 Personnel Cards → MultiChainComparison
 
 **Current situation**: 0.8894 F1 with MIPROv2 + Refine. Very close to ceiling. 3/43 test cards still score 0.0 (down from 8/43 in the predict baseline). Refine added only +0.36 pts — most cards are already well-extracted, and the 3 zero-scorers fail structurally (blank/unreadable cards).
@@ -264,6 +270,8 @@ For Personnel Cards specifically, the table structure means each row is semi-ind
 **Cost**: ~$4-6 (4 LM calls per card × 43 test cards, but Flash is cheap).
 
 **Risk**: Low. The technique is straightforward and the fallback is "no worse than current". The main unknown is whether the comparator module can meaningfully reason about JSON table structures. If the comparison step itself introduces errors, the net effect could be neutral.
+
+**Outcome**: MultiChainComparison (M=3) scored **0.8763 f1_macro, -0.95 pts below MIPROv2 CoT** (0.8858). Implementation required subclassing as `FullMultiChainComparison` to fix a DSPy bug: `MultiChainComparison.forward()` truncates each completion to its first line via `.split("\n")[0]`, destroying multi-line JSON output. Even with the fix, the comparator at temperature=1.0 introduced noise — while it produced 3 perfect scores (1.0) on cards where MIPROv2 scored <1.0, it degraded several others. The 3/43 zero-scoring cards remained at zero. At 4× the LM calls per card, worse cost-performance than Refine(3).
 
 ### 4.4 Business Letters → ReAct with persons.json Lookup Tool
 
@@ -289,6 +297,8 @@ This directly addresses the root cause: the model lacks information about which 
 
 **Risk**: Medium. ReAct's agent loop is less predictable than a single forward pass. The model might over-rely on the tool (calling it for every word), make inefficient tool sequences, or fail to integrate tool results correctly. MIPROv2 optimization of ReAct modules is less well-tested than optimization of simple Predict/CoT modules. If ReAct proves too unstable, fall back to **InferRules** — generate explicit name-format rules from the training set and inject them into the MIPROv2 instruction.
 
+**Outcome**: ReAct was not tested. A simpler **verify-and-correct** approach was tried instead: run the MIPROv2-optimized program, parse output, look up each predicted person name in `persons.json`, and replace with the canonical alias if found. Exact-match mode made **zero corrections** — MIPROv2's few-shot demos already taught the model to output "First Last" format, so there were no format errors left to fix. Substring matching (e.g., matching "Ritter" to "Fritz Ritter-Dreier") was too aggressive, adding +19 false positives and dropping the score to 0.6021. The remaining false negatives are names the model fails to detect entirely, not names it detects in the wrong format. Post-hoc correction is unnecessary when demos already teach the correct format.
+
 ### 4.5 New Benchmarks → Blacklist Cards with MIPROv2 CoT + Refine(3)
 
 **Rationale**: Blacklist Cards is the lowest-effort addition (flat schema, fuzzy metric, familiar pattern) and asks a different research question than the other four benchmarks: *can optimization help when the baseline is already strong?* At 90.85 fuzzy for unoptimized Flash, this is the closest to a saturated benchmark in the suite. If MIPROv2 can push Flash past 95 (matching GPT-4.1 Mini's 95.65), it strengthens the paper's central claim that optimization makes cheap models competitive with expensive ones.
@@ -297,21 +307,26 @@ This directly addresses the root cause: the model lacks information about which 
 
 **Implementation**: Standard pipeline — create `benchmarks/blacklist_cards/` package, reuse shared infrastructure, run MIPROv2 medium-CoT, then Refine(3). Estimated total cost: ~$2-3.
 
+**Outcome — Blacklist Cards**: Done. MIPROv2 medium-CoT + Refine(3) achieved **0.9713 fuzzy**, surpassing the RISE leaderboard top (GPT-4.1: 95.7) by 1.5 points. Even without Refine, MIPROv2 CoT (0.9599) matched leaderboard leaders. Confirmed: optimization helps even at the ceiling.
+
+**Outcome — Company Lists**: Also completed, despite the recommendation against it. MIPROv2 medium-CoT achieved **0.8771 f1_macro**, far exceeding the leaderboard top (GPT-5: 58.4) by ~29 points. The alignment cascade concern proved less severe than expected — Company Lists' simpler schema (3 flat fields vs Bibliographic Data's 18+ nested fields) makes positional errors less catastrophic. However, the "why not" prediction was partially correct: Refine(3) hurt by -1.1 pts (near-threshold pages regressed on retry), and the dev-test gap (-7.4 pts) confirmed small-sample overfitting risk.
+
 ---
 
 ## 5. Summary of Recommendations
 
-| Benchmark | Recommended experiment | Technique | Expected gain | Cost | Risk |
-|-----------|----------------------|-----------|---------------|------|------|
-| **Library Cards** | Dynamic demo selection | KNNFewShot | +1-3 pts F1 | ~$2-3 | Low-Med |
-| **Bibliographic Data** | Iterative entry extraction | RLM | +5-15 pts fuzzy | ~$3-5 | High |
-| **Personnel Cards** | Multi-attempt synthesis | MultiChainComparison | +0.5-1.5 pts F1 | ~$4-6 | Low |
-| **Business Letters** | Tool-augmented extraction | ReAct + persons.json | +3-8 pts F1 | ~$5-10 | Medium |
-| **New benchmark** | Standard pipeline | Blacklist Cards + MIPROv2 | Establish baseline | ~$2-3 | Low |
+| Benchmark | Recommended | Technique | Expected | Actual | Verdict |
+|-----------|-------------|-----------|----------|--------|---------|
+| **Library Cards** | Dynamic demo selection | KNNFewShot (k=3) | +1-3 pts F1 | ±0.0 pts | Neutral — joint optimization resists demo swapping |
+| **Bibliographic Data** | Iterative entry extraction | Two-stage pipeline* | +5-15 pts fuzzy | **-8.1 pts** | Worse — lost image context |
+| **Personnel Cards** | Multi-attempt synthesis | MultiChainComparison (M=3) | +0.5-1.5 pts F1 | **-0.95 pts** | Worse — comparator introduced noise |
+| **Business Letters** | Tool-augmented extraction | Verify-and-correct* | +3-8 pts F1 | ±0.0 pts | Neutral — zero corrections needed |
+| **Blacklist Cards** | Standard pipeline | MIPROv2 CoT + Refine(3) | Establish baseline | **0.9713** | Success — beat leaderboard |
+| **Company Lists** | *(not recommended)* | MIPROv2 CoT | — | **0.8771** | Success — beat leaderboard by 29 pts |
 
-The recommendations are ordered by confidence: Personnel Cards and Blacklist Cards are low-risk experiments with predictable outcomes. Library Cards with KNNFewShot is a targeted improvement on a strong baseline. Business Letters with ReAct is a higher-risk / higher-reward bet on tool-augmented extraction. Bibliographic Data with RLM is the most experimental — it could solve the fundamental alignment problem or prove infeasible with vision inputs.
+\* RLM and ReAct were not tested; simpler variants were tried instead (see §4.2 and §4.4 outcomes).
 
-Total estimated cost for all five experiments: ~$16-27.
+**None of the four module-level experiments improved on MIPROv2+Refine.** The new benchmarks (Blacklist Cards and Company Lists) were successful. The meta-lesson: MIPROv2's jointly optimized instruction+demo programs are tightly coupled — modifying any component (swapping demos, adding a comparator, post-processing outputs, splitting the pipeline) disrupts the balance without adding compensating value. The standard recipe (optimized instruction + optimized demos + quality-aware Refine) remains the best approach.
 
 ---
 
