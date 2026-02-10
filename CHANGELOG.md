@@ -32,6 +32,13 @@ is not versioned, entries are grouped by date.
   benchmarks.
 
 ### Changed
+- **README streamlined**: Individual benchmark sections cut from ~380 to ~225
+  lines (~41% reduction). Removed experiment-phase headers and detailed
+  subsections for GEPA, KNN, MultiChainComparison, two-stage pipeline, and
+  verify-and-correct. Each benchmark now shows a simplified results table
+  (baseline → best) and 2 key findings. Cross-benchmark summary table dropped
+  GEPA column; "Task structure" paragraph generalized to "instruction-only
+  optimisation." Optimizer description section also simplified for readability.
 - **Demo visualizations updated**: Bibliographic Data demo now shows all 5
   images (was 3); added Refine comparison columns for Bibliographic Data and
   Company Lists demos.
