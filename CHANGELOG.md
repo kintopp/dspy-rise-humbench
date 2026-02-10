@@ -5,6 +5,26 @@ is not versioned, entries are grouped by date.
 
 ---
 
+## 2026-02-10
+
+### Changed
+- **Demo visualizations updated**: Bibliographic Data demo now shows all 5
+  images (was 3); added Refine comparison columns for Bibliographic Data and
+  Company Lists demos.
+- **Business Letters demo**: added letter60 (the residual format-mismatch case
+  flagged by upstream reviewer on issue #93); fixed note background color in
+  Bibliographic Data demo.
+
+### Added
+- **Issue #93 response draft** (`offline/issue93-response-draft.md`): analysis
+  of upstream reviewer's comments on Business Letters inferred-sender claims.
+  Verified all claims correct (14/41 test letters with angle-bracket markers,
+  24/57 total). Max's persons.json alias update has zero impact on scores.
+  Cross-benchmark spot-check confirmed all 15 factual claims across 6
+  benchmarks.
+
+---
+
 ## 2026-02-09
 
 ### Added
