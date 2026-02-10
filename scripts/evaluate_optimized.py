@@ -74,6 +74,7 @@ def main():
     parser.add_argument("--model", type=str, default="gpt-4o", help="Model preset or full model string")
     parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
     parser.add_argument("--refine", type=int, default=0, help="Refine retries (0=disabled, e.g. 3 for N=3)")
+    parser.add_argument("--output-tag", type=str, default="", help="Tag appended to output filename (e.g. model name for cross-model eval)")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -161,6 +162,7 @@ def main():
     summary = {
         "benchmark": args.benchmark,
         "program": args.program,
+        "model": model_id,
         "module_type": args.module,
         "refine_n": args.refine,
         "refine_reward": "quality" if eval_reward is not None else None,
@@ -170,7 +172,8 @@ def main():
             for r in per_image_results
         ],
     }
-    out_path = out_dir / f"{program_name}{refine_tag}_test_scores.json"
+    output_tag = f"_{args.output_tag}" if args.output_tag else ""
+    out_path = out_dir / f"{program_name}{refine_tag}{output_tag}_test_scores.json"
     with open(out_path, "w") as f:
         json.dump(summary, f, indent=2)
     logger.info(f"Results saved to {out_path}")
