@@ -69,6 +69,7 @@ BENCHMARK_CONFIG = {
     "bibliographic_data": {
         "display_name": "Bibliographic Data",
         "metric_key": "fuzzy",
+        "note": "Only 5 images total; 3 of 5 were seen during optimization (train/dev). Scores on those images may be inflated.",
         "reference_scores": "results/bibliographic_data/optimized/mipro-heavy-cot_gemini-2.0-flash_optimized_test_scores.json",
         "optimizers": [
             {
@@ -82,6 +83,12 @@ BENCHMARK_CONFIG = {
                 "module_type": "cot",
                 "program": "results/bibliographic_data/optimized/mipro-heavy-cot_gemini-2.0-flash_optimized.json",
                 "refine": 0,
+            },
+            {
+                "name": "MIPROv2 Heavy CoT + Refine(3)",
+                "module_type": "cot",
+                "program": "results/bibliographic_data/optimized/mipro-heavy-cot_gemini-2.0-flash_optimized.json",
+                "refine": 3,
             },
             {
                 "name": "GEPA CoT",
@@ -195,6 +202,12 @@ BENCHMARK_CONFIG = {
                 "program": "results/company_lists/optimized/mipro-cot_gemini-2.0-flash_optimized.json",
                 "refine": 0,
             },
+            {
+                "name": "MIPROv2 CoT + Refine(3)",
+                "module_type": "cot",
+                "program": "results/company_lists/optimized/mipro-cot_gemini-2.0-flash_optimized.json",
+                "refine": 3,
+            },
         ],
     },
 }
@@ -205,11 +218,15 @@ BENCHMARK_CONFIG = {
 # ---------------------------------------------------------------------------
 
 
-def select_images(benchmark: str, n: int = 5) -> list[str]:
-    """Select n test image IDs spanning the score distribution.
+def select_images(benchmark: str, all_samples: list[dict], n: int = 5) -> list[str]:
+    """Select n image IDs spanning the score distribution.
 
     Uses the reference score file to pick images at percentile intervals
     (min, 25th, 50th, 75th, max). Falls back to all images if n >= total.
+
+    When the reference scores file has fewer images than *n* but the full
+    dataset has more (e.g. bibliographic_data with 2 test images but 5 total),
+    includes all dataset images sorted by any available scores.
     """
     cfg = BENCHMARK_CONFIG[benchmark]
     scores_path = PROJECT_ROOT / cfg["reference_scores"]
@@ -219,22 +236,26 @@ def select_images(benchmark: str, n: int = 5) -> list[str]:
         data = json.load(f)
 
     per_img = sorted(data["per_image"], key=lambda x: x.get(metric, 0))
-    total = len(per_img)
 
-    if total <= n:
-        return [img["id"] for img in per_img]
+    # If the reference scores cover enough images, use them directly
+    if len(per_img) >= n:
+        total = len(per_img)
+        indices = [0, total // 4, total // 2, 3 * total // 4, total - 1]
+        seen = set()
+        selected = []
+        for i in indices:
+            img_id = per_img[i]["id"]
+            if img_id not in seen:
+                seen.add(img_id)
+                selected.append(img_id)
+        return selected[:n]
 
-    indices = [0, total // 4, total // 2, 3 * total // 4, total - 1]
-    # Deduplicate while preserving order
-    seen = set()
-    selected = []
-    for i in indices:
-        img_id = per_img[i]["id"]
-        if img_id not in seen:
-            seen.add(img_id)
-            selected.append(img_id)
-
-    return selected[:n]
+    # Reference scores have fewer than n images — include all dataset images.
+    # Put scored images first (sorted by score), then any unscored ones.
+    scored_ids = [img["id"] for img in per_img]
+    all_ids = [s["id"] for s in all_samples]
+    unscored = [sid for sid in all_ids if sid not in set(scored_ids)]
+    return (scored_ids + sorted(unscored))[:n]
 
 
 # ---------------------------------------------------------------------------
@@ -294,12 +315,14 @@ def run_benchmark(benchmark: str, model: str, n_images: int = 5):
     samples = data_mod.load_matched_samples()
     _, _, test_raw = data_mod.split_data(samples, seed=42)
 
-    # Select images
-    selected_ids = select_images(benchmark, n=n_images)
+    # Select images — pass all samples so small benchmarks can include non-test images
+    selected_ids = select_images(benchmark, samples, n=n_images)
     logger.info(f"Selected {len(selected_ids)} images: {selected_ids}")
 
-    # Build lookup from test set
-    test_by_id = {s["id"]: s for s in test_raw}
+    # Build lookup from all samples (not just test) so small benchmarks can
+    # include train/dev images in the demo for visual completeness.
+    all_by_id = {s["id"]: s for s in samples}
+    test_ids = {s["id"] for s in test_raw}
 
     # Determine input field name(s) from the module's forward signature
     input_field = "card_image"
@@ -313,11 +336,14 @@ def run_benchmark(benchmark: str, model: str, n_images: int = 5):
     # Process each image × optimizer
     image_results = []
     for img_id in selected_ids:
-        if img_id not in test_by_id:
-            logger.warning(f"  {img_id} not in test set, skipping")
+        if img_id not in all_by_id:
+            logger.warning(f"  {img_id} not found in dataset, skipping")
             continue
 
-        raw = test_by_id[img_id]
+        if img_id not in test_ids:
+            logger.info(f"  {img_id} is a train/dev image (included for demo completeness)")
+
+        raw = all_by_id[img_id]
         gt = raw["ground_truth"]
 
         # Resolve image path(s)
@@ -420,6 +446,8 @@ def run_benchmark(benchmark: str, model: str, n_images: int = 5):
         "model": model,
         "images": image_results,
     }
+    if cfg.get("note"):
+        output["note"] = cfg["note"]
 
     with open(out_path, "w") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)

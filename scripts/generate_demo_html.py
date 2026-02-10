@@ -543,12 +543,15 @@ def generate_index_html(all_data: dict[str, dict]):
         )
 
         n_images = len(data["images"])
+        note_html = ""
+        if data.get("note"):
+            note_html = f'<div class="images-count" style="color:#f39c12;margin-top:6px">{data["note"]}</div>'
         cards_html += f"""
     <a class="card" href="demo_{benchmark}.html">
       <h2>{data['display_name']}</h2>
       <div class="metric">Primary metric: {metric_key}</div>
       <div class="scores">{pills}</div>
-      <div class="images-count">{n_images} sample image{'s' if n_images != 1 else ''}</div>
+      <div class="images-count">{n_images} sample image{'s' if n_images != 1 else ''}</div>{note_html}
     </a>
 """
 
