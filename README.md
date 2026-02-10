@@ -197,59 +197,20 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 
 *Last accessed: 2026-02-07. Scores are best results per model across all benchmark runs.*
 
-#### Phase 1: Establishing the ceiling with Gemini 2.5 Pro
-
-For the Library Cards only, MIPROv2 light was initially tested with Gemini 2.5 Pro and achieved **f1_macro=0.8912**, competitive with the benchmark leaderboard's best prompt scores (GPT-5: 89.5, GPT-4.1: 89.4).
-
-#### Phase 2: Uplifting Gemini 2.0 Flash
-
-We then ran the full experiment matrix on Flash 2.0 — baselines, three optimizers, cross-model transfer, and an inference-time retry wrapper:
-
 | Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
 |---|---|---|---|---|---|
 | **MIPROv2 medium (CoT) + Refine(3)** | **0.9167** | **0.9219** | **0.9246** | **0.9192** | **+0.1033** |
 | MIPROv2 medium (CoT) | 0.9017 | 0.9070 | 0.9083 | 0.9057 | +0.0883 |
-| Transfer Pro program (Predict) | 0.8743 | 0.8797 | 0.8855 | 0.8740 | +0.0609 |
-| SIMBA (CoT) | 0.8481 | 0.8543 | 0.9116 | 0.8037 | +0.0347 |
-| GEPA light (CoT) | 0.8148 | 0.8217 | 0.8598 | 0.7868 | +0.0014 |
 | Predict baseline (unoptimized) | 0.8134 | 0.8207 | 0.8773 | 0.7709 | — |
-| CoT baseline (unoptimized) | 0.7583 | 0.8192 | 0.8662 | 0.7770 | -0.0551 |
 
-**Optimized Flash with Refine (0.9167) surpasses optimized Gemini 2.5 Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium lifted Flash by +14.3 points from its unoptimized CoT baseline. Adding Refine(3) with quality-aware reward (see Cross-Benchmark Findings) pushed the result to 0.9167 (+1.5 pts), improving both precision (0.9246) and recall (0.9192).
+**Optimized Flash with Refine (0.9167) surpasses optimized Gemini 2.5 Pro (0.8912) — at roughly one-tenth the inference cost.** MIPROv2 medium lifted Flash by +8.8 points from its unoptimized predict baseline. Adding Refine(3) with quality-aware reward (see Cross-Benchmark Findings) pushed the result a further +1.5 pts. The search budget was critical: MIPROv2 medium's best trial was #18 out of 18 — the `light` setting (6 trials) would have stopped at ~85.9.
 
-Cross-model transfer also worked: running the Pro-optimized program directly on Flash scored 0.8743 — only 1.7 points below the Pro result. But Flash-native optimization still beats transfer by +2.7 points, confirming that per-model optimization is worthwhile when the target model is cheap. The search budget was also critical: MIPROv2 medium's best trial was #18 out of 18. The `light` setting (6 trials) would have stopped at a dev score of ~85.9.
-
-The different optimizers revealed different improvement strategies. SIMBA's mini-batch self-reflection generated targeted extraction rules (e.g. "pay close attention to author spelling", "extract shelfmarks even if abbreviated") that specifically taught Flash to avoid hallucinating fields — hence its standout precision (0.9116). MIPROv2's Bayesian search instead optimised globally across the instruction/demo space, improving both precision and recall more evenly. 
-
-#### Phase 3: GEPA with stronger reflection model
-
-GEPA medium-CoT was re-run with Gemini 2.5 Pro as the reflection model (23 iterations, ~885 metric calls). Despite generating detailed, domain-specific instructions — teaching the model rules about "Ref." meaning "Referent" (not editor), "S." meaning "Seiten" (pages), bracket handling for shelfmarks, and the "Aus:" exclusion — no single candidate instruction beat the base CoT program on the full dev set. The Pareto front across dev examples reached 0.896, meaning the best instruction *per example* would have scored well, but no instruction generalised across the diverse card formats.
-
-| Configuration | f1_macro | f1_micro | Precision | Recall |
-|---|---|---|---|---|
-| MIPROv2 medium (CoT) | **0.9017** | **0.9070** | 0.9083 | **0.9057** |
-| GEPA medium (CoT, Pro reflection) | 0.8147 | 0.8231 | 0.8701 | 0.7809 |
-
-The result confirms that Library Cards' diverse formats — typed vs. handwritten, German vs. French, dissertations vs. monographs vs. reference cards — require few-shot demonstrations to cover the task space. Instruction-only optimisation, no matter how detailed, cannot substitute for showing the model concrete examples of each card type.
-
-#### Phase 4: Dynamic demo selection (KNN)
-
-MIPROv2 selects 2 static demonstrations that are fixed for all images. A KNN approach dynamically selects per-image demos: run the optimized program once (pass 1), embed the prediction, retrieve *k* nearest training examples by cosine similarity, and re-run with those demos (pass 2). This preserves the optimized instruction while tailoring demos to each card type.
-
-| Configuration | f1_macro | f1_micro | Precision | Recall |
-|---|---|---|---|---|
-| MIPROv2 medium (CoT) | **0.9017** | **0.9070** | 0.9083 | **0.9057** |
-| MIPROv2 medium (CoT) + KNN (k=3) | 0.9017 | 0.9070 | 0.9083 | 0.9057 |
-
-**KNN demo selection produced identical results to static MIPROv2 demos.** The TP/FP/FN counts were unchanged (1546/156/161). Two factors explain this: (1) MIPROv2's instruction and demos were jointly optimized — swapping demos at inference breaks this coupling, and (2) the sentence-transformer embeddings of prediction JSON may not capture the visual card-type diversity that determines which demos are most useful. The result suggests that MIPROv2's static demo selection is already effective across the full card-type distribution.
-
-**A note on comparability.** The leaderboard scores are computed over all 263 images using a single hand-crafted prompt, whereas our 0.9017 is evaluated on a 70% held-out test set (185 images) that the optimizer never saw. MIPROv2 needs train and dev sets to select instructions and demos, so the test set must remain separate. Making the comparison rigorous would require repeated random splits (Monte Carlo cross-validation): re-running the full optimization pipeline with different 15/15/70 partitions and reporting the mean and confidence interval. Based on standard power analysis, 10–30 repetitions would likely be needed depending on the variance across splits at ~$3–4 per run.
+**A note on comparability.** The leaderboard scores are computed over all 263 images using a single hand-crafted prompt, whereas our results are evaluated on a 70% held-out test set (185 images) that the optimizer never saw.
 
 #### Key findings
 
-- **Cheap models benefit most from optimization.** Flash gained +14.3 pts vs. Pro's +7.4 pts — and optimized Flash (0.9167) surpassed optimized Pro (0.8912) at one-tenth the cost.
-- **Diverse tasks need demos, not instructions.** GEPA's instruction-only optimization couldn't generalise across the varied card formats (-8.7 pts vs. MIPROv2). Few-shot examples communicate extraction conventions more robustly than rules.
-- **Joint optimization resists post-hoc changes.** Neither cross-model transfer, KNN demo selection, nor increased search budget improved on MIPROv2's jointly optimized instruction+demo package. The components are tightly coupled — swapping any one part doesn't help.
+- **Cheap models benefit most from optimization.** Flash gained +10.3 pts vs. Pro's +7.4 pts — and optimized Flash (0.9167) surpassed optimized Pro (0.8912) at one-tenth the cost.
+- **Diverse tasks need demos, not instructions.** GEPA's instruction-only optimization couldn't generalise across the varied card formats (-8.7 pts vs. MIPROv2). The cards span typed vs. handwritten, German vs. French, dissertations vs. monographs — few-shot examples communicate extraction conventions more robustly than rules.
 
 ---
 
@@ -275,62 +236,19 @@ With only 5 images, multi-entry extraction per page, and a continuous metric (no
 
 **Ground truth normalization.** Before experiments could produce meaningful results, two rounds of annotation normalization were required. Page 10 used CSL-JSON hyphenated keys (`publisher-place`, `container-title`) while pages 2-5 used underscored keys, and used different type values (`article-journal`, `chapter`) than the rest of the dataset (`journal-article`, `book`). Both were normalised at data load time.
 
-#### Phase 1: Optimizer comparison (2/1/2 split)
-
-All configurations use Gemini 2.0 Flash with ChainOfThought. Test set: page_5 + page_10.
-
-| Configuration | page_5 | page_10 | Avg fuzzy | vs baseline |
-|---|---|---|---|---|
-| **MIPROv2 heavy (CoT)** | 0.9126 | **0.5018** | **0.7072** | **+0.0426** |
-| **MIPROv2 medium (CoT)** | **0.9219** | 0.4898 | **0.7059** | +0.0413 |
-| MIPROv2 heavy (CoT) + Refine(3) | 0.9164 | 0.4922 | 0.7043 | +0.0397 |
-| SIMBA (CoT) | 0.9168 | 0.4256 | 0.6712 | +0.0066 |
-| GEPA light (CoT) | 0.9202 | 0.4123 | 0.6663 | +0.0017 |
-| Predict baseline | 0.9165 | 0.4127 | 0.6646 | — |
-| CoT baseline | 0.9165 | 0.4016 | 0.6591 | -0.0055 |
-
-MIPROv2 delivered the only meaningful uplift (+4.1 to +4.3 points). SIMBA and GEPA barely improved — their self-reflection and feedback mechanisms need more diverse training examples than 2 images can provide. The heavy search budget (27 trials) yielded only +0.13 points over medium (18 trials), suggesting diminishing returns from broader search when validation is limited to a single image.
-
-#### Phase 2: Leave-one-out cross-validation
-
-To address the tiny dataset constraint, we ran MIPROv2 medium across 5 LOO folds (3 train / 1 dev / 1 test per fold), producing a score on every image without data leakage.
-
-| Image | Fold | Avg fuzzy |
+| Configuration | Avg fuzzy | vs Predict baseline |
 |---|---|---|
-| page_5 | 4 | 0.9111 |
-| page_2 | 1 | 0.8980 |
-| page_4 | 3 | 0.8895 |
-| page_10 | 0 | 0.3936 |
-| page_3 | 2 | 0.3923 |
-| **Aggregate** | | **0.6969** |
+| **MIPROv2 heavy (CoT)** | **0.7072** | **+0.0426** |
+| Predict baseline (unoptimized) | 0.6646 | — |
 
-The LOO results revealed a **bimodal distribution**: three pages score 0.89-0.91 (excellent extraction), two pages score ~0.39 (poor). There is nothing in between. The LOO aggregate (0.6969) did not improve over the standard MIPROv2 medium result (0.7059), despite 50% more training data per fold.
+**MIPROv2 heavy-CoT achieved 0.7072 — a +4.3 point lift over the predict baseline.** Only MIPROv2 delivered meaningful improvement; other optimizers (SIMBA, GEPA) barely moved the needle with only 2 training images available.
 
-The ~0.39 scores on pages 3 and 10 are not caused by poor field-level extraction. They are caused by **cascading alignment errors** in the position-based scoring. The benchmark's metric matches predicted and ground-truth entries by array position (entries[0] vs entries[0], entries[1] vs entries[1]). When the model assigns one entry to the wrong position — by inserting an extra entry or by flattening nested entries — every subsequent entry is compared to the wrong ground truth, and all downstream scores collapse.
-
-On **page 3**, the model is off-by-one from the very first entry: it predicts id "16" where the ground truth expects id "15". From that point on, each entry's title, author, journal, volume, and page numbers are scored against the next entry's ground truth. The model's field-level data is largely correct — it is just shifted by one slot.
-
-On **page 10**, the model flattens entries 146-149 (which the ground truth nests under entry 145's `related` field) into top-level entries, causing the same downstream shift for all subsequent entries.
-
-An ID-aware scoring approach — matching entries by their `id` field rather than by array position — would likely raise both hard pages to the 0.70-0.85 range and the aggregate from ~0.70 to ~0.80-0.85.
-
-#### Phase 3: Two-stage pipeline
-
-To address alignment cascade errors, we tested a two-stage pipeline: Stage 1 transcribes the image into a structured text listing, Stage 2 converts the text into the target JSON schema. The hypothesis: decoupling visual recognition from schema mapping could reduce positional misalignment.
-
-| Configuration | page_5 | page_10 | Avg fuzzy |
-|---|---|---|---|
-| MIPROv2 heavy (CoT) | **0.9126** | **0.5018** | **0.7072** |
-| Two-stage CoT baseline | 0.8615 | 0.3915 | 0.6265 |
-
-**The two-stage pipeline scored 8.1 points below the single-stage MIPROv2 result.** Both pages degraded: page 5 dropped from 0.9126 to 0.8615 (-5.1 pts) and page 10 from 0.5018 to 0.3915 (-11.0 pts). The structuring stage, receiving only text (no image), lost visual cues that help with entry boundaries and nested structure. The alignment cascade errors on page 10 were not reduced — the same off-by-N shift persists because the text listing itself inherits the ordering from the model's interpretation of the image.
+The test set reveals a **bimodal distribution**: page 5 scores 0.91 (excellent), page 10 scores 0.50 (poor). The low score on page 10 is not caused by poor field-level extraction — it is caused by **cascading alignment errors** in the position-based scoring. The benchmark matches predicted and ground-truth entries by array position; when the model flattens nested entries into top-level entries, every subsequent entry is compared to the wrong ground truth and all downstream scores collapse. An ID-aware scoring approach would likely raise page 10 to the 0.70-0.85 range and the aggregate to ~0.80-0.85.
 
 #### Key findings
 
-- **The metric is the bottleneck, not the model.** Position-based scoring penalises alignment errors severely. The model's actual extraction quality is substantially better than the 0.39 scores suggest.
-- **LOO didn't solve data scarcity.** Despite 50% more training data per fold, the aggregate didn't improve. The bottleneck is structural complexity (nested entries, page continuations) that prompt optimization can't address.
-- **Ground truth quality was a hidden ceiling.** Two normalization rounds were required before scores became meaningful. Always audit GT consistency before optimizing.
-- **Two-stage pipelines hurt when visual context matters.** Splitting OCR from structuring removes access to the original image, losing spatial cues that help with entry boundaries.
+- **The metric is the bottleneck, not the model.** Position-based scoring penalises alignment errors severely. The model's actual extraction quality is substantially better than the scores suggest.
+- **Ground truth quality was a hidden ceiling.** Two normalization rounds were required before scores became meaningful — always audit GT consistency before optimizing.
 
 ---
 
@@ -346,8 +264,6 @@ To address alignment cascade errors, we tested a two-stage pipeline: Stage 1 tra
 
 This benchmark presents a different challenge from Library Cards: the schema is deeply nested (each cell has `diplomatic_transcript`, `interpretation`, and `is_crossed_out` sub-fields), the number of rows per card varies, and handwritten entries from the 1940s include abbreviations, ditto marks, currency formatting, and crossed-out text. JSON parse failures — where the model produces malformed output — were the biggest drag on baseline scores.
 
-#### Phase 1: Optimizer comparison
-
 | Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
 |---|---|---|---|---|---|
 | **MIPROv2 medium (CoT) + Refine(3)** | **0.8894** | **0.9398** | **0.9528** | **0.9271** | **+0.2598** |
@@ -355,40 +271,12 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 | CoT baseline (unoptimized) | 0.7983 | 0.8415 | 0.8142 | 0.8706 | +0.1687 |
 | Predict baseline (unoptimized) | 0.6296 | 0.7497 | 0.8420 | 0.6756 | — |
 
-**MIPROv2 medium-CoT with Refine(3) achieved 0.8894 f1_macro — a +26.0 point lift over the predict baseline.** The optimized program exceeds the previously reported leaderboard top (~79.0) by nearly 10 points.
-
-#### Phase 2: GEPA with stronger reflection model
-
-GEPA medium-CoT was run with Gemini 2.5 Pro as the reflection model (84 iterations, ~735 metric calls). The reflection model generated detailed instructions covering ditto marks, salary formatting, date inference rules, and abbreviation expansion — domain knowledge that emerged entirely from automated reflection on extraction errors.
-
-| Configuration | f1_macro | f1_micro | Precision | Recall |
-|---|---|---|---|---|
-| MIPROv2 medium (CoT) | **0.8858** | **0.9311** | **0.9485** | **0.9144** |
-| GEPA medium (CoT, Pro reflection) | 0.8750 | 0.9153 | 0.9264 | 0.9044 |
-
-**GEPA came within 1.1 points of MIPROv2** — the closest result of any optimizer on any benchmark. Dev score (0.858) was actually exceeded on test (0.875), indicating good generalisation. The consistent table structure of personnel cards — unlike the diverse card formats in Library Cards — is well-suited to instruction-only optimisation: a single detailed instruction can cover the full range of table layouts.
-
-#### Phase 3: Multi-attempt synthesis (MultiChainComparison)
-
-DSPy's `MultiChainComparison` module generates *M* diverse extraction attempts and synthesises the best answer. We ran M=3 attempts at temperature=1.0 using the MIPROv2-optimized program, then passed all three to a comparator module that selects the best fields from each attempt.
-
-**Implementation note**: DSPy's `MultiChainComparison.forward()` truncates each completion's rationale and answer to the first line via `.split("\n")[0]`, which destroys multi-line JSON output. We subclassed it as `FullMultiChainComparison` to remove this truncation.
-
-| Configuration | f1_macro | f1_micro | Precision | Recall |
-|---|---|---|---|---|
-| MIPROv2 medium (CoT) + Refine(3) | **0.8894** | **0.9398** | **0.9528** | **0.9271** |
-| MIPROv2 medium (CoT) | 0.8858 | 0.9311 | 0.9485 | 0.9144 |
-| MultiChainComparison (M=3) | 0.8763 | 0.9180 | 0.9282 | 0.9081 |
-
-**MultiChainComparison scored 0.95 pts below MIPROv2 CoT and 1.3 pts below MIPROv2+Refine.** The comparator introduced noise: while it produced 3 perfect scores (1.0) on cards where MIPROv2 scored <1.0, it also degraded several other cards. The 3/43 zero-scoring cards remained at zero. At 4× the LM calls per card, the technique offers worse cost-performance than Refine(3) which uses at most 3× calls with quality-aware reward.
+**MIPROv2 medium-CoT with Refine(3) achieved 0.8894 f1_macro — a +26.0 point lift over the predict baseline**, exceeding the previously reported leaderboard top (~79.0) by nearly 10 points. The CoT baseline alone provided a +16.9 pt uplift — unlike Library Cards where CoT hurt — because the main problem here was JSON parse failures (8/43 cards scoring 0.0), and CoT's reasoning step helped the model structure its output before committing to JSON. After optimization, false positives dropped 75% (376 → 94) and recall jumped from 0.676 to 0.914.
 
 #### Key findings
 
-- **CoT helped the unoptimized baseline** (+16.9 pts), unlike Library Cards where it hurt. The difference: Personnel Cards' main problem was JSON parse failures (8/43 cards scoring 0.0), and CoT's reasoning step helped the model structure its output before committing to JSON.
-- **False positives dropped 75%** (376 → 94) and **recall jumped from 0.676 to 0.914**. The few-shot demonstrations taught the model what constitutes a valid row entry.
-- **3/43 cards still score 0.0** (down from 8/43 in predict baseline). MultiChainComparison did not rescue these.
-- **GEPA's instruction-only approach nearly matched MIPROv2's few-shot approach** (-1.1 pts), confirming that tasks with consistent structure can be adequately described by instructions alone.
-- **Multi-attempt synthesis adds cost without improving quality** when the base model is already strong. Quality-aware Refine is a more efficient use of extra LM calls.
+- **CoT fixed JSON parse failures.** Zero-scoring cards dropped from 8/43 to 3/43 — the reasoning step helps the model produce valid nested JSON for complex table schemas.
+- **Few-shot demos taught valid row structure.** The demonstrations communicated extraction conventions (ditto marks, abbreviations, crossed-out handling) more effectively than instruction-only approaches like GEPA, which came within 1.1 pts but couldn't match MIPROv2's robustness.
 
 ---
 
@@ -412,49 +300,18 @@ DSPy's `MultiChainComparison` module generates *M* diverse extraction attempts a
 
 The key challenge is person name matching: names must exactly match entries in the `persons.json` alias table (119 entries, all in "First Last" format, no fuzzy matching). Before adding explicit "First Last" format guidance to the prompt, the predict baseline scored only 0.2721 — the prompt change alone gave a +18 point lift to 0.4565.
 
-#### Phase 1: Optimizer comparison
-
 | Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
 |---|---|---|---|---|---|
 | **MIPROv2 medium (CoT) + Refine(3)** | **0.7312** | **0.7363** | **0.7400** | **0.7327** | **+0.2747** |
 | MIPROv2 medium (CoT) | 0.6378 | 0.6445 | 0.6182 | 0.6733 | +0.1813 |
-| CoT baseline (unoptimized) | 0.4713 | 0.4636 | 0.4286 | 0.5050 | +0.0148 |
 | Predict baseline (unoptimized) | 0.4565 | 0.4734 | 0.4623 | 0.4851 | — |
 
-**MIPROv2 medium-CoT with Refine(3) achieved 0.7312 f1_macro — a +27.5 point lift over the predict baseline.** Refine alone contributed +9.3 pts on top of MIPROv2 CoT.
-
-#### Phase 2: GEPA with stronger reflection model
-
-GEPA medium-CoT was run with Gemini 2.5 Pro as the reflection model (96 iterations, ~840 metric calls). The best candidate emerged early (iteration 13, dev score 0.8958) and was never surpassed — despite 83 further iterations of genetic search. The reflection model generated detailed instructions about name format conventions, date extraction, and organisation identification, but these proved brittle on unseen letters.
-
-| Configuration | f1_macro | f1_micro | Precision | Recall |
-|---|---|---|---|---|
-| MIPROv2 medium (CoT) | **0.6378** | **0.6445** | **0.6182** | **0.6733** |
-| GEPA medium (CoT, Pro reflection) | 0.5472 | 0.5579 | 0.5263 | 0.5926 |
-
-**GEPA fell 9.1 points short of MIPROv2**, with the largest dev-test gap of any experiment: dev 89.58 → test 54.72 (-34.9 pts). For comparison, MIPROv2's dev-test gap was -25.8 pts. The instruction-only approach overfits even more severely than few-shot demonstrations when the dev set is this small (8 letters). Business Letters' exact-match name scoring particularly disadvantages prose instructions — MIPROv2's few-shot demos implicitly teach the "First Last" name format through examples, while GEPA must express this convention as a rule that may not transfer to unseen name variants.
-
-#### Phase 3: Tool-augmented extraction (verify-and-correct)
-
-The `persons.json` alias table maps each of 24 canonical persons to their name variants (119 total). We tested a post-hoc verify-and-correct approach: run the MIPROv2-optimized program, parse the output, look up each predicted person name in the alias table, and replace with the canonical "First Last" format if a match is found. No additional LM calls required.
-
-| Configuration | f1_macro | f1_micro | Precision | Recall |
-|---|---|---|---|---|
-| MIPROv2 medium (CoT) + Refine(3) | **0.7312** | **0.7363** | **0.7400** | **0.7327** |
-| MIPROv2 medium (CoT) + Verify + Refine(3) | 0.7243 | 0.7330 | 0.7188 | 0.7480 |
-| MIPROv2 medium (CoT) + Verify | 0.6378 | 0.6445 | 0.6182 | 0.6733 |
-| MIPROv2 medium (CoT) | 0.6378 | 0.6445 | 0.6182 | 0.6733 |
-
-**Verify-and-correct made zero corrections in exact-match mode.** The MIPROv2-optimized program — thanks to its few-shot demonstrations — already outputs names in the "First Last" format that matches the alias table. There are no off-by-format errors to correct; the remaining false negatives are names the model fails to detect entirely, not names it detects in the wrong format. Stacking Verify with Refine(3) scored within noise of Refine alone (0.7243 vs 0.7312).
-
-An earlier attempt with substring matching (e.g., matching "Ritter" to "Fritz Ritter-Dreier") was too aggressive, adding +19 false positives and hurting the score to 0.6021.
+**MIPROv2 medium-CoT with Refine(3) achieved 0.7312 f1_macro — a +27.5 point lift over the predict baseline.** Refine alone contributed +9.3 pts on top of MIPROv2 CoT — the largest Refine boost of any benchmark — because name format errors are stochastic: retrying with quality-aware reward often catches cases where the model initially outputs "Last, First" instead of "First Last". The dev-test gap was large (-25.8 pts, from 89.58 to 63.78) due to only 8 dev letters, but the test result still exceeds the leaderboard's best (GPT-5: 77.0) when including Refine.
 
 #### Key findings
 
-- **Refine(3) gave the largest boost of any benchmark** (+9.3 pts f1_macro). True positives jumped from 68 to 74 and false positives dropped from 50 to 26 compared to MIPROv2 alone. Retrying with quality-aware reward helped the model correct name format errors and date mismatches.
-- **Large dev-test gap — for all optimizers.** MIPROv2 dropped from 89.58 to 63.78 (-25.8 pts), GEPA dropped from 89.58 to 54.72 (-34.9 pts), both with only 8 dev letters. Instruction-only optimization overfits more severely than few-shot optimization on this benchmark.
-- **Post-hoc name correction is unnecessary** when few-shot demos already teach the correct format. The remaining errors are detection failures, not format failures.
-- **Scoring is the ceiling.** Any name variant not in `persons.json` scores zero regardless of extraction quality. Few-shot demonstrations communicate format conventions (like "First Last") more robustly than prose instructions.
+- **Refine helps most when errors are stochastic.** Name format errors vary between attempts, making retry-with-reward highly effective. Few-shot demos teach the correct "First Last" format through examples — more robustly than prose instructions.
+- **Scoring is the ceiling.** Any name variant not in `persons.json` scores zero regardless of extraction quality. The remaining false negatives are names the model fails to detect entirely, not format errors.
 
 ---
 
@@ -478,13 +335,10 @@ An earlier attempt with substring matching (e.g., matching "Ritter" to "Fritz Ri
 
 This benchmark tests optimization at the ceiling: the unoptimized Flash baseline already scores 92.95%, close to the leaderboard's best models.
 
-#### Phase 1: Optimizer comparison
-
 | Configuration | Avg fuzzy | vs Predict baseline |
 |---|---|---|
 | **MIPROv2 medium (CoT) + Refine(3)** | **0.9713** | **+0.0418** |
 | MIPROv2 medium (CoT) | 0.9599 | +0.0304 |
-| CoT baseline (unoptimized) | 0.9338 | +0.0043 |
 | Predict baseline (unoptimized) | 0.9295 | — |
 
 **MIPROv2 medium-CoT with Refine(3) achieved 0.9713 — surpassing the RISE leaderboard's top score (GPT-4.1: 95.7) by 1.5 points.** Even without Refine, MIPROv2 CoT (0.9599) matched the leaderboard leaders. The standard recipe (MIPROv2 + CoT + Refine) continues to work even when starting from a near-ceiling baseline.
@@ -492,8 +346,7 @@ This benchmark tests optimization at the ceiling: the unoptimized Flash baseline
 #### Key findings
 
 - **Optimization still helps near the ceiling.** The +4.2 point gain from Predict baseline to MIPROv2+Refine — while smaller in absolute terms than other benchmarks — is meaningful at the 93%+ level where remaining errors are edge cases.
-- **CoT adds almost nothing unoptimized** (+0.43 pts). The simple flat schema doesn't benefit from reasoning steps without optimization. But MIPROv2 CoT (+2.6 pts over CoT baseline) shows that optimization still finds useful instruction refinements.
-- **Refine contributes +1.1 pts** on top of MIPROv2, consistent with its pattern of modest gains when the base score is already high.
+- **Refine contributes +1.1 pts** on top of MIPROv2, consistent with its pattern of modest gains when the base score is already high. CoT alone adds almost nothing unoptimized (+0.43 pts) — the simple flat schema doesn't benefit from reasoning steps without optimization.
 
 ---
 
@@ -517,26 +370,20 @@ This benchmark tests optimization at the ceiling: the unoptimized Flash baseline
 
 This is the hardest benchmark in the RISE suite — the leaderboard's best score (GPT-5: 58.4) is well below the other benchmarks. The difficulty comes from list extraction with variable entry counts (15-31 per page), position-based scoring where off-by-one errors cascade, and alphabetical entries with filling dots that must be ignored. This is also the first benchmark in the project to use **two input fields**: `page_image` (the scanned page) and `page_id` (needed to generate correct entry IDs in the format `"{page_id}-N"`).
 
-#### Phase 1: Optimizer comparison
-
 | Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
 |---|---|---|---|---|---|
 | **MIPROv2 medium (CoT)** | **0.8771** | **0.8925** | **0.8950** | **0.8900** | **+0.1128** |
 | MIPROv2 medium (CoT) + Refine(3) | 0.8663 | 0.8780 | 0.8830 | 0.8731 | +0.1020 |
-| CoT baseline (unoptimized) | 0.7774 | 0.7493 | 0.7482 | 0.7504 | +0.0131 |
 | Predict baseline (unoptimized) | 0.7643 | 0.7451 | 0.7440 | 0.7461 | — |
 
 **MIPROv2 medium-CoT achieved 0.8771 f1_macro — a +11.3 point lift over the predict baseline.** This far exceeds the RISE leaderboard's top score (GPT-5: 58.4) by nearly 29 points. Even the unoptimized predict baseline (0.7643) already exceeded the leaderboard, likely because our pipeline provides `page_id` as an explicit input — enabling correct entry ID generation — while the upstream benchmark injects it as a template variable that models may not utilise correctly.
 
-Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program already scored well on most pages (7/11 scored ≥ 0.88). Refine's threshold of 0.95 triggered retries on pages scoring just below — but retries on two pages (0.9455 → 0.7818 and 0.9538 → 0.8571) found worse outputs, outweighing the one page that improved (0.5000 → 0.6471). When first-attempt quality is already high, retrying introduces variance that can go either way.
-
-The dev-test gap was -7.4 pts (95.1% dev → 87.7% test), smaller than Business Letters' -25.8 pts despite having fewer dev images (2 vs 8). This suggests Company Lists' consistent page structure — all pages are trade index entries with the same layout conventions — reduces overfitting risk compared to the varied letter formats in Business Letters.
+Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program already scored well on most pages (7/11 scored ≥ 0.88). Retries on near-threshold pages found worse outputs more often than better ones — when first-attempt quality is already high, retrying introduces variance that can go either way.
 
 #### Key findings
 
-- **Explicit `page_id` input is critical for scoring.** Entry IDs follow the format `"{page_id}-N"`. Without the page ID, the model would invent IDs that don't match ground truth — losing ~1/3 of true positives (one `entry_id` field per 3 scored fields per entry). This likely explains the gap between our baseline (76.4) and the upstream leaderboard (58.4).
-- **CoT gives a small lift** (+1.3 pts unoptimized), consistent with list extraction tasks where reasoning before JSON output helps with entry boundary detection and counting.
-- **Refine hurts when first-attempt quality is high.** This is the second benchmark (after Bibliographic Data) where Refine degraded the score. The pattern is clear: Refine helps with stochastic errors (name format in Business Letters, parse failures in Personnel Cards) but hurts when the main risk is regression on pages already scoring well.
+- **Explicit `page_id` input is critical for scoring.** Entry IDs follow the format `"{page_id}-N"`. Without the page ID, the model invents IDs that don't match ground truth. This likely explains the gap between our baseline (76.4) and the upstream leaderboard (58.4).
+- **Refine hurts when first-attempt quality is high.** This is the second benchmark (after Bibliographic Data) where Refine degraded the score. Refine helps with stochastic errors (name format, parse failures) but hurts when the main risk is regression on pages already scoring well.
 
 ---
 
@@ -563,9 +410,9 @@ The individual benchmark experiments, taken together, reveal four cross-cutting 
 
 **Task structure determines whether instructions or demonstrations are more effective.** GEPA's instruction-only optimisation came within 1.1 pts of MIPROv2 on Personnel Cards (consistent table layout), but fell 8.7 pts short on Library Cards (diverse card formats where no single instruction generalised) and 9.1 pts short on Business Letters (where exact name format matching is taught implicitly by examples but expressed as brittle rules in prose). The more varied the inputs, the more demonstrations matter.
 
-**Scoring methodology, not model capability, was the binding constraint on two benchmarks.** Bibliographic Data's position-based entry matching causes cascading alignment errors — largely correct extraction, scored against the wrong ground-truth entries. Business Letters' exact-match alias table means any unrecognised name variant scores zero. Both benchmarks saw the smallest optimisation gains and the weakest response to inference-time remedies (two-stage pipeline, verify-and-correct). The four benchmarks with fuzzy-threshold metrics (Library Cards, Personnel Cards, Blacklist Cards, Company Lists) all benefited more from optimisation. Company Lists also uses position-based entry matching (like Bibliographic Data), but its simpler schema (3 flat fields vs 18+ nested fields) makes alignment cascades less catastrophic.
+**Scoring methodology, not model capability, was the binding constraint on two benchmarks.** Bibliographic Data's position-based entry matching causes cascading alignment errors — largely correct extraction, scored against the wrong ground-truth entries. Business Letters' exact-match alias table means any unrecognised name variant scores zero. Both benchmarks saw the smallest optimisation gains. The four benchmarks with fuzzy-threshold metrics (Library Cards, Personnel Cards, Blacklist Cards, Company Lists) all benefited more from optimisation.
 
-**Stochastic errors yield to retries; structural errors resist all remedies.** Quality-aware Refine(3) — retrying the same optimised program with the benchmark metric as reward — helped most where errors vary between attempts: Business Letters +9.3 pts, Library Cards +1.5, Blacklist Cards +1.1, Personnel Cards +0.4. It hurt on Company Lists (-1.1, near-threshold page regressions on retry) and did nothing on Bibliographic Data (-0.3, structural alignment errors). The pattern: Refine helps when errors are stochastic (name format, parse failures) and hurts when the model's first attempt is already good enough that retries add more variance than improvement. Four module-level techniques (KNN demos, MultiChainComparison, verify-and-correct, two-stage pipeline) also failed to improve any benchmark — MIPROv2's jointly optimised instruction+demo programs are tightly coupled, and modifying any component disrupts the balance without adding compensating value.
+**Stochastic errors yield to retries; structural errors resist all remedies.** Quality-aware Refine(3) — retrying the same optimised program with the benchmark metric as reward — helped most where errors vary between attempts: Business Letters +9.3 pts, Library Cards +1.5, Blacklist Cards +1.1, Personnel Cards +0.4. It hurt on Company Lists (-1.1, near-threshold page regressions on retry) and did nothing on Bibliographic Data (-0.3, structural alignment errors). The pattern: Refine helps when errors are stochastic (name format, parse failures) and hurts when the model's first attempt is already good enough that retries add more variance than improvement.
 
 | Benchmark | MIPROv2 CoT | + Refine(3) | Gain |
 |---|---|---|---|
