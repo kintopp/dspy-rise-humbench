@@ -133,6 +133,7 @@ BENCHMARK_CONFIG = {
         "display_name": "Business Letters",
         "metric_key": "f1_score",
         "reference_scores": "results/business_letters/optimized/mipro-cot_gemini-2.0-flash_optimized_test_scores.json",
+        "demo_images": ["letter34", "letter53", "letter60", "letter25", "letter15"],
         "optimizers": [
             {
                 "name": "Predict Baseline",
@@ -229,6 +230,11 @@ def select_images(benchmark: str, all_samples: list[dict], n: int = 5) -> list[s
     includes all dataset images sorted by any available scores.
     """
     cfg = BENCHMARK_CONFIG[benchmark]
+
+    # Explicit override takes precedence
+    if "demo_images" in cfg:
+        return cfg["demo_images"][:n]
+
     scores_path = PROJECT_ROOT / cfg["reference_scores"]
     metric = cfg["metric_key"]
 
