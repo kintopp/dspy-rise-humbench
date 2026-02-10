@@ -58,12 +58,6 @@ BENCHMARK_CONFIG = {
                 "program": "results/library_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json",
                 "refine": 3,
             },
-            {
-                "name": "GEPA CoT",
-                "module_type": "cot",
-                "program": "results/library_cards/optimized/gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized.json",
-                "refine": 0,
-            },
         ],
     },
     "bibliographic_data": {
@@ -90,12 +84,6 @@ BENCHMARK_CONFIG = {
                 "program": "results/bibliographic_data/optimized/mipro-heavy-cot_gemini-2.0-flash_optimized.json",
                 "refine": 3,
             },
-            {
-                "name": "GEPA CoT",
-                "module_type": "cot",
-                "program": "results/bibliographic_data/optimized/gepa-cot_gemini-2.0-flash_optimized.json",
-                "refine": 0,
-            },
         ],
     },
     "personnel_cards": {
@@ -120,12 +108,6 @@ BENCHMARK_CONFIG = {
                 "module_type": "cot",
                 "program": "results/personnel_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json",
                 "refine": 3,
-            },
-            {
-                "name": "GEPA CoT",
-                "module_type": "cot",
-                "program": "results/personnel_cards/optimized/gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized.json",
-                "refine": 0,
             },
         ],
     },
@@ -152,12 +134,6 @@ BENCHMARK_CONFIG = {
                 "module_type": "cot",
                 "program": "results/business_letters/optimized/mipro-cot_gemini-2.0-flash_optimized.json",
                 "refine": 3,
-            },
-            {
-                "name": "GEPA CoT",
-                "module_type": "cot",
-                "program": "results/business_letters/optimized/gepa-cot_gemini-2.0-flash_ref-gemini-2.5-pro_optimized.json",
-                "refine": 0,
             },
         ],
     },
