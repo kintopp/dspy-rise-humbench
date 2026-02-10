@@ -4,7 +4,7 @@ This project applies [DSPy](https://dspy.ai/) — a framework for programming an
 
 ## TLDR;
 
-DSPy's automated prompt optimization for Gemini 2.0 Flash — a cheap vision model at ~1/10th the cost of frontier models — matches or beats custom prompts on expensive models across six RISE benchmarks, with gains of +4 to +27 points. The biggest wins came from the weakest baselines (Personnel Cards: 0.63 → 0.89, Business Letters: 0.46 → 0.73), while even near-ceiling benchmarks improved (Blacklist Cards: 0.93 → 0.97). The optimized programs also transfer to larger models without re-optimization: running the same Flash-optimized prompts on Gemini 2.5 Flash and 2.5 Pro set new bests on 4 of 6 benchmarks (Business Letters: 0.46 → 0.81, Company Lists: 0.76 → 0.90).
+DSPy's automated prompt optimization for Gemini 2.0 Flash — a cheap vision model at ~1/10th the cost of frontier models — matches or beats custom prompts on expensive models across six RISE benchmarks, with gains of +4 to +27 points. The biggest wins came from the weakest baselines (Personnel Cards: 0.63 → 0.89, Business Letters: 0.46 → 0.73), while even near-ceiling benchmarks improved (Blacklist Cards: 0.93 → 0.97). The optimized programs also transfer to larger models without re-optimization: running the same Flash-optimized prompts on Gemini 2.5 Flash and 2.5 Pro improved scores on 4 of 6 benchmarks (Business Letters: 0.46 → 0.81, Company Lists: 0.76 → 0.90).
 
 ## Aims
 
@@ -440,7 +440,7 @@ All six benchmarks were optimized on **Gemini 2.0 Flash** — but do the resulti
 
 *† = with Refine(3). ‡ = base only; the Refine(3) evaluation on Library Cards with 2.5 Pro was interrupted at ~110/185 images and not re-run. Δ columns show the change vs. the 2.0 Flash best score.*
 
-Cross-model transfer set **new best scores on 4 of 6 benchmarks** — without any re-optimization. The optimized instructions and demonstrations carry enough task-specific signal that upgrading the inference model often improves results. 2.5 Flash excelled on Business Letters (+7.8 pts, better "First Last" name format compliance from the same demos) and Library Cards (+0.9 pts). 2.5 Pro excelled on Company Lists (+2.0 pts) and Bibliographic Data (+1.7 pts, where it handled the difficult page 10 far better than Flash).
+Cross-model transfer **improved scores on 4 of 6 benchmarks** — without any re-optimization. The optimized instructions and demonstrations carry enough task-specific signal that upgrading the inference model often improves results. 2.5 Flash excelled on Business Letters (+7.8 pts, better "First Last" name format compliance from the same demos) and Library Cards (+0.9 pts). 2.5 Pro excelled on Company Lists (+2.0 pts) and Bibliographic Data (+1.7 pts, where it handled the difficult page 10 far better than Flash).
 
 **Not all transfers improved.** 2.5 Flash degraded Bibliographic Data catastrophically (−24.7 pts) due to a JSON parse failure on one of the two test images — halving the score. It also regressed on Blacklist Cards (−2.4), Personnel Cards (−0.2), and Company Lists (−0.9). 2.5 Pro showed narrower regressions: Personnel Cards (−0.9), Blacklist Cards (−0.2), and Library Cards (−2.7, though the missing Refine evaluation makes this comparison incomplete).
 
@@ -448,8 +448,8 @@ Cross-model transfer set **new best scores on 4 of 6 benchmarks** — without an
 
 #### Key findings
 
-- **Prompt optimization is partially model-transferable.** The instruction + demonstration signal carries across Gemini model versions, setting new bests on 4/6 benchmarks without re-optimization. But format compliance can break — 2.5 Flash's parse failure on Bibliographic Data shows that even closely related models handle edge cases differently.
-- **2.5 Pro is the safer transfer target.** Its regressions were all < 1.2 pts (narrower than 2.5 Flash's range of −0.2 to −24.7), and it set new bests on the two benchmarks with the most complex schemas (Bibliographic Data, Company Lists).
+- **Prompt optimization is partially model-transferable.** The instruction + demonstration signal carries across Gemini model versions, improving scores on 4/6 benchmarks without re-optimization. But format compliance can break — 2.5 Flash's parse failure on Bibliographic Data shows that even closely related models handle edge cases differently.
+- **2.5 Pro is the safer transfer target.** Its regressions were all < 1.2 pts (narrower than 2.5 Flash's range of −0.2 to −24.7), and it produced the highest scores on the two benchmarks with the most complex schemas (Bibliographic Data, Company Lists).
 
 ---
 
