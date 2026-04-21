@@ -11,53 +11,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from benchmarks.shared.config import configure_dspy, resolve_model, results_dir
+from benchmarks.shared.refine import EvalReward
 from benchmarks.shared.scoring_helpers import parse_prediction_document
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
-
-
-# ---------------------------------------------------------------------------
-# Quality-aware reward for dspy.Refine
-# ---------------------------------------------------------------------------
-
-
-class EvalReward:
-    """Reward function that uses the actual benchmark metric when GT is available.
-
-    DSPy's Refine calls ``reward_fn(kwargs, outputs)`` where *kwargs* is the
-    input dict and *outputs* is a Prediction object.  At evaluation time we
-    know the ground truth for each image, so we inject it via ``set_gt()``
-    before calling the extractor and ``clear_gt()`` afterwards.
-
-    When GT is not set, falls back to the benchmark's binary
-    ``refine_reward_fn`` (valid-JSON check).
-    """
-
-    def __init__(self, scoring_mod):
-        self._score_single = scoring_mod.score_single_prediction
-        self._gt = None
-        # Auto-detect primary metric key: bibliographic_data → "fuzzy", others → "f1_score"
-        probe = scoring_mod.score_single_prediction({}, {})
-        self._metric_key = "fuzzy" if "fuzzy" in probe else "f1_score"
-
-    def set_gt(self, gt_dict):
-        self._gt = gt_dict
-
-    def clear_gt(self):
-        self._gt = None
-
-    def __call__(self, kwargs, outputs):
-        if self._gt is None:
-            raise RuntimeError("EvalReward called without GT; call set_gt() first")
-        try:
-            pred_dict = parse_prediction_document(outputs)
-        except Exception:
-            return 0.0
-        if pred_dict is None:
-            return 0.0
-        score = self._score_single(pred_dict, self._gt)
-        return score.get(self._metric_key, 0.0)
 
 
 def main():
@@ -107,7 +65,7 @@ def main():
         )
         logger.info(
             f"Wrapped extractor with Refine(N={args.refine}, threshold=0.95, "
-            f"metric={eval_reward._metric_key})"
+            f"metric={eval_reward.metric_key})"
         )
 
     # Load test split
@@ -141,13 +99,15 @@ def main():
     else:
         # Parallel inference via dspy.Evaluate — order of .results matches devset.
         import dspy
+        # Abort if more than 10% of inferences throw — protects against a
+        # broken model or API outage silently burning the rest of the run.
         evaluator = dspy.Evaluate(
             devset=test_examples,
             metric=scoring_mod.dspy_metric,
             num_threads=args.num_threads,
             display_progress=True,
             provide_traceback=True,
-            max_errors=len(test_examples),
+            max_errors=max(10, len(test_examples) // 10),
             failure_score=0.0,
         )
         eval_result = evaluator(extractor)

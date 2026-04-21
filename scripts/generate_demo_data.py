@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from benchmarks.shared.config import configure_dspy, results_dir
+from benchmarks.shared.refine import EvalReward
 from benchmarks.shared.scoring_helpers import parse_prediction_document
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -243,34 +244,6 @@ def select_images(benchmark: str, all_samples: list[dict], n: int = 5) -> list[s
 # ---------------------------------------------------------------------------
 # EvalReward for Refine (reused from evaluate_optimized.py)
 # ---------------------------------------------------------------------------
-
-
-class EvalReward:
-    """Quality-aware reward for dspy.Refine using actual benchmark metric."""
-
-    def __init__(self, scoring_mod):
-        self._score_single = scoring_mod.score_single_prediction
-        self._gt = None
-        probe = scoring_mod.score_single_prediction({}, {})
-        self._metric_key = "fuzzy" if "fuzzy" in probe else "f1_score"
-
-    def set_gt(self, gt_dict):
-        self._gt = gt_dict
-
-    def clear_gt(self):
-        self._gt = None
-
-    def __call__(self, kwargs, outputs):
-        if self._gt is None:
-            raise RuntimeError("EvalReward called without GT")
-        try:
-            pred_dict = parse_prediction_document(outputs)
-        except Exception:
-            return 0.0
-        if pred_dict is None:
-            return 0.0
-        score = self._score_single(pred_dict, self._gt)
-        return score.get(self._metric_key, 0.0)
 
 
 # ---------------------------------------------------------------------------

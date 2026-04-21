@@ -233,7 +233,7 @@ def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None
 
 
 def dspy_metric(example, prediction, trace=None) -> float:
-    """DSPy-compatible F1 metric. Pure float; pass ``metric_threshold=BOOTSTRAP_THRESHOLD`` to MIPROv2/BootstrapFewShot for demo filtering."""
+    """Pass ``metric_threshold=BOOTSTRAP_THRESHOLD`` to MIPROv2/BootstrapFewShot for demo filtering."""
     pred_dict = parse_prediction_document(prediction)
     gt_dict = parse_gt_document(example)
 

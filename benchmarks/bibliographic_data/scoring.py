@@ -2,15 +2,13 @@
 
 import logging
 
-import dspy
-
 from benchmarks.shared.scoring_helpers import (
     get_all_keys,
     get_nested_value,
     calculate_fuzzy_score,
-    parse_prediction_document,
-    parse_gt_document,
     f1_refine_reward_fn,
+    fuzzy_dspy_metric,
+    fuzzy_gepa_feedback_metric,
 )
 from benchmarks.bibliographic_data.data import _normalize_keys, _normalize_type_values
 
@@ -68,44 +66,8 @@ REQUIRED_KEYS = {"entries"}
 BOOTSTRAP_THRESHOLD = 0.3
 
 refine_reward_fn = f1_refine_reward_fn(REQUIRED_KEYS)
-
-
-def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
-    """GEPA-compatible metric returning score + textual feedback."""
-    pred_dict = parse_prediction_document(pred)
-    gt_dict = parse_gt_document(gold)
-
-    if pred_dict is None or gt_dict is None:
-        return dspy.Prediction(score=0.0, feedback="Failed to parse JSON output")
-
-    scores = score_single_prediction(pred_dict, gt_dict)
-    fuzzy = scores["fuzzy"]
-
-    if fuzzy >= 1.0:
-        return dspy.Prediction(score=fuzzy, feedback="Perfect score")
-
-    low_fields = [
-        f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
-        for key, info in scores["field_scores"].items()
-        if info["score"] < 0.8
-    ]
-
-    if low_fields:
-        feedback = f"fuzzy={fuzzy:.3f}. Low-scoring fields:\n" + "\n".join(low_fields[:20])
-    else:
-        feedback = f"fuzzy={fuzzy:.3f}"
-    return dspy.Prediction(score=fuzzy, feedback=feedback)
-
-
-def dspy_metric(example, prediction, trace=None) -> float:
-    """DSPy-compatible fuzzy metric. Pure float; pass ``metric_threshold=BOOTSTRAP_THRESHOLD`` to MIPROv2/BootstrapFewShot for demo filtering."""
-    pred_dict = parse_prediction_document(prediction)
-    gt_dict = parse_gt_document(example)
-
-    if pred_dict is None or gt_dict is None:
-        return 0.0
-
-    return score_single_prediction(pred_dict, gt_dict)["fuzzy"]
+dspy_metric = fuzzy_dspy_metric(score_single_prediction)
+gepa_feedback_metric = fuzzy_gepa_feedback_metric(score_single_prediction)
 
 
 # ---------------------------------------------------------------------------

@@ -190,70 +190,86 @@ def f1_refine_reward_fn(required_keys: set):
     return reward_fn
 
 
-def f1_dspy_metric(score_fn):
-    """Create a DSPy-compatible F1 metric function.
+def _make_scalar_metric(score_fn, score_key: str):
+    """Pure-float metric returning ``score_fn(pred, gt)[score_key]``.
 
-    Returns a pure-float metric. For bootstrap demo filtering, pass
-    ``metric_threshold=...`` to MIPROv2 / BootstrapFewShot — DSPy itself
-    applies the threshold (see dspy.teleprompt.bootstrap).
-
-    Args:
-        score_fn: Function(pred_dict, gt_dict) -> dict with "f1_score" key.
-
-    Returns:
-        A metric function compatible with DSPy's Evaluate/MIPROv2/SIMBA.
+    Pass ``metric_threshold=BOOTSTRAP_THRESHOLD`` to MIPROv2/BootstrapFewShot
+    for demo filtering — DSPy itself applies the threshold.
     """
 
     def metric(example, prediction, trace=None) -> float:
         pred_dict = parse_prediction_document(prediction)
         gt_dict = parse_gt_document(example)
-
         if pred_dict is None or gt_dict is None:
             return 0.0
-
-        return score_fn(pred_dict, gt_dict)["f1_score"]
+        return score_fn(pred_dict, gt_dict)[score_key]
 
     return metric
 
 
-def f1_gepa_feedback_metric(score_fn, match_threshold: float = 0.92):
-    """Create a GEPA-compatible F1 feedback metric.
+def _make_gepa_feedback_metric(
+    score_fn,
+    score_key: str,
+    low_field_threshold: float,
+    max_low_fields: int | None = None,
+):
+    """GEPA metric returning ``dspy.Prediction(score=, feedback=)``.
 
-    Args:
-        score_fn: Function(pred_dict, gt_dict) -> dict with "f1_score" and "field_scores".
-        match_threshold: Fuzzy score threshold below which fields are reported.
-
-    Returns:
-        A metric function compatible with GEPA.
+    Fields with ``field_scores[k]["score"] < low_field_threshold`` are listed
+    in the feedback up to ``max_low_fields`` (unlimited if None).
     """
 
     def metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
         pred_dict = parse_prediction_document(pred)
         gt_dict = parse_gt_document(gold)
-
         if pred_dict is None or gt_dict is None:
             return dspy.Prediction(score=0.0, feedback="Failed to parse JSON output")
 
         scores = score_fn(pred_dict, gt_dict)
-        f1 = scores["f1_score"]
+        score = scores[score_key]
+        if score >= 1.0:
+            return dspy.Prediction(score=score, feedback="Perfect score")
 
-        if f1 >= 1.0:
-            return dspy.Prediction(score=f1, feedback="Perfect score")
-
-        low_fields = []
-        for key, info in scores["field_scores"].items():
-            if info["score"] < match_threshold:
-                low_fields.append(
-                    f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
-                )
+        low_fields = [
+            f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
+            for key, info in scores["field_scores"].items()
+            if info["score"] < low_field_threshold
+        ]
+        if max_low_fields is not None:
+            low_fields = low_fields[:max_low_fields]
 
         if low_fields:
-            feedback = f"f1={f1:.3f}. Low-scoring fields:\n" + "\n".join(low_fields)
+            feedback = f"{score_key}={score:.3f}. Low-scoring fields:\n" + "\n".join(low_fields)
         else:
-            feedback = f"f1={f1:.3f}"
-        return dspy.Prediction(score=f1, feedback=feedback)
+            feedback = f"{score_key}={score:.3f}"
+        return dspy.Prediction(score=score, feedback=feedback)
 
     return metric
+
+
+def f1_dspy_metric(score_fn):
+    return _make_scalar_metric(score_fn, score_key="f1_score")
+
+
+def f1_gepa_feedback_metric(score_fn, match_threshold: float = 0.92):
+    return _make_gepa_feedback_metric(
+        score_fn, score_key="f1_score", low_field_threshold=match_threshold
+    )
+
+
+def fuzzy_dspy_metric(score_fn):
+    return _make_scalar_metric(score_fn, score_key="fuzzy")
+
+
+def fuzzy_gepa_feedback_metric(
+    score_fn, low_field_threshold: float = 0.8, max_low_fields: int = 20
+):
+    return _make_gepa_feedback_metric(
+        score_fn,
+        score_key="fuzzy",
+        low_field_threshold=low_field_threshold,
+        max_low_fields=max_low_fields,
+    )
 
 
 def f1_compute_aggregate_scores(all_scores: list[dict]) -> dict:
