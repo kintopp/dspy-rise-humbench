@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from benchmarks.shared.config import configure_dspy, resolve_model, results_dir
 from benchmarks.shared.refine import EvalReward
 from benchmarks.shared.scoring_helpers import parse_prediction_document
+from benchmarks.shared.usage import aggregate_usage
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -134,6 +135,13 @@ def main():
     for key, val in aggregate.items():
         logger.info(f"  {key}: {val}")
 
+    # Measured token usage (requires dspy.configure(track_usage=True), enabled globally).
+    usage = aggregate_usage(predictions)
+    if usage:
+        logger.info("  usage (measured):")
+        for model_id, u in usage.items():
+            logger.info(f"    {model_id}: calls={u['calls']} in={u['input_tokens']} out={u['output_tokens']}")
+
     # Determine output name from program path
     program_name = Path(args.program).stem
     refine_tag = f"_refine{args.refine}" if args.refine > 0 else ""
@@ -148,6 +156,7 @@ def main():
         "refine_n": args.refine,
         "refine_reward": "quality" if eval_reward is not None else None,
         "aggregate": aggregate,
+        "usage": usage,
         "per_image": [
             {k: v for k, v in r.items() if k != "field_scores"}
             for r in per_image_results

@@ -19,25 +19,49 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = PROJECT_ROOT / "results"
 
 # ---------------------------------------------------------------------------
-# Pricing tables (per 1M tokens)
-# Source: https://ai.google.dev/gemini-api/docs/pricing  (AI Studio, Feb 2026)
-# Source: https://cloud.google.com/vertex-ai/generative-ai/pricing (Vertex AI, Feb 2026)
+# Pricing tables ($ per 1M tokens). Retrieved 2026-04-21.
+# Gemini:     https://ai.google.dev/gemini-api/docs/pricing (AI Studio)
+#             https://cloud.google.com/vertex-ai/generative-ai/pricing (Vertex)
+# Anthropic:  https://claude.com/pricing
+# OpenAI:     https://platform.openai.com/docs/pricing
+# OpenRouter: https://openrouter.ai/models (pass-through, no per-token markup)
+#
+# Tiered models (Gemini 2.5 Pro, 3 Pro Preview) use the ≤200k-token tier; above
+# 200k input tokens pricing doubles. Our prompts are well under that threshold.
 # ---------------------------------------------------------------------------
 
 PRICING = {
+    # Google AI Studio (Gemini API). gemini-2.0-flash has a free tier.
     "ai_studio": {
-        "gemini-1.5-pro":        {"input": 1.25,  "output": 5.00},
+        "gemini-3-pro-preview":  {"input": 2.00,  "output": 12.00},
+        "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
+        "gemini-2.5-flash":      {"input": 0.30,  "output": 2.50},
         "gemini-2.0-flash":      {"input": 0.10,  "output": 0.40},
-        "gemini-2.5-flash":      {"input": 0.15,  "output": 0.60},
-        "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
-        "gemini-3-pro-preview":  {"input": 2.00,  "output": 12.00},
+        # gemini-1.5-pro: deprecated on Gemini API as of Feb 2026.
     },
+    # Google Vertex AI: some models priced identically to AI Studio, some higher.
     "vertex_ai": {
-        "gemini-1.5-pro":        {"input": 1.25,  "output": 5.00},
-        "gemini-2.0-flash":      {"input": 0.15,  "output": 0.60},
-        "gemini-2.5-flash":      {"input": 0.15,  "output": 0.60},
-        "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
         "gemini-3-pro-preview":  {"input": 2.00,  "output": 12.00},
+        "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
+        "gemini-2.5-flash":      {"input": 0.30,  "output": 2.50},
+        "gemini-2.0-flash":      {"input": 0.15,  "output": 0.60},
+        "gemini-1.5-pro":        {"input": 1.25,  "output": 5.00},
+    },
+    "anthropic": {
+        "claude-sonnet-4-5":     {"input": 3.00,  "output": 15.00},
+        "claude-haiku-3-5":      {"input": 1.00,  "output": 5.00},
+    },
+    "openai": {
+        "gpt-4o":                {"input": 2.50,  "output": 10.00},
+        "gpt-4o-mini":           {"input": 0.15,  "output": 0.60},
+    },
+    # OpenRouter passes upstream prices through with no per-token markup
+    # (a separate credit-purchase fee applies). Route to the upstream provider's
+    # rates for the underlying model.
+    "openrouter": {
+        "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
+        "claude-sonnet-4-5":     {"input": 3.00,  "output": 15.00},
+        "gpt-4o":                {"input": 2.50,  "output": 10.00},
     },
 }
 
@@ -111,23 +135,44 @@ BENCHMARKS = {
 
 @dataclass
 class Experiment:
-    """A single experiment's estimated usage."""
+    """A single experiment's usage — measured when the score JSON has a
+    ``usage`` key logged by evaluate_optimized.py, estimated otherwise."""
     name: str
     benchmark: str
     model: str
     calls: int
     input_tokens: int
     output_tokens: int
+    measured: bool = False
     notes: str = ""
 
 
+# Longest-first so "gemini-2.5-pro" wins over "gemini-2.5" for cross-model tags.
 MODEL_NAMES = [
     "gemini-3-pro-preview",
     "gemini-2.5-pro",
     "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-1.5-pro",
+    "claude-sonnet-4-5",
+    "claude-haiku-3-5",
+    "gpt-4o-mini",
+    "gpt-4o",
 ]
+
+# Which pricing surface each model bills through. OpenRouter variants are
+# resolved from the filename via the "or-" prefix (see detect_model).
+MODEL_PROVIDER = {
+    "gemini-3-pro-preview":  "ai_studio",
+    "gemini-2.5-pro":        "ai_studio",
+    "gemini-2.5-flash":      "ai_studio",
+    "gemini-2.0-flash":      "ai_studio",
+    "gemini-1.5-pro":        "vertex_ai",
+    "claude-sonnet-4-5":     "anthropic",
+    "claude-haiku-3-5":      "anthropic",
+    "gpt-4o":                "openai",
+    "gpt-4o-mini":           "openai",
+}
 
 
 def detect_model(filename: str) -> str:
@@ -238,6 +283,24 @@ def estimate_test_calls(filepath: Path, bm: dict, is_refine_run: bool) -> int:
     return n * multiplier
 
 
+def read_measured_usage(filepath: Path) -> dict | None:
+    """Read a per-model usage summary from a score JSON if present.
+
+    evaluate_optimized.py writes a top-level ``usage`` key when track_usage=True:
+        {"usage": {"<model_id>": {"input_tokens": N, "output_tokens": N, "calls": N}}}
+
+    Returns the dict, or None if the file has no measured usage.
+    """
+    try:
+        data = json.loads(filepath.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    usage = data.get("usage")
+    if not isinstance(usage, dict) or not usage:
+        return None
+    return usage
+
+
 def build_experiments() -> list[Experiment]:
     """Scan results/ and build a list of experiments with estimated usage."""
     experiments = []
@@ -287,21 +350,48 @@ def build_experiments() -> list[Experiment]:
             is_test_file = "_test_scores" in f.name
 
             if is_test_file:
-                # Test evaluation
-                calls = estimate_test_calls(f, bm, refine)
-                input_tok = calls * bm["avg_input_tokens_optimized"]
-                output_tok = calls * bm["avg_output_tokens"]
                 label = f"Test eval: {optimizer}"
                 if refine:
                     label += " +Refine(3)"
 
+                # Prefer measured usage (logged when track_usage=True) over
+                # filename-based estimation. Fallback keeps older runs comparable.
+                measured = read_measured_usage(f)
+                if measured:
+                    # measured is keyed by the actual LiteLLM model id, which may
+                    # include a provider prefix (e.g. "gemini/gemini-2.0-flash").
+                    # We only use the *detected* model for pricing and sum across
+                    # any entries whose key contains it.
+                    total_calls = total_in = total_out = 0
+                    for lm_key, u in measured.items():
+                        if model not in lm_key:
+                            continue
+                        total_calls += int(u.get("calls", 0))
+                        total_in += int(u.get("input_tokens", 0))
+                        total_out += int(u.get("output_tokens", 0))
+                    if total_calls or total_in or total_out:
+                        experiments.append(Experiment(
+                            name=label,
+                            benchmark=benchmark_name,
+                            model=model,
+                            calls=total_calls,
+                            input_tokens=total_in,
+                            output_tokens=total_out,
+                            measured=True,
+                            notes=f.name,
+                        ))
+                        continue
+
+                # Estimated fallback.
+                calls = estimate_test_calls(f, bm, refine)
                 experiments.append(Experiment(
                     name=label,
                     benchmark=benchmark_name,
                     model=model,
                     calls=calls,
-                    input_tokens=input_tok,
-                    output_tokens=output_tok,
+                    input_tokens=calls * bm["avg_input_tokens_optimized"],
+                    output_tokens=calls * bm["avg_output_tokens"],
+                    measured=False,
                     notes=f.name,
                 ))
             else:
@@ -330,8 +420,12 @@ def build_experiments() -> list[Experiment]:
 
 
 def compute_cost(input_tokens: int, output_tokens: int,
-                 model: str, provider: str) -> float:
-    """Compute dollar cost for a given token count and pricing tier."""
+                 model: str, provider: str | None = None) -> float:
+    """Compute dollar cost. If provider is None, uses MODEL_PROVIDER lookup."""
+    if provider is None:
+        provider = MODEL_PROVIDER.get(model)
+        if provider is None:
+            return 0.0
     rates = PRICING.get(provider, {}).get(model)
     if not rates:
         return 0.0
@@ -355,13 +449,14 @@ def print_report(experiments: list[Experiment], retry_multiplier: float):
             continue
 
         print(f"  {benchmark_name}")
-        print(f"  {'─' * 86}")
-        print(f"  {'Experiment':<40} {'Model':<22} {'Calls':>6} {'In(K)':>8} {'Out(K)':>8}")
-        print(f"  {'─' * 86}")
+        print(f"  {'─' * 88}")
+        print(f"  {'Experiment':<40} {'Model':<22} {'Calls':>6} {'In(K)':>8} {'Out(K)':>8} {'M':>2}")
+        print(f"  {'─' * 88}")
 
         for e in bm_exps:
+            flag = "✓" if e.measured else " "  # ✓ = measured token counts
             print(f"  {e.name:<40} {e.model:<22} {e.calls:>6} "
-                  f"{e.input_tokens/1000:>7.0f} {e.output_tokens/1000:>7.0f}")
+                  f"{e.input_tokens/1000:>7.0f} {e.output_tokens/1000:>7.0f} {flag:>2}")
 
         sub_calls = sum(e.calls for e in bm_exps)
         sub_in = sum(e.input_tokens for e in bm_exps)
@@ -395,44 +490,54 @@ def print_report(experiments: list[Experiment], retry_multiplier: float):
     print(f"  {'TOTAL':<24} {grand_calls:>8,} {grand_in:>14,} {grand_out:>14,}")
     print()
 
-    # --- Cost comparison ---
+    # --- Cost breakdown per model at its primary provider ---
     print("=" * 90)
-    print(f"COST COMPARISON  (retry multiplier: {retry_multiplier}x)")
+    print(f"COST BREAKDOWN  (retry multiplier: {retry_multiplier}x)")
     print("=" * 90)
+    print(f"  {'Model':<24} {'Provider':<12} {'Base Cost':>12} {'Adjusted':>12}  {'Rate $/1M in/out'}")
+    print(f"  {'─' * 84}")
 
-    for provider, label in [("ai_studio", "Google AI Studio"), ("vertex_ai", "Vertex AI")]:
-        print(f"\n  {label}")
-        print(f"  {'─' * 72}")
-        print(f"  {'Model':<24} {'Base Cost':>12} {'× {:.1f}'.format(retry_multiplier):>10} {'Notes'}")
-        print(f"  {'─' * 72}")
+    grand_total = 0.0
+    for model, t in sorted(totals.items()):
+        provider = MODEL_PROVIDER.get(model)
+        if provider is None:
+            print(f"  {model:<24} {'(unknown)':<12} {'—':>12} {'—':>12}  (no pricing)")
+            continue
+        base = compute_cost(t["input"], t["output"], model, provider)
+        adjusted = base * retry_multiplier
+        grand_total += adjusted
 
-        provider_total = 0.0
-        for model, t in sorted(totals.items()):
-            base = compute_cost(t["input"], t["output"], model, provider)
-            adjusted = base * retry_multiplier
-            provider_total += adjusted
+        rates = PRICING[provider].get(model, {})
+        rate_note = f"${rates.get('input', '?')}/${rates.get('output', '?')}"
+        print(f"  {model:<24} {provider:<12} ${base:>10.2f} ${adjusted:>10.2f}  {rate_note}")
 
-            rates = PRICING[provider].get(model, {})
-            note = f"${rates.get('input', '?')}/{rates.get('output', '?')} per 1M tok"
-            print(f"  {model:<24} ${base:>10.2f} ${adjusted:>8.2f}   {note}")
+        # For Gemini models, also show the Vertex AI alternative if prices differ.
+        if model.startswith("gemini-") and provider == "ai_studio":
+            vertex_rates = PRICING["vertex_ai"].get(model)
+            if vertex_rates and vertex_rates != rates:
+                vertex_base = compute_cost(t["input"], t["output"], model, "vertex_ai")
+                vertex_adj = vertex_base * retry_multiplier
+                delta = vertex_adj - adjusted
+                print(f"  {'  ↳ via Vertex AI':<24} {'vertex_ai':<12} ${vertex_base:>10.2f} ${vertex_adj:>10.2f}  "
+                      f"(${delta:+.2f} vs AI Studio)")
 
-        print(f"  {'─' * 72}")
-        base_total = provider_total / retry_multiplier
-        print(f"  {'TOTAL':<24} ${base_total:>10.2f} ${provider_total:>8.2f}")
+    print(f"  {'─' * 84}")
+    base_total = grand_total / retry_multiplier
+    print(f"  {'TOTAL (primary providers)':<36} ${base_total:>10.2f} ${grand_total:>10.2f}")
 
-    # --- Free tier note ---
-    print()
-    print("─" * 90)
-    print("NOTE: Gemini 2.0 Flash has a FREE tier on AI Studio (1,500 RPD, 1M TPM).")
-    flash_total = totals.get("gemini-2.0-flash", {})
+    # --- Free tier note for Gemini 2.0 Flash on AI Studio ---
+    flash_total = totals.get("gemini-2.0-flash")
     if flash_total:
-        flash_calls = flash_total["calls"]
-        flash_cost_studio = compute_cost(
+        flash_cost = compute_cost(
             flash_total["input"], flash_total["output"],
-            "gemini-2.0-flash", "ai_studio"
+            "gemini-2.0-flash", "ai_studio",
         ) * retry_multiplier
-        print(f"If Flash was free, subtract ${flash_cost_studio:.2f} from AI Studio total.")
-    print("─" * 90)
+        print()
+        print("─" * 90)
+        print("NOTE: Gemini 2.0 Flash has a FREE tier on AI Studio (1,500 RPD, 1M TPM).")
+        print(f"If all Flash usage fell within the free tier, subtract ${flash_cost:.2f} from the total.")
+        print("gemini-2.0-flash is deprecated on 2026-06-01.")
+        print("─" * 90)
 
 
 def save_results(experiments: list[Experiment], retry_multiplier: float,
@@ -446,19 +551,25 @@ def save_results(experiments: list[Experiment], retry_multiplier: float,
         totals[e.model]["input_tokens"] += e.input_tokens
         totals[e.model]["output_tokens"] += e.output_tokens
 
-    costs = {}
-    for provider in PRICING:
-        costs[provider] = {}
-        for model, t in totals.items():
+    # Cost per model at its primary provider, plus Vertex AI alternative for Gemini.
+    costs_by_model: dict[str, dict] = {}
+    grand_adjusted = 0.0
+    for model, t in totals.items():
+        provider = MODEL_PROVIDER.get(model)
+        entry: dict[str, object] = {"provider": provider}
+        if provider is not None:
             base = compute_cost(t["input_tokens"], t["output_tokens"], model, provider)
-            costs[provider][model] = {
-                "base_cost": round(base, 4),
-                "adjusted_cost": round(base * retry_multiplier, 4),
-            }
-        costs[provider]["total"] = round(
-            sum(v["adjusted_cost"] for v in costs[provider].values()
-                if isinstance(v, dict) and "adjusted_cost" in v), 2
-        )
+            adjusted = base * retry_multiplier
+            entry.update(
+                base_cost=round(base, 4),
+                adjusted_cost=round(adjusted, 4),
+            )
+            grand_adjusted += adjusted
+            if model.startswith("gemini-") and provider == "ai_studio":
+                vertex_base = compute_cost(t["input_tokens"], t["output_tokens"], model, "vertex_ai")
+                if vertex_base and vertex_base != base:
+                    entry["vertex_ai_alt_cost"] = round(vertex_base * retry_multiplier, 4)
+        costs_by_model[model] = entry
 
     result = {
         "generated_by": "dspy-costs/estimate_costs.py",
@@ -466,6 +577,9 @@ def save_results(experiments: list[Experiment], retry_multiplier: float,
         "pricing_sources": {
             "ai_studio": "https://ai.google.dev/gemini-api/docs/pricing",
             "vertex_ai": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
+            "anthropic": "https://claude.com/pricing",
+            "openai":    "https://platform.openai.com/docs/pricing",
+            "openrouter": "https://openrouter.ai/models",
         },
         "totals_by_model": totals,
         "experiments": [
@@ -476,11 +590,13 @@ def save_results(experiments: list[Experiment], retry_multiplier: float,
                 "calls": e.calls,
                 "input_tokens": e.input_tokens,
                 "output_tokens": e.output_tokens,
+                "measured": e.measured,
                 "notes": e.notes,
             }
             for e in experiments
         ],
-        "costs": costs,
+        "costs_by_model": costs_by_model,
+        "total_adjusted_cost": round(grand_adjusted, 2),
     }
 
     output_path.write_text(json.dumps(result, indent=2) + "\n")
