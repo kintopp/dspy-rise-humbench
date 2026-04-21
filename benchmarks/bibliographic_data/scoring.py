@@ -2,6 +2,8 @@
 
 import logging
 
+import dspy
+
 from benchmarks.shared.scoring_helpers import (
     get_all_keys,
     get_nested_value,
@@ -9,7 +11,6 @@ from benchmarks.shared.scoring_helpers import (
     parse_prediction_document,
     parse_gt_document,
     f1_refine_reward_fn,
-    FeedbackScore,
 )
 from benchmarks.bibliographic_data.data import _normalize_keys, _normalize_type_values
 
@@ -64,6 +65,7 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 REQUIRED_KEYS = {"entries"}
+BOOTSTRAP_THRESHOLD = 0.3
 
 refine_reward_fn = f1_refine_reward_fn(REQUIRED_KEYS)
 
@@ -74,13 +76,13 @@ def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None
     gt_dict = parse_gt_document(gold)
 
     if pred_dict is None or gt_dict is None:
-        return FeedbackScore(0.0, "Failed to parse JSON output")
+        return dspy.Prediction(score=0.0, feedback="Failed to parse JSON output")
 
     scores = score_single_prediction(pred_dict, gt_dict)
     fuzzy = scores["fuzzy"]
 
     if fuzzy >= 1.0:
-        return FeedbackScore(fuzzy, "Perfect score")
+        return dspy.Prediction(score=fuzzy, feedback="Perfect score")
 
     low_fields = [
         f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
@@ -92,28 +94,18 @@ def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None
         feedback = f"fuzzy={fuzzy:.3f}. Low-scoring fields:\n" + "\n".join(low_fields[:20])
     else:
         feedback = f"fuzzy={fuzzy:.3f}"
-    return FeedbackScore(fuzzy, feedback)
+    return dspy.Prediction(score=fuzzy, feedback=feedback)
 
 
-def dspy_metric(example, prediction, trace=None) -> float | bool:
-    """DSPy-compatible metric.
-
-    Returns:
-        float (fuzzy score) when trace is None (evaluation mode)
-        bool (fuzzy >= 0.3) when trace is set (bootstrapping mode)
-    """
+def dspy_metric(example, prediction, trace=None) -> float:
+    """DSPy-compatible fuzzy metric. Pure float; pass ``metric_threshold=BOOTSTRAP_THRESHOLD`` to MIPROv2/BootstrapFewShot for demo filtering."""
     pred_dict = parse_prediction_document(prediction)
     gt_dict = parse_gt_document(example)
 
     if pred_dict is None or gt_dict is None:
-        return False if trace else 0.0
+        return 0.0
 
-    scores = score_single_prediction(pred_dict, gt_dict)
-    fuzzy = scores["fuzzy"]
-
-    if trace is not None:
-        return fuzzy >= 0.3
-    return fuzzy
+    return score_single_prediction(pred_dict, gt_dict)["fuzzy"]
 
 
 # ---------------------------------------------------------------------------

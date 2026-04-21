@@ -56,5 +56,5 @@ def configure_dspy(model: str = DEFAULT_MODEL, temperature: float = 0.0) -> dspy
     model_id = resolve_model(model)
 
     lm = dspy.LM(model_id, temperature=temperature)
-    dspy.configure(lm=lm)
+    dspy.configure(lm=lm, track_usage=True)
     return lm

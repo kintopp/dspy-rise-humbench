@@ -1,14 +1,16 @@
 """Shared scoring helpers used across benchmarks.
 
 Ported from the RISE benchmark's scoring_helper.py. Contains generic
-fuzzy matching, nested key traversal, code-fence stripping, and the
-FeedbackScore class needed by GEPA.
+fuzzy matching, nested key traversal, code-fence stripping, and
+metric-factory helpers (F1-based DSPy metric, GEPA feedback metric)
+shared across Library Cards, Personnel Cards, and Company Lists.
 """
 
 import json
 import logging
 from typing import Any
 
+import dspy
 from pydantic import BaseModel
 from rapidfuzz import fuzz
 
@@ -163,45 +165,6 @@ def filter_parent_keys(keys: list[str]) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# FeedbackScore (for GEPA)
-# ---------------------------------------------------------------------------
-
-
-class FeedbackScore(dict):
-    """A dict with score/feedback that supports arithmetic for DSPy's parallelizer.
-
-    DSPy's Evaluate uses sum() on metric results for progress tracking.
-    GEPA expects dict-like access with "score" and "feedback" keys, and
-    checks hasattr(s, "score") before doing s["score"].
-    This class satisfies both by being a dict that also supports + and has
-    a .score attribute.
-    """
-
-    def __init__(self, score: float, feedback: str = ""):
-        super().__init__(score=score, feedback=feedback)
-        self.score = score
-        self.feedback = feedback
-
-    def __add__(self, other):
-        if isinstance(other, (int, float)):
-            return self["score"] + other
-        if isinstance(other, dict) and "score" in other:
-            return self["score"] + other["score"]
-        return NotImplemented
-
-    def __radd__(self, other):
-        if isinstance(other, (int, float)):
-            return other + self["score"]
-        return NotImplemented
-
-    def __float__(self):
-        return float(self["score"])
-
-    def __repr__(self):
-        return f"FeedbackScore(score={self['score']:.4f})"
-
-
-# ---------------------------------------------------------------------------
 # F1-based DSPy metric wrappers (shared by Library Cards, Personnel Cards)
 # ---------------------------------------------------------------------------
 
@@ -227,30 +190,28 @@ def f1_refine_reward_fn(required_keys: set):
     return reward_fn
 
 
-def f1_dspy_metric(score_fn, bootstrap_threshold: float = 0.5):
+def f1_dspy_metric(score_fn):
     """Create a DSPy-compatible F1 metric function.
+
+    Returns a pure-float metric. For bootstrap demo filtering, pass
+    ``metric_threshold=...`` to MIPROv2 / BootstrapFewShot — DSPy itself
+    applies the threshold (see dspy.teleprompt.bootstrap).
 
     Args:
         score_fn: Function(pred_dict, gt_dict) -> dict with "f1_score" key.
-        bootstrap_threshold: F1 threshold for bootstrapping mode.
 
     Returns:
-        A metric function compatible with DSPy's Evaluate/MIPROv2.
+        A metric function compatible with DSPy's Evaluate/MIPROv2/SIMBA.
     """
 
-    def metric(example, prediction, trace=None) -> float | bool:
+    def metric(example, prediction, trace=None) -> float:
         pred_dict = parse_prediction_document(prediction)
         gt_dict = parse_gt_document(example)
 
         if pred_dict is None or gt_dict is None:
-            return False if trace else 0.0
+            return 0.0
 
-        scores = score_fn(pred_dict, gt_dict)
-        f1 = scores["f1_score"]
-
-        if trace is not None:
-            return f1 >= bootstrap_threshold
-        return f1
+        return score_fn(pred_dict, gt_dict)["f1_score"]
 
     return metric
 
@@ -271,13 +232,13 @@ def f1_gepa_feedback_metric(score_fn, match_threshold: float = 0.92):
         gt_dict = parse_gt_document(gold)
 
         if pred_dict is None or gt_dict is None:
-            return FeedbackScore(0.0, "Failed to parse JSON output")
+            return dspy.Prediction(score=0.0, feedback="Failed to parse JSON output")
 
         scores = score_fn(pred_dict, gt_dict)
         f1 = scores["f1_score"]
 
         if f1 >= 1.0:
-            return FeedbackScore(f1, "Perfect score")
+            return dspy.Prediction(score=f1, feedback="Perfect score")
 
         low_fields = []
         for key, info in scores["field_scores"].items():
@@ -290,7 +251,7 @@ def f1_gepa_feedback_metric(score_fn, match_threshold: float = 0.92):
             feedback = f"f1={f1:.3f}. Low-scoring fields:\n" + "\n".join(low_fields)
         else:
             feedback = f"f1={f1:.3f}"
-        return FeedbackScore(f1, feedback)
+        return dspy.Prediction(score=f1, feedback=feedback)
 
     return metric
 

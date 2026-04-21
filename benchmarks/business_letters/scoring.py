@@ -13,12 +13,13 @@ import logging
 from functools import lru_cache
 from pathlib import Path
 
+import dspy
+
 from benchmarks.shared.config import DATA_DIR
 from benchmarks.shared.scoring_helpers import (
     compute_f1,
     parse_prediction_document,
     parse_gt_document,
-    FeedbackScore,
 )
 
 logger = logging.getLogger(__name__)
@@ -202,19 +203,22 @@ def refine_reward_fn(example, prediction, trace=None) -> float:
     return 1.0
 
 
+BOOTSTRAP_THRESHOLD = 0.5
+
+
 def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
     """GEPA-compatible metric returning score + textual feedback."""
     pred_dict = parse_prediction_document(pred)
     gt_dict = parse_gt_document(gold)
 
     if pred_dict is None or gt_dict is None:
-        return FeedbackScore(0.0, "Failed to parse JSON output")
+        return dspy.Prediction(score=0.0, feedback="Failed to parse JSON output")
 
     scores = score_single_prediction(pred_dict, gt_dict)
     f1 = scores["f1_score"]
 
     if f1 >= 1.0:
-        return FeedbackScore(f1, "Perfect score")
+        return dspy.Prediction(score=f1, feedback="Perfect score")
 
     parts = []
     for cat in SCORED_CATEGORIES:
@@ -225,28 +229,18 @@ def gepa_feedback_metric(gold, pred, trace=None, pred_name=None, pred_trace=None
             parts.append(f"  - {cat}: tp={tp}, fp={fp}, fn={fn}")
 
     feedback = f"f1={f1:.3f}. Category errors:\n" + "\n".join(parts) if parts else f"f1={f1:.3f}"
-    return FeedbackScore(f1, feedback)
+    return dspy.Prediction(score=f1, feedback=feedback)
 
 
-def dspy_metric(example, prediction, trace=None) -> float | bool:
-    """DSPy-compatible metric.
-
-    Returns:
-        float (f1 score) when trace is None (evaluation mode)
-        bool (f1 >= 0.5) when trace is set (bootstrapping mode)
-    """
+def dspy_metric(example, prediction, trace=None) -> float:
+    """DSPy-compatible F1 metric. Pure float; pass ``metric_threshold=BOOTSTRAP_THRESHOLD`` to MIPROv2/BootstrapFewShot for demo filtering."""
     pred_dict = parse_prediction_document(prediction)
     gt_dict = parse_gt_document(example)
 
     if pred_dict is None or gt_dict is None:
-        return False if trace else 0.0
+        return 0.0
 
-    scores = score_single_prediction(pred_dict, gt_dict)
-    f1 = scores["f1_score"]
-
-    if trace is not None:
-        return f1 >= 0.5
-    return f1
+    return score_single_prediction(pred_dict, gt_dict)["f1_score"]
 
 
 # ---------------------------------------------------------------------------

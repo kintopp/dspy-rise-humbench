@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 
-def run_mipro(trainset, devset, metric, ExtractorClass, auto="light", max_bootstrapped=2, max_labeled=2, num_threads=8, module_type="predict"):
+def run_mipro(trainset, devset, metric, ExtractorClass, auto="light", max_bootstrapped=2, max_labeled=2, num_threads=8, module_type="predict", metric_threshold=None):
     """Run MIPROv2 optimization."""
     import dspy
 
@@ -26,6 +26,7 @@ def run_mipro(trainset, devset, metric, ExtractorClass, auto="light", max_bootst
         num_threads=num_threads,
         max_bootstrapped_demos=max_bootstrapped,
         max_labeled_demos=max_labeled,
+        metric_threshold=metric_threshold,
     )
     extractor = ExtractorClass(module_type=module_type)
     optimized = optimizer.compile(
@@ -36,7 +37,7 @@ def run_mipro(trainset, devset, metric, ExtractorClass, auto="light", max_bootst
     return optimized
 
 
-def run_bootstrap(trainset, metric, ExtractorClass, max_bootstrapped=3, max_labeled=3, num_threads=8, module_type="predict"):
+def run_bootstrap(trainset, metric, ExtractorClass, max_bootstrapped=3, max_labeled=3, num_threads=8, module_type="predict", metric_threshold=None):
     """Run BootstrapFewShot optimization."""
     import dspy
 
@@ -45,6 +46,7 @@ def run_bootstrap(trainset, metric, ExtractorClass, max_bootstrapped=3, max_labe
         max_bootstrapped_demos=max_bootstrapped,
         max_labeled_demos=max_labeled,
         num_threads=num_threads,
+        metric_threshold=metric_threshold,
     )
     extractor = ExtractorClass(module_type=module_type)
     optimized = optimizer.compile(extractor, trainset=trainset)
@@ -120,6 +122,7 @@ def main():
     ExtractorClass = module_mod.Extractor
     metric = scoring_mod.dspy_metric
     feedback_metric = scoring_mod.gepa_feedback_metric
+    bootstrap_threshold = getattr(scoring_mod, "BOOTSTRAP_THRESHOLD", None)
 
     model_id = resolve_model(args.model)
     logger.info(f"Benchmark: {args.benchmark} | Model: {model_id}")
@@ -129,7 +132,7 @@ def main():
     logger.info(f"Data split: train={len(train_ex)}, dev={len(dev_ex)}, test={len(test_ex)}")
 
     if args.optimizer == "mipro":
-        logger.info(f"Running MIPROv2 (auto={args.auto}, module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads})")
+        logger.info(f"Running MIPROv2 (auto={args.auto}, module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads}, metric_threshold={bootstrap_threshold})")
         optimized = run_mipro(
             train_ex, dev_ex, metric, ExtractorClass,
             auto=args.auto,
@@ -137,15 +140,17 @@ def main():
             max_labeled=args.max_labeled,
             num_threads=args.num_threads,
             module_type=args.module,
+            metric_threshold=bootstrap_threshold,
         )
     elif args.optimizer == "bootstrap":
-        logger.info(f"Running BootstrapFewShot (module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads})")
+        logger.info(f"Running BootstrapFewShot (module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads}, metric_threshold={bootstrap_threshold})")
         optimized = run_bootstrap(
             train_ex, metric, ExtractorClass,
             max_bootstrapped=args.max_bootstrapped,
             max_labeled=args.max_labeled,
             num_threads=args.num_threads,
             module_type=args.module,
+            metric_threshold=bootstrap_threshold,
         )
     elif args.optimizer == "simba":
         logger.info(f"Running SIMBA (module={args.module}, steps={args.max_steps}, candidates={args.num_candidates}, bsize={args.bsize}, threads={args.num_threads})")

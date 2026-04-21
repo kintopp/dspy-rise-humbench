@@ -94,8 +94,9 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 REQUIRED_KEYS = {"rows"}
+BOOTSTRAP_THRESHOLD = 0.5
 
 refine_reward_fn = f1_refine_reward_fn(REQUIRED_KEYS)
-dspy_metric = f1_dspy_metric(score_single_prediction, bootstrap_threshold=0.5)
+dspy_metric = f1_dspy_metric(score_single_prediction)
 gepa_feedback_metric = f1_gepa_feedback_metric(score_single_prediction, match_threshold=MATCH_THRESHOLD)
 compute_aggregate_scores = f1_compute_aggregate_scores

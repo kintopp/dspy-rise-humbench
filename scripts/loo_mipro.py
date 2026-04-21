@@ -73,6 +73,7 @@ def main():
             max_labeled=args.max_labeled,
             num_threads=args.num_threads,
             module_type=args.module,
+            metric_threshold=getattr(scoring_mod, "BOOTSTRAP_THRESHOLD", None),
         )
 
         # Save fold program
