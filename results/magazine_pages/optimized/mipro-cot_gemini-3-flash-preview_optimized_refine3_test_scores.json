@@ -1,0 +1,403 @@
+{
+  "benchmark": "magazine_pages",
+  "program": "results/magazine_pages/optimized/mipro-cot_gemini-3-flash-preview_optimized.json",
+  "model": "gemini/gemini-3-flash-preview",
+  "module_type": "cot",
+  "refine_n": 3,
+  "refine_reward": "quality",
+  "aggregate": {
+    "f1_macro": 0.4781,
+    "f1_micro": 0.4651,
+    "micro_precision": 0.5,
+    "micro_recall": 0.4348,
+    "mean_iou_macro": 0.4517,
+    "total_instances": 34,
+    "total_tp": 40,
+    "total_fp": 40,
+    "total_fn": 52
+  },
+  "usage": {
+    "gemini/gemini-3-flash-preview": {
+      "calls": 34,
+      "input_tokens": 534711,
+      "output_tokens": 47193,
+      "cache_read_tokens": 135501
+    }
+  },
+  "per_image": [
+    {
+      "id": "thancog_1926_9_p010",
+      "true_positives": 0,
+      "false_positives": 2,
+      "false_negatives": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1948_9_p024",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.721,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1945_9_p034",
+      "true_positives": 4,
+      "false_positives": 2,
+      "false_negatives": 3,
+      "precision": 0.6666666666666666,
+      "recall": 0.5714285714285714,
+      "f1_score": 0.6154,
+      "mean_iou": 0.6734,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1925_11_p014",
+      "true_positives": 1,
+      "false_positives": 4,
+      "false_negatives": 4,
+      "precision": 0.2,
+      "recall": 0.2,
+      "f1_score": 0.2,
+      "mean_iou": 0.7904,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_10_p011",
+      "true_positives": 1,
+      "false_positives": 2,
+      "false_negatives": 1,
+      "precision": 0.3333333333333333,
+      "recall": 0.5,
+      "f1_score": 0.4,
+      "mean_iou": 0.7585,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_9_p002",
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.726,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_9_p015",
+      "true_positives": 0,
+      "false_positives": 2,
+      "false_negatives": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1923_11_p003",
+      "true_positives": 4,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.9114,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1924_10_p014",
+      "true_positives": 0,
+      "false_positives": 5,
+      "false_negatives": 5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1949_12_p021",
+      "true_positives": 2,
+      "false_positives": 2,
+      "false_negatives": 5,
+      "precision": 0.5,
+      "recall": 0.2857142857142857,
+      "f1_score": 0.3636,
+      "mean_iou": 0.5746,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1948_5_p026",
+      "true_positives": 3,
+      "false_positives": 2,
+      "false_negatives": 2,
+      "precision": 0.6,
+      "recall": 0.6,
+      "f1_score": 0.6,
+      "mean_iou": 0.69,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1947_7_p034",
+      "true_positives": 3,
+      "false_positives": 1,
+      "false_negatives": 4,
+      "precision": 0.75,
+      "recall": 0.42857142857142855,
+      "f1_score": 0.5455,
+      "mean_iou": 0.5865,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1948_4_p025",
+      "true_positives": 1,
+      "false_positives": 2,
+      "false_negatives": 3,
+      "precision": 0.3333333333333333,
+      "recall": 0.25,
+      "f1_score": 0.2857,
+      "mean_iou": 0.687,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_8_p015",
+      "true_positives": 0,
+      "false_positives": 2,
+      "false_negatives": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_9_p011",
+      "true_positives": 0,
+      "false_positives": 2,
+      "false_negatives": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "0002_p002",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.7291,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1947_7_p002",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.8587,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1946_8_p019",
+      "true_positives": 0,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_9_p014",
+      "true_positives": 0,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1946_2_p002",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 2,
+      "precision": 1.0,
+      "recall": 0.3333333333333333,
+      "f1_score": 0.5,
+      "mean_iou": 0.8457,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_8_p010",
+      "true_positives": 0,
+      "false_positives": 2,
+      "false_negatives": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_9_p012",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.8726,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "0014_p014",
+      "true_positives": 0,
+      "false_positives": 3,
+      "false_negatives": 5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1949_1_p027",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 1,
+      "precision": 1.0,
+      "recall": 0.75,
+      "f1_score": 0.8571,
+      "mean_iou": 0.6672,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1945_11_p029",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.7252,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_10_p010",
+      "true_positives": 0,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1945_1_p021",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.7444,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1945_4_und_5_p072",
+      "true_positives": 0,
+      "false_positives": 2,
+      "false_negatives": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1946_4_p030",
+      "true_positives": 0,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1946_4_p035",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.5741,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1946_8_p025",
+      "true_positives": 4,
+      "false_positives": 0,
+      "false_negatives": 1,
+      "precision": 1.0,
+      "recall": 0.8,
+      "f1_score": 0.8889,
+      "mean_iou": 0.6586,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "0008_p008",
+      "true_positives": 0,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "mean_iou": 0.0,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "angltrre_1945_1_p022",
+      "true_positives": 3,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.6816,
+      "iou_threshold": 0.5
+    },
+    {
+      "id": "thancog_1926_9_p009",
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "mean_iou": 0.8814,
+      "iou_threshold": 0.5
+    }
+  ]
+}
