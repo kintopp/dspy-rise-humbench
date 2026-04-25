@@ -146,7 +146,7 @@ Each benchmark's best optimized program is a JSON file under `results/{benchmark
 |---|---|---|---|
 | Library Cards | `results/library_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
 | Bibliographic Data | `results/bibliographic_data/optimized/loo-mipro-heavy-cot_gemini-2.5-flash_fold*.json` (one per LOO fold) | cot | 2.5 Flash (LOO folds) |
-| Personnel Cards | `results/personnel_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
+| Personnel Cards | `results/personnel_cards/optimized/mipro-cot_gemini-2.5-flash_optimized.json` | cot | 2.5 Flash (re-compiled with `--prompt-model gemini-3.1-pro-preview`) |
 | Business Letters | `results/business_letters/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
 | Blacklist Cards | `results/blacklist_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
 | Company Lists | `results/company_lists/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
@@ -200,7 +200,7 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 |---|---|---|---|
 | Library Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.9258** f1_macro | GPT-5: 89.5 |
 | Bibliographic Data | MIPROv2 heavy-CoT LOO (compiled on 2.5 Flash) | **0.7094** avg fuzzy (LOO) | GPT-4o: 71.4 |
-| Personnel Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.8874** f1_macro | *(not on leaderboard; prev ~79.0)* |
+| Personnel Cards | MIPROv2-CoT (compiled on 2.5 Flash, proposer=3.1-pro-preview) + Refine(3) | **0.9116** f1_macro | trails live #1 (3.1-pro-preview 97.04) by 5.9 pts; +2.4 pts over our prior best |
 | Business Letters | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.8087** f1_macro | GPT-5: 77.0 |
 | Blacklist Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.9474** avg fuzzy | GPT-4.1: 95.7 |
 | Company Lists | MIPROv2-CoT (compiled on 2.0 Flash) | **0.8682** f1_macro | GPT-5: 58.4 |
@@ -304,29 +304,35 @@ The test set reveals a **bimodal distribution**: page 5 scores 0.91 (excellent),
 
 *61 images of 20th-century Swiss Federal personnel cards. Each card is a table recording an employee's career: job title, work location, salary class, salary amount, date of salary change, and remarks — with each field transcribed both diplomatically (as-written) and with normalised interpretation. Task: extract all rows with their sub-fields into a structured JSON.*
 
-**On Gemini 2.5 Flash:** The 2.0 Flash-compiled MIPROv2-CoT program transferred + Refine(3) → **0.8874 f1_macro** (-0.20 pts vs. 2.0 Flash; within noise). No re-compilation needed.
+**On Gemini 2.5 Flash (Phase A Target 1, executed 2026-04-25):** Re-compiled MIPROv2-CoT directly on 2.5 Flash with `gemini-3.1-pro-preview` as the instruction proposer (teacher-student `--prompt-model`) + Refine(3) → **0.9116 f1_macro** (+0.024 over the prior 2.0 Flash transfer best, +0.10 over the 2.5 Flash hand-prompt baseline).
 
 **Metric**: Field-level fuzzy F1 (macro-averaged across images, same threshold logic as Library Cards). **Data split**: 9 train (15%) / 9 dev (15%) / 43 test (70%), seed=42.
 
-**RISE leaderboard reference**: This benchmark is not yet listed on the public [RISE leaderboard dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/leaderboard/). The previously reported top score was ~79.0 (Gemini 2.5 Pro).
-
-*Last accessed: 2026-02-07.*
+**RISE leaderboard reference (live, 2026-04-25):** #1 = `gemini-3.1-pro-preview` 97.04, #4 = `gemini-3.1-flash-lite-preview` 96.74, `gemini-2.5-flash` (hand-prompt) at 95.41. Our optimized 2.5 Flash result of 0.9116 f1_macro / 0.9736 f1_micro is below the live 2.5 Flash leaderboard slot on macro but above on micro — note the leaderboard's published number does not match our pipeline's reproduction of hand-prompt 2.5 Flash (0.8116) on the same test split, so the comparison is not apples-to-apples (different prompts, different sample sets).
 
 This benchmark presents a different challenge from Library Cards: the schema is deeply nested (each cell has `diplomatic_transcript`, `interpretation`, and `is_crossed_out` sub-fields), the number of rows per card varies, and handwritten entries from the 1940s include abbreviations, ditto marks, currency formatting, and crossed-out text. JSON parse failures — where the model produces malformed output — were the biggest drag on baseline scores.
 
-| Configuration | f1_macro | f1_micro | Precision | Recall | vs Predict baseline |
+| Configuration | f1_macro | f1_micro | Precision | Recall | vs CoT 2.5 Flash baseline |
 |---|---|---|---|---|---|
-| **MIPROv2 medium (CoT) + Refine(3)** | **0.8894** | **0.9398** | **0.9528** | **0.9271** | **+0.2598** |
-| MIPROv2 medium (CoT) | 0.8858 | 0.9311 | 0.9485 | 0.9144 | +0.2562 |
-| CoT baseline (unoptimized) | 0.7983 | 0.8415 | 0.8142 | 0.8706 | +0.1687 |
-| Predict baseline (unoptimized) | 0.6296 | 0.7497 | 0.8420 | 0.6756 | — |
+| **MIPROv2 medium-CoT on 2.5 Flash (proposer=3.1-pro-preview) + Refine(3)** ← winner | **0.9116** | **0.9736** | 0.9663 | 0.9810 | **+0.1000** |
+| MIPROv2 medium-CoT on 2.5 Flash (proposer=3.1-pro-preview) | 0.9012 | 0.9604 | 0.9534 | 0.9674 | +0.0896 |
+| Track 2: MIPROv2 medium-CoT on `gemini-3.1-flash-lite-preview` (same proposer) + Refine(3) | 0.9009 | 0.9593 | 0.9341 | 0.9859 | +0.0893 |
+| Track 2: same, no Refine | 0.8995 | 0.9558 | 0.9314 | 0.9815 | +0.0879 |
+| Prior best: 2.0 Flash MIPROv2 transferred + Refine(3) | 0.8874 | 0.9337 | 0.9410 | 0.9266 | +0.0758 |
+| 2.5 Flash CoT baseline (unoptimized hand-prompt) | 0.8116 | 0.8762 | 0.8525 | 0.9011 | — |
+| 2.0 Flash CoT baseline (unoptimized hand-prompt) | 0.7983 | 0.8415 | 0.8142 | 0.8706 | -0.0133 |
+| 2.0 Flash Predict baseline (unoptimized hand-prompt) | 0.6296 | 0.7497 | 0.8420 | 0.6756 | -0.1820 |
 
-**MIPROv2 medium-CoT with Refine(3) achieved 0.8894 f1_macro — a +26.0 point lift over the predict baseline**, exceeding the previously reported leaderboard top (~79.0) by nearly 10 points. The CoT baseline alone provided a +16.9 pt uplift — unlike Library Cards where CoT hurt — because the main problem here was JSON parse failures (8/43 cards scoring 0.0), and CoT's reasoning step helped the model structure its output before committing to JSON. After optimization, false positives dropped 75% (376 → 94) and recall jumped from 0.676 to 0.914.
+**Re-compilation on 2.5 Flash with a strong proposer beats transfer.** Compiling MIPROv2 directly on `gemini-2.5-flash` with `gemini-3.1-pro-preview` as the instruction proposer (DSPy's `--prompt-model`, teacher-student distillation) lifted the headline number from 0.8874 (transferred 2.0 Flash compile) to 0.9116 — a +0.0242 gain over what naive transfer delivered. This is the project's first end-to-end use of separate `prompt_model ≠ task_model` in MIPROv2 and validates the pattern for benchmarks where 2.5 Flash trails the leaderboard.
+
+**Track 2 (3.1-flash-lite-preview) underperformed hand-prompt expectations.** The cheaper preview's *upstream* hand-prompt 0.9674 leaderboard slot did not survive into our DSPy pipeline (0.8995 / 0.9558 unrefined, 0.9009 / 0.9593 with Refine(3)) — *worse* than Track 1. Two interpretations: (a) our DSPy pipeline's structured-output adapter changes the effective prompt enough that the published hand-prompt baseline doesn't transfer, or (b) the 70/30 test split is a hard subset of upstream's eval. Either way, the lesson generalises: a higher *upstream* leaderboard score for a cheaper model is not a reliable predictor of where that model lands in this project's pipeline.
 
 #### Key findings
 
 - **CoT fixed JSON parse failures.** Zero-scoring cards dropped from 8/43 to 3/43 — the reasoning step helps the model produce valid nested JSON for complex table schemas.
-- **Few-shot demos taught valid row structure.** The demonstrations communicated extraction conventions (ditto marks, abbreviations, crossed-out handling) more effectively than instruction-only approaches like GEPA, which came within 1.1 pts but couldn't match MIPROv2's robustness.
+- **Few-shot demos taught valid row structure.** The demonstrations communicated extraction conventions (ditto marks, abbreviations, crossed-out handling) more effectively than instruction-only approaches like GEPA.
+- **Teacher-student MIPROv2 paid off.** Using `gemini-3.1-pro-preview` as a temporary instruction proposer at compile time produced an instruction set that 2.5 Flash inferences well at deployment cost — first validation of `--prompt-model` on this project (Foundation 2 from the Phase A foundations).
+- **Two-track ceiling estimate was wrong here.** The framework predicted Track 2 would claim leaderboard #1; in practice Track 2 came in below Track 1 in our pipeline. Reportable but not the headline.
 
 ---
 

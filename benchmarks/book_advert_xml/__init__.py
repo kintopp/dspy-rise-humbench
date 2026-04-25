@@ -13,6 +13,7 @@ from benchmarks.book_advert_xml.scoring import (
     gepa_feedback_metric,
     refine_reward_fn,
     score_single_prediction,
+    xml_refine_reward_fn,
 )
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "refine_reward_fn",
     "score_single_prediction",
     "compute_aggregate_scores",
+    "xml_refine_reward_fn",
 ]

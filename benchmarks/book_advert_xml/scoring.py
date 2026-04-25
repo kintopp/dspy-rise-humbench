@@ -26,6 +26,11 @@ from benchmarks.shared.scoring_helpers import (
     parse_gt_document,
     parse_prediction_document,
 )
+from benchmarks.shared.validators import (
+    callable_predicate_reward,
+    combine_rewards,
+    json_well_formed_reward,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +163,40 @@ def refine_reward_fn(example, prediction, trace=None) -> float:
     if "<" not in fixed_xml or ">" not in fixed_xml:
         return 0.0
     return 1.0
+
+
+# ---------------------------------------------------------------------------
+# Foundation 4 (2026-04-25) — XML well-formedness reward
+# ---------------------------------------------------------------------------
+# `xml_refine_reward_fn` is a stricter Refine gate than `refine_reward_fn`
+# above. It additionally requires the emitted ``fixed_xml`` to parse as
+# well-formed XML via lxml. Tolerates a missing single root by wrapping the
+# content in a synthetic <doc> element — upstream scoring does not enforce
+# a single-root invariant, only fuzz.ratio similarity to GT.
+
+
+def _xml_well_formed(pred_dict: dict) -> bool:
+    if not isinstance(pred_dict, dict):
+        return False
+    xml = pred_dict.get("fixed_xml")
+    if not isinstance(xml, str) or not xml.strip():
+        return False
+    if "<" not in xml or ">" not in xml:
+        return False
+    try:
+        from lxml import etree
+
+        etree.fromstring(f"<doc>{xml}</doc>")
+        return True
+    except Exception:
+        return False
+
+
+xml_refine_reward_fn = combine_rewards(
+    json_well_formed_reward({"fixed_xml"}),
+    callable_predicate_reward(_xml_well_formed),
+    mode="min",
+)
 
 
 # ---------------------------------------------------------------------------

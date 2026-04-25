@@ -11,6 +11,7 @@ from benchmarks.personnel_cards.scoring import (
     compute_aggregate_scores,
     dspy_metric,
     gepa_feedback_metric,
+    gepa_rich_feedback_metric,
     refine_reward_fn,
     score_single_prediction,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "load_and_split",
     "dspy_metric",
     "gepa_feedback_metric",
+    "gepa_rich_feedback_metric",
     "refine_reward_fn",
     "score_single_prediction",
     "compute_aggregate_scores",

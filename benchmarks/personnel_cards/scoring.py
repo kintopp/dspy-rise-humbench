@@ -12,6 +12,7 @@ from benchmarks.shared.scoring_helpers import (
     f1_dspy_metric,
     f1_gepa_feedback_metric,
     f1_compute_aggregate_scores,
+    rich_feedback_metric,
 )
 
 logger = logging.getLogger(__name__)
@@ -100,3 +101,40 @@ refine_reward_fn = f1_refine_reward_fn(REQUIRED_KEYS)
 dspy_metric = f1_dspy_metric(score_single_prediction)
 gepa_feedback_metric = f1_gepa_feedback_metric(score_single_prediction, match_threshold=MATCH_THRESHOLD)
 compute_aggregate_scores = f1_compute_aggregate_scores
+
+
+# ---------------------------------------------------------------------------
+# Foundation 1 (2026-04-25) — rich-feedback metric for GEPA reflection
+# ---------------------------------------------------------------------------
+# Per-field categorisation surfaces sub-key-specific failure modes
+# (transcript_drift / interpretation_drift / crossed_out_misclassified)
+# so the GEPA reflection LM can write *targeted* prompt revisions
+# rather than generic "improve the output."
+
+
+def _personnel_cards_categorizer(field_path: str, info: dict) -> str | None:
+    score = info.get("score", 0.0)
+    if score == 0.0:
+        return "missing_or_wrong"
+    if score < 0.5:
+        return "very_low"
+    tail = field_path.rsplit(".", 1)[-1]
+    if score < 0.95 and tail == "diplomatic_transcript":
+        return "transcript_drift"
+    if score < 0.95 and tail == "interpretation":
+        return "interpretation_drift"
+    if score < 0.95 and tail == "is_crossed_out":
+        return "crossed_out_misclassified"
+    if score < 0.8:
+        return "low"
+    if score < 0.95:
+        return "near_miss"
+    return None
+
+
+gepa_rich_feedback_metric = rich_feedback_metric(
+    score_single_prediction,
+    score_key="f1_score",
+    error_categorizer=_personnel_cards_categorizer,
+    max_critique_lines=12,
+)

@@ -11,4 +11,5 @@ dependencies = [
     "pydantic",
     "Pillow",
     "openai",
+    "lxml>=6.1.0",
 ]

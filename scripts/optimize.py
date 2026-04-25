@@ -125,6 +125,7 @@ def main():
     parser.add_argument("--bsize", type=int, default=32, help="SIMBA: mini-batch size (default: 32)")
     # GEPA-specific
     parser.add_argument("--reflection-model", type=str, default=None, help="GEPA: model for reflection LM (e.g. gemini-2.5-pro)")
+    parser.add_argument("--use-rich-feedback", action="store_true", help="GEPA: use the benchmark's gepa_rich_feedback_metric instead of gepa_feedback_metric (per-field categorisation; Foundation 1, 2026-04-25)")
     args = parser.parse_args()
 
     # Dynamic benchmark imports
@@ -135,7 +136,14 @@ def main():
 
     ExtractorClass = module_mod.Extractor
     metric = scoring_mod.dspy_metric
-    feedback_metric = scoring_mod.gepa_feedback_metric
+    if args.use_rich_feedback:
+        rich = getattr(scoring_mod, "gepa_rich_feedback_metric", None)
+        if rich is None:
+            parser.error(f"--use-rich-feedback requires {benchmark_pkg}.scoring.gepa_rich_feedback_metric (not defined for {args.benchmark})")
+        feedback_metric = rich
+        logger.info("GEPA feedback metric: gepa_rich_feedback_metric (rich per-field categorisation)")
+    else:
+        feedback_metric = scoring_mod.gepa_feedback_metric
     bootstrap_threshold = getattr(scoring_mod, "BOOTSTRAP_THRESHOLD", None)
 
     model_id = resolve_model(args.model)
@@ -203,7 +211,8 @@ def main():
     model_tag = args.model.replace("/", "_")
     module_tag = f"-{args.module}" if args.module != "predict" else ""
     ref_tag = f"_ref-{args.reflection_model.replace('/', '_')}" if args.reflection_model else ""
-    save_path = out_dir / f"{args.optimizer}{module_tag}_{model_tag}{ref_tag}_optimized.json"
+    rich_tag = "_rich" if args.use_rich_feedback else ""
+    save_path = out_dir / f"{args.optimizer}{module_tag}_{model_tag}{ref_tag}{rich_tag}_optimized.json"
     optimized.save(str(save_path))
     logger.info(f"Optimized program saved to {save_path}")
 
