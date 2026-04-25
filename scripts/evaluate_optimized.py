@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(description="Evaluate an optimized program")
     parser.add_argument("--benchmark", default="library_cards",
-                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists"],
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists", "fraktur_adverts", "general_meeting_minutes", "medieval_manuscripts", "magazine_pages"],
                         help="Benchmark name")
     parser.add_argument(
         "--program",
@@ -30,7 +30,7 @@ def main():
         required=True,
         help="Path to saved optimized program JSON",
     )
-    parser.add_argument("--model", type=str, default="gpt-4o", help="Model preset or full model string")
+    parser.add_argument("--model", type=str, default="gemini-2.5-flash", help="Model preset or full model string")
     parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
     parser.add_argument("--refine", type=int, default=0, help="Refine retries (0=disabled, e.g. 3 for N=3)")
     parser.add_argument("--output-tag", type=str, default="", help="Tag appended to output filename (e.g. model name for cross-model eval)")

@@ -32,21 +32,24 @@ without the flag are estimates from filename heuristics.
 5. Multiplies by a retry factor (default 1.3×) for rate-limit retries, debugging, failed runs
 6. Emits a report plus a structured JSON (`dspy-costs/results.json` by default)
 
-## Pricing (USD per 1M tokens, retrieved 2026-04-21)
+## Pricing (USD per 1M tokens, retrieved 2026-04-24)
 
 ### Google Gemini — AI Studio
 
 | Model | Input | Output |
 |---|---|---|
+| gemini-3.1-pro-preview | $2.00 | $12.00 |
 | gemini-3-pro-preview | $2.00 | $12.00 |
+| gemini-3-flash-preview | $0.50 | $3.00 |
+| gemini-3.1-flash-lite-preview | $0.25 | $1.50 |
 | gemini-2.5-pro | $1.25 | $10.00 |
 | gemini-2.5-flash | $0.30 | $2.50 |
-| gemini-2.0-flash | $0.10 | $0.40 |
+| gemini-2.0-flash (deprecated, shuts down 2026-06-01) | $0.10 | $0.40 |
 
-Tiered: Gemini 2.5 Pro and 3 Pro Preview double above 200k input tokens
-(our prompts are well under). Gemini 2.0 Flash has a **free tier** on
-AI Studio (1,500 RPD, 1M TPM) and is scheduled for shutdown 2026-06-01.
-Gemini 1.5 Pro is deprecated on the Gemini API.
+Tiered: Gemini 2.5 Pro and 3.x Pro Preview double above 200k input tokens
+(our prompts are well under). Every Gemini 3.x variant carries the `-preview`
+suffix as of 2026-04-24 — no GA Flash 3 yet. Gemini 1.5 Pro is deprecated
+on the Gemini API.
 
 ### Google Gemini — Vertex AI
 

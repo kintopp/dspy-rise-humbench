@@ -26,9 +26,9 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(description="LOO MIPROv2 optimization")
     parser.add_argument("--benchmark", default="bibliographic_data",
-                        choices=["bibliographic_data"],
-                        help="Benchmark name (only bibliographic_data supports LOO folds)")
-    parser.add_argument("--model", default="gemini-2.0-flash")
+                        choices=["bibliographic_data", "fraktur_adverts", "medieval_manuscripts"],
+                        help="Benchmark name (must expose load_loo_folds in its data module)")
+    parser.add_argument("--model", default="gemini-2.5-flash")
     parser.add_argument("--module", default="cot")
     parser.add_argument("--auto", default="medium", choices=["light", "medium", "heavy"])
     parser.add_argument("--max-bootstrapped", type=int, default=1)

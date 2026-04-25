@@ -29,7 +29,7 @@ def main():
                         help="Benchmark name")
     parser.add_argument("--program", type=str, required=True,
                         help="Path to saved MIPROv2-optimized program JSON")
-    parser.add_argument("--model", type=str, default="gemini-2.0-flash")
+    parser.add_argument("--model", type=str, default="gemini-2.5-flash")
     parser.add_argument("--module", choices=["predict", "cot"], default="cot")
     parser.add_argument("--k", type=int, default=3, help="Number of nearest neighbors")
     parser.add_argument("--seed", type=int, default=42)

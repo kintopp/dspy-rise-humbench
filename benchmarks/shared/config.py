@@ -20,9 +20,12 @@ MODEL_PRESETS = {
     "gpt-4o-mini": "openai/gpt-4o-mini",
     # Google Gemini
     "gemini-3-pro-preview": "gemini/gemini-3-pro-preview",
+    "gemini-3.1-pro-preview": "gemini/gemini-3.1-pro-preview",
+    "gemini-3-flash-preview": "gemini/gemini-3-flash-preview",
+    "gemini-3.1-flash-lite-preview": "gemini/gemini-3.1-flash-lite-preview",
     "gemini-2.5-pro": "gemini/gemini-2.5-pro",
     "gemini-2.5-flash": "gemini/gemini-2.5-flash",
-    "gemini-2.0-flash": "gemini/gemini-2.0-flash",
+    "gemini-2.0-flash": "gemini/gemini-2.0-flash",  # deprecated, shuts down 2026-06-01
     # Anthropic Claude
     "claude-sonnet": "anthropic/claude-sonnet-4-5-20250929",
     "claude-haiku": "anthropic/claude-haiku-3-5-20241022",
@@ -32,7 +35,7 @@ MODEL_PRESETS = {
     "or-gpt-4o": "openrouter/openai/gpt-4o",
 }
 
-DEFAULT_MODEL = "gpt-4o"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 
 def resolve_model(model: str) -> str:

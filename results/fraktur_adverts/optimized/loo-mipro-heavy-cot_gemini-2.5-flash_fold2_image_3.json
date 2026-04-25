@@ -1,0 +1,32 @@
+{
+  "predict.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Extract every advertisement from a scanned 18th-century Fraktur newspaper page.",
+      "fields": [
+        {
+          "prefix": "Page Image:",
+          "description": "Scanned newspaper page in 18th-century German Fraktur typeset"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Document:",
+          "description": "A JSON object listing every advertisement on the page image.\nSchema:\n{\n  \"advertisements\": [\n    {\n      \"date\": \"YYYY-MM-DD\",\n      \"tags_section\": \"string — the section heading under which the ad appears\",\n      \"text\": \"string — the ad text as printed, including the leading ordinal number (e.g. '16. ...')\"\n    }\n  ]\n}\n\nSource: early modern (18th-century) German newspapers typeset in Fraktur.\nPages are usually in two columns; ignore the masthead.\n\nExtraction rules:\n- Transcribe text EXACTLY as printed — preserve non-modern spellings, typos,\n  historical characters, and the leading ordinal (e.g. \"1.\", \"16.\").\n- Each ad's ``text`` must begin with its printed ordinal number (the scoring\n  routine keys matches on this prefix).\n- ``tags_section`` is the heading that introduces a block of ads (e.g.\n  \"Es werden zum Verkauff offerirt\"). All ads under one heading share it.\n- ``date`` is the newspaper issue date in ISO format; it is the same for\n  every advertisement on a given page.\n- Return ONLY the JSON object, no commentary or code fences.\n"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

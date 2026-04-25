@@ -30,7 +30,7 @@ def main():
                         help="Benchmark name (only business_letters supported)")
     parser.add_argument("--program", type=str, required=True,
                         help="Path to saved MIPROv2-optimized program JSON")
-    parser.add_argument("--model", type=str, default="gemini-2.0-flash")
+    parser.add_argument("--model", type=str, default="gemini-2.5-flash")
     parser.add_argument("--module", choices=["predict", "cot"], default="cot")
     parser.add_argument("--refine", type=int, default=0,
                         help="Refine retries stacked on top of verify (0=disabled)")

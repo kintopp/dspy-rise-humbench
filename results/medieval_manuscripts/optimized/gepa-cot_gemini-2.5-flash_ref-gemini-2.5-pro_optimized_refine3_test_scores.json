@@ -1,0 +1,60 @@
+{
+  "benchmark": "medieval_manuscripts",
+  "program": "results/medieval_manuscripts/optimized/gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized.json",
+  "model": "gemini/gemini-2.5-flash",
+  "module_type": "cot",
+  "refine_n": 3,
+  "refine_reward": "quality",
+  "aggregate": {
+    "cer": 0.2846,
+    "similarity": 0.7154,
+    "total_instances": 6
+  },
+  "usage": {
+    "gemini/gemini-2.5-flash": {
+      "calls": 6,
+      "input_tokens": 145883,
+      "output_tokens": 165535,
+      "cache_read_tokens": 10726,
+      "reasoning_tokens": 136925
+    }
+  },
+  "per_image": [
+    {
+      "id": "image_9",
+      "fuzzy": 0.5489,
+      "cer": 0.6142,
+      "total_fields": 2
+    },
+    {
+      "id": "image_12",
+      "fuzzy": 0.8807,
+      "cer": 0.0974,
+      "total_fields": 2
+    },
+    {
+      "id": "image_2",
+      "fuzzy": 0.744,
+      "cer": 0.3168,
+      "total_fields": 2
+    },
+    {
+      "id": "image_1",
+      "fuzzy": 0.9099,
+      "cer": 0.0882,
+      "total_fields": 2
+    },
+    {
+      "id": "image_10",
+      "fuzzy": 0.878,
+      "cer": 0.1214,
+      "total_fields": 2
+    },
+    {
+      "id": "image_8",
+      "fuzzy": 0.5273,
+      "cer": 0.4696,
+      "total_fields": 3
+    }
+  ]
+}

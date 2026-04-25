@@ -102,8 +102,15 @@ def strip_code_fences(text: str) -> str:
 
 
 def parse_prediction_document(prediction) -> dict | None:
-    """Extract the document dict from a DSPy prediction."""
-    doc = prediction.document
+    """Extract the document dict from a DSPy prediction.
+
+    Returns None if the prediction lacks a ``document`` field (e.g. when a
+    parallel-evaluator error produced a stub Prediction) — callers must
+    handle None to score these as failures without crashing.
+    """
+    doc = getattr(prediction, "document", None)
+    if doc is None:
+        return None
     if isinstance(doc, dict):
         return doc
     if isinstance(doc, str):
@@ -300,6 +307,235 @@ def f1_compute_aggregate_scores(all_scores: list[dict]) -> dict:
         "micro_precision": round(micro_precision, 4),
         "micro_recall": round(micro_recall, 4),
         "total_instances": len(f1_scores),
+        "total_tp": total_tp,
+        "total_fp": total_fp,
+        "total_fn": total_fn,
+    }
+
+
+# ---------------------------------------------------------------------------
+# CER-based DSPy metric wrappers
+#
+# Used by transcription benchmarks where the upstream RISE metric is Character
+# Error Rate (CER, lower is better) — fraktur_adverts, medieval_manuscripts.
+# score_fn must return a dict with a "cer" key in [0, 1] (higher CER = worse)
+# and a "field_scores" dict mapping leaf keys to {"response", "ground_truth",
+# "score"} where "score" is the per-field fuzzy similarity (NOT CER).
+#
+# The DSPy metric converts CER to a similarity score via `1 - cer` so that
+# higher is better (DSPy maximises metrics).
+# ---------------------------------------------------------------------------
+
+
+def _cer_to_similarity(cer: float) -> float:
+    """Convert CER (0=perfect, higher=worse) to a 0..1 similarity (1=perfect)."""
+    return max(0.0, min(1.0, 1.0 - cer))
+
+
+def cer_dspy_metric(score_fn):
+    """DSPy metric that maximises ``1 - cer`` as reported by ``score_fn``."""
+
+    def metric(example, prediction, trace=None) -> float:
+        pred_dict = parse_prediction_document(prediction)
+        gt_dict = parse_gt_document(example)
+        if pred_dict is None or gt_dict is None:
+            return 0.0
+        return _cer_to_similarity(score_fn(pred_dict, gt_dict)["cer"])
+
+    return metric
+
+
+def cer_gepa_feedback_metric(
+    score_fn, low_field_threshold: float = 0.8, max_low_fields: int = 20
+):
+    """GEPA feedback metric for CER-primary benchmarks.
+
+    Score is ``1 - cer`` (so GEPA maximises toward 1.0). Feedback enumerates
+    fields whose per-field fuzzy similarity falls below ``low_field_threshold``,
+    so the reflection LM sees *what* went wrong character-by-character even
+    though the aggregate metric is CER.
+    """
+
+    def metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
+        pred_dict = parse_prediction_document(pred)
+        gt_dict = parse_gt_document(gold)
+        if pred_dict is None or gt_dict is None:
+            return dspy.Prediction(score=0.0, feedback="Failed to parse JSON output")
+
+        scores = score_fn(pred_dict, gt_dict)
+        cer = scores["cer"]
+        similarity = _cer_to_similarity(cer)
+        if cer <= 0.0:
+            return dspy.Prediction(score=similarity, feedback="Perfect CER (0.0)")
+
+        low_fields = [
+            f"  - {key}: predicted={info['response']!r}, expected={info['ground_truth']!r}, fuzzy={info['score']:.2f}"
+            for key, info in scores.get("field_scores", {}).items()
+            if info["score"] < low_field_threshold
+        ]
+        if max_low_fields is not None:
+            low_fields = low_fields[:max_low_fields]
+
+        if low_fields:
+            feedback = f"cer={cer:.3f} (similarity={similarity:.3f}). Low-scoring fields:\n" + "\n".join(low_fields)
+        else:
+            feedback = f"cer={cer:.3f} (similarity={similarity:.3f})"
+        return dspy.Prediction(score=similarity, feedback=feedback)
+
+    return metric
+
+
+def cer_compute_aggregate_scores(all_scores: list[dict]) -> dict:
+    """Macro-average CER and derived similarity across all scored images."""
+    if not all_scores:
+        return {"cer": 0.0, "similarity": 0.0, "total_instances": 0}
+
+    cers = [s["cer"] for s in all_scores if isinstance(s, dict) and "cer" in s]
+    if not cers:
+        return {"cer": 0.0, "similarity": 0.0, "total_instances": 0}
+
+    macro_cer = sum(cers) / len(cers)
+    return {
+        "cer": round(macro_cer, 4),
+        "similarity": round(_cer_to_similarity(macro_cer), 4),
+        "total_instances": len(cers),
+    }
+
+
+# ---------------------------------------------------------------------------
+# IoU-based spatial metric (bounding-box F1)
+#
+# Used by benchmarks that predict spatial regions rather than text — currently
+# magazine_pages (advertisement detection with PASCAL-VOC-style IoU=0.5 greedy
+# matching). Factories here let a benchmark's score_single_prediction wrap an
+# IoU computation without re-implementing the aggregation logic.
+# ---------------------------------------------------------------------------
+
+
+def box_iou(a, b) -> float:
+    """Intersection-over-union of two (x0, y0, x1, y1) boxes. 0..1.
+
+    Defensively returns 0.0 if either box is malformed (not 4 finite numbers)
+    — models occasionally emit 3-element boxes or nulls when grounding fails.
+    """
+    try:
+        ax0, ay0, ax1, ay1 = [float(v) for v in a]
+        bx0, by0, bx1, by1 = [float(v) for v in b]
+    except (TypeError, ValueError):
+        return 0.0
+    # Defensive: ensure x1>=x0, y1>=y0
+    ax0, ax1 = min(ax0, ax1), max(ax0, ax1)
+    ay0, ay1 = min(ay0, ay1), max(ay0, ay1)
+    bx0, bx1 = min(bx0, bx1), max(bx0, bx1)
+    by0, by1 = min(by0, by1), max(by0, by1)
+    ix0, iy0 = max(ax0, bx0), max(ay0, by0)
+    ix1, iy1 = min(ax1, bx1), min(ay1, by1)
+    iw, ih = max(0.0, ix1 - ix0), max(0.0, iy1 - iy0)
+    inter = iw * ih
+    if inter <= 0.0:
+        return 0.0
+    area_a = max(0.0, ax1 - ax0) * max(0.0, ay1 - ay0)
+    area_b = max(0.0, bx1 - bx0) * max(0.0, by1 - by0)
+    union = area_a + area_b - inter
+    return inter / union if union > 0 else 0.0
+
+
+def greedy_box_match(pred_boxes: list, gt_boxes: list, iou_threshold: float = 0.5) -> dict:
+    """Greedy one-to-one IoU matching between predicted and GT boxes.
+
+    Returns dict with tp, fp, fn, precision, recall, f1, mean_iou (of matched pairs).
+    Any pair with IoU >= threshold counts as a TP; unmatched predictions are FP;
+    unmatched GT boxes are FN. Pairing is greedy highest-IoU-first.
+    """
+    pairs = [(i, j, box_iou(tuple(p), tuple(g)))
+             for i, p in enumerate(pred_boxes) for j, g in enumerate(gt_boxes)]
+    pairs.sort(key=lambda t: -t[2])
+
+    matched_pred, matched_gt = set(), set()
+    matched_ious: list[float] = []
+    for i, j, iou in pairs:
+        if iou < iou_threshold:
+            break
+        if i in matched_pred or j in matched_gt:
+            continue
+        matched_pred.add(i); matched_gt.add(j); matched_ious.append(iou)
+
+    tp = len(matched_ious)
+    fp = len(pred_boxes) - tp
+    fn = len(gt_boxes) - tp
+    precision, recall, f1 = compute_f1(tp, fp, fn)
+    mean_iou = sum(matched_ious) / len(matched_ious) if matched_ious else 0.0
+
+    return {
+        "true_positives": tp,
+        "false_positives": fp,
+        "false_negatives": fn,
+        "precision": precision,
+        "recall": recall,
+        "f1_score": round(f1, 4),
+        "mean_iou": round(mean_iou, 4),
+    }
+
+
+def iou_f1_dspy_metric(score_fn):
+    """DSPy metric wrapping a spatial score_fn whose output has an f1_score."""
+
+    def metric(example, prediction, trace=None) -> float:
+        pred_dict = parse_prediction_document(prediction)
+        gt_dict = parse_gt_document(example)
+        if pred_dict is None or gt_dict is None:
+            return 0.0
+        return score_fn(pred_dict, gt_dict)["f1_score"]
+
+    return metric
+
+
+def iou_f1_gepa_feedback_metric(score_fn):
+    """GEPA feedback metric for spatial tasks: reports TP/FP/FN + mean IoU."""
+
+    def metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
+        pred_dict = parse_prediction_document(pred)
+        gt_dict = parse_gt_document(gold)
+        if pred_dict is None or gt_dict is None:
+            return dspy.Prediction(score=0.0, feedback="Failed to parse JSON output")
+        s = score_fn(pred_dict, gt_dict)
+        if s["f1_score"] >= 1.0:
+            return dspy.Prediction(score=1.0, feedback="Perfect IoU-F1")
+        feedback = (
+            f"f1={s['f1_score']:.3f} (tp={s['true_positives']}, "
+            f"fp={s['false_positives']}, fn={s['false_negatives']}, "
+            f"mean_iou_of_matches={s['mean_iou']:.3f}). "
+            "Improve by: tightening box coordinates for matched regions "
+            "(boost IoU above 0.5 threshold), removing spurious detections "
+            "that drive false positives, and adding missed regions that "
+            "drive false negatives."
+        )
+        return dspy.Prediction(score=s["f1_score"], feedback=feedback)
+
+    return metric
+
+
+def iou_f1_compute_aggregate_scores(all_scores: list[dict]) -> dict:
+    """Macro-F1 and micro-F1 over per-image spatial scores."""
+    if not all_scores:
+        return {"f1_micro": 0.0, "f1_macro": 0.0}
+    total_tp = total_fp = total_fn = 0
+    f1s, ious = [], []
+    for s in all_scores:
+        if isinstance(s, dict) and "f1_score" in s and "mean_iou" in s:
+            total_tp += s["true_positives"]
+            total_fp += s["false_positives"]
+            total_fn += s["false_negatives"]
+            f1s.append(s["f1_score"])
+            ious.append(s["mean_iou"])
+    micro_precision, micro_recall, f1_micro = compute_f1(total_tp, total_fp, total_fn)
+    return {
+        "f1_macro": round(sum(f1s) / len(f1s), 4) if f1s else 0.0,
+        "f1_micro": round(f1_micro, 4),
+        "micro_precision": round(micro_precision, 4),
+        "micro_recall": round(micro_recall, 4),
+        "mean_iou_macro": round(sum(ious) / len(ious), 4) if ious else 0.0,
+        "total_instances": len(f1s),
         "total_tp": total_tp,
         "total_fp": total_fp,
         "total_fn": total_fn,

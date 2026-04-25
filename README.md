@@ -4,9 +4,9 @@ This project applies [DSPy](https://dspy.ai/) — a framework for programming an
 
 ## TLDR;
 
-DSPy's automated prompt optimization for Gemini 2.0 Flash — a cheap vision model at ~1/10th the cost of frontier models — matches or beats custom prompts on expensive models across six RISE benchmarks, with gains of +4 to +27 points. The biggest wins came from the weakest baselines (Personnel Cards: 0.63 → 0.89, Business Letters: 0.46 → 0.73), while even near-ceiling benchmarks improved (Blacklist Cards: 0.93 → 0.97). The optimized programs also transfer to larger models without re-optimization: running the same Flash-optimized prompts on Gemini 2.5 Flash and 2.5 Pro improved scores on 4 of 6 benchmarks (Business Letters: 0.46 → 0.81, Company Lists: 0.76 → 0.90).
+DSPy's automated prompt optimization for Gemini 2.5 Flash — a cheap vision model at ~1/4th the cost of frontier Gemini Pro — matches or beats the hand-crafted prompts on expensive models across six RISE benchmarks. Four of the six headline numbers come from MIPROv2 programs originally compiled on Gemini 2.0 Flash that transferred to 2.5 Flash without re-optimization (Library Cards: 0.8134 → 0.9258, Business Letters: 0.4565 → 0.8087, Personnel Cards: 0.6296 → 0.8874, Company Lists: 0.7643 → 0.8682). The two remaining benchmarks (Bibliographic Data, Blacklist Cards) regressed under naive transfer and were re-optimized directly on 2.5 Flash — Bibliographic Data via MIPROv2 heavy LOO, Blacklist Cards via GEPA medium with Gemini 2.5 Pro as the reflection LM. On 5 of 6 benchmarks, optimized 2.5 Flash matches or exceeds the RISE leaderboard's best hand-crafted prompts on GPT-5 / GPT-4.1 / Gemini 3 Pro.
 
-Note: Google will deprecate Gemini 2.0 Flash on June 1st, 2026.  By then, this repo will have switched to Gemini 2.5 Flash as its new baseline.
+Note: Gemini 2.0 Flash — the project's original baseline — is scheduled for shutdown on 2026-06-01. All new experiments use **Gemini 2.5 Flash** as the primary inference model. The historical 2.0 Flash scores are retained in the Cross-Model Transfer section below for reference.
 
 ## Aims
 
@@ -94,33 +94,33 @@ uv sync
 uv run python scripts/check_rate_limits.py
 
 # 1. Evaluate unoptimized baseline (--benchmark defaults to library_cards)
-uv run python scripts/evaluate_baseline.py --model gemini-2.0-flash --module cot
+uv run python scripts/evaluate_baseline.py --model gemini-2.5-flash --module cot
 
 # 2. Run optimization
-# MIPROv2 medium (best result — Bayesian search, 12 candidates, needs train + dev):
-uv run python scripts/optimize.py --optimizer mipro --auto medium --model gemini-2.0-flash --module cot --num-threads 8
+# MIPROv2 medium (best on 5 of 6 original benchmarks — Bayesian search, 12 candidates, needs train + dev):
+uv run python scripts/optimize.py --optimizer mipro --auto medium --model gemini-2.5-flash --module cot --num-threads 8
+
+# GEPA (reflective Pareto search with rich feedback, needs train + dev + reflection LM):
+uv run python scripts/optimize.py --optimizer gepa --auto medium --model gemini-2.5-flash --module cot --reflection-model gemini-2.5-pro
 
 # SIMBA (mini-batch self-reflection, works on trainset only):
-uv run python scripts/optimize.py --optimizer simba --model gemini-2.0-flash --module cot --num-threads 8
-
-# GEPA (genetic-evolutionary with feedback, needs train + dev + reflection LM):
-uv run python scripts/optimize.py --optimizer gepa --model gemini-2.0-flash --module cot --reflection-model gemini-2.0-flash
+uv run python scripts/optimize.py --optimizer simba --model gemini-2.5-flash --module cot --num-threads 8
 
 # BootstrapFewShot (simple demo selection):
 uv run python scripts/optimize.py --optimizer bootstrap --model gemini-2.5-pro
 
 # 3. Evaluate optimized program on test set
-uv run python scripts/evaluate_optimized.py --program results/library_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json --model gemini-2.0-flash --module cot
+uv run python scripts/evaluate_optimized.py --program results/library_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json --model gemini-2.5-flash --module cot
 
 # 4. Compare all results
 uv run python scripts/compare_results.py
 
 # Run on a different benchmark:
-uv run python scripts/evaluate_baseline.py --benchmark bibliographic_data --model gemini-2.0-flash
+uv run python scripts/evaluate_baseline.py --benchmark bibliographic_data --model gemini-2.5-flash
 uv run python scripts/compare_results.py --benchmark bibliographic_data
 
 # Leave-one-out optimization (for small datasets):
-uv run python scripts/loo_mipro.py --benchmark bibliographic_data --model gemini-2.0-flash --auto medium
+uv run python scripts/loo_mipro.py --benchmark bibliographic_data --model gemini-2.5-flash --auto heavy
 ```
 
 ### Viewing the optimized prompts
@@ -142,14 +142,16 @@ The [results/demo/](results/demo) directory contains self-contained HTML pages t
 
 Each benchmark's best optimized program is a JSON file under `results/{benchmark}/optimized/`. These files contain the optimized instruction text and few-shot demonstrations (with embedded images) that MIPROv2 selected:
 
-| Benchmark | Optimized program | Module |
-|---|---|---|
-| Library Cards | `results/library_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
-| Bibliographic Data | `results/bibliographic_data/optimized/mipro-heavy-cot_gemini-2.0-flash_optimized.json` | cot |
-| Personnel Cards | `results/personnel_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
-| Business Letters | `results/business_letters/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
-| Blacklist Cards | `results/blacklist_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
-| Company Lists | `results/company_lists/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot |
+| Benchmark | Optimized program | Module | Compiled on |
+|---|---|---|---|
+| Library Cards | `results/library_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
+| Bibliographic Data | `results/bibliographic_data/optimized/loo-mipro-heavy-cot_gemini-2.5-flash_fold*.json` (one per LOO fold) | cot | 2.5 Flash (LOO folds) |
+| Personnel Cards | `results/personnel_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
+| Business Letters | `results/business_letters/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
+| Blacklist Cards | `results/blacklist_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
+| Company Lists | `results/company_lists/optimized/mipro-cot_gemini-2.0-flash_optimized.json` | cot | 2.0 Flash (transferred) |
+
+*Transferred programs were compiled on 2.0 Flash and evaluated on 2.5 Flash without re-optimization — they scored equal to or better than the original 2.0 Flash numbers on 4 of 6 benchmarks (see Cross-Model Transfer Findings). Bibliographic Data and Blacklist Cards regressed under transfer and were re-compiled directly on 2.5 Flash.*
 
 To evaluate an optimized program on the benchmark's held-out test split:
 
@@ -167,9 +169,11 @@ from benchmarks.shared.config import configure_dspy
 from benchmarks.library_cards.module import Extractor
 
 # Set up the LM
-configure_dspy("gemini-2.0-flash")
+configure_dspy("gemini-2.5-flash")
 
-# Load the optimized program
+# Load the optimized program (programs compiled on 2.0 Flash transfer cleanly to 2.5 Flash
+# for 4 of 6 benchmarks; Bibliographic Data and Blacklist Cards have 2.5 Flash-specific
+# optimized programs — see the Using the optimized programs table below)
 extractor = Extractor(module_type="cot")
 extractor.load("results/library_cards/optimized/mipro-cot_gemini-2.0-flash_optimized.json")
 
@@ -184,11 +188,37 @@ The input field name varies per benchmark: `card_image` (Library Cards, Personne
 
 The pipeline supports multiple LLM providers via [litellm](https://docs.litellm.ai/). Configure API keys in `.env` and select a model with `--model`.
 
-Available presets include: `gemini-3-pro-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`, and OpenRouter variants (`or-gemini-2.5-pro`, `or-claude-sonnet`, `or-gpt-4o`). Any full litellm model string also works.
+Available presets include: `gemini-3.1-pro-preview`, `gemini-3-pro-preview`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview`, `gemini-2.5-pro`, `gemini-2.5-flash` (default), `gemini-2.0-flash` (deprecated, shuts down 2026-06-01), and OpenRouter variants (`or-gemini-2.5-pro`, `or-claude-sonnet`, `or-gpt-4o`). Any full litellm model string also works.
 
 ## Individual Benchmark Results 
 
-The RISE benchmarks are designed for practical deployment on large archival collections, where [inference cost](https://www.llm-prices.com) matters. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimizations make a cheap model competitive? To this end, all six benchmarks use **Gemini 2.0 Flash** as the primary model — a fast, inexpensive vision model (~$0.10/$0.40 per 1M input/output tokens on AI Studio). 
+The RISE benchmarks are designed for practical deployment on large archival collections, where [inference cost](https://www.llm-prices.com) matters. The experiments were structured around this question: rather than squeezing marginal gains from an expensive model, can DSPy optimizations make a cheap model competitive? The original 2026 experiments used **Gemini 2.0 Flash** (~$0.10/$0.40 per 1M input/output tokens); following Google's announced 2026-06-01 deprecation of that model, the project was migrated to **Gemini 2.5 Flash** (~$0.30/$2.50 per 1M tokens — still a fraction of Gemini 2.5 Pro at $1.25/$10.00 and well below any frontier model). Per-benchmark headline numbers below are the best configuration seen on 2.5 Flash: for 4 of 6 benchmarks this is a MIPROv2 program originally compiled on 2.0 Flash that transferred cleanly; for Bibliographic Data and Blacklist Cards, the programs were re-compiled directly on 2.5 Flash.
+
+### Headline results (Gemini 2.5 Flash)
+
+| Benchmark | Best config | Score on 2.5 Flash | RISE leaderboard #1 |
+|---|---|---|---|
+| Library Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.9258** f1_macro | GPT-5: 89.5 |
+| Bibliographic Data | MIPROv2 heavy-CoT LOO (compiled on 2.5 Flash) | **0.7094** avg fuzzy (LOO) | GPT-4o: 71.4 |
+| Personnel Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.8874** f1_macro | *(not on leaderboard; prev ~79.0)* |
+| Business Letters | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.8087** f1_macro | GPT-5: 77.0 |
+| Blacklist Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.9474** avg fuzzy | GPT-4.1: 95.7 |
+| Company Lists | MIPROv2-CoT (compiled on 2.0 Flash) | **0.8682** f1_macro | GPT-5: 58.4 |
+
+*Scores marked "pending re-optimization" will be filled in when the 2026-04-24 runs complete. See the individual benchmark sections below for the original 2.0 Flash narrative and the Cross-Model Transfer Findings section for the full transfer table.*
+
+### Stage-3 results — four new RISE benchmarks (compiled on Gemini 2.5 Flash)
+
+The RISE suite gained five benchmarks after the original 2.0 Flash work (book_advert_xml, fraktur_adverts, general_meeting_minutes, magazine_pages, medieval_manuscripts). Four of those have realistic optimization headroom — `book_advert_xml` is saturated on the leaderboard at 100.0 and is maintained only as a regression check. The rest were scaffolded and optimized directly on 2.5 Flash during the 2026-04-24 migration:
+
+| Benchmark | N | Optimizer | Best score | RISE leaderboard #1 |
+|---|---|---|---|---|
+| general_meeting_minutes | 9 | GEPA-CoT (reflection=2.5 Pro) + Refine(3) | **0.9140** fuzzy | gpt-5.4: 88.6 *(only gpt-5.x tested upstream)* |
+| fraktur_adverts | 5 | MIPROv2 heavy-CoT LOO | **0.6558** similarity (CER 0.344) | gemini-3.1-pro-preview: 97.9 |
+| medieval_manuscripts | 12 | GEPA-CoT (reflection=2.5 Pro) + Refine(3) | **0.7154** similarity (CER 0.285) | claude-opus-4-5: 84.9 |
+| magazine_pages | 46 | MIPROv2 medium-CoT | **0.1842** f1_macro (mean_iou 0.173) | gpt-5.2: 88.5 / 2.5 Flash hand-prompt: 1.6 |
+
+*`magazine_pages` is a vision-localization (bounding-box) task; its 1.6/100 hand-prompt score on 2.5 Flash suggests the model's coordinate emission is the binding constraint, not prompt quality. A secondary optimization pass on `gemini-3-flash-preview` is anticipated.*
 
 ---
 

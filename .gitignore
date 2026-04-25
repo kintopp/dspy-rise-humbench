@@ -16,6 +16,12 @@ wheels/
 images
 ground_truths
 
+# Symlinked benchmark data (points to upstream humanities_data_benchmark)
+data/
+
+# Optimization / evaluation run logs (large, noisy, regenerable)
+logs/
+
 # Offline analysis artifacts (local only)
 offline/
 

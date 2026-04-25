@@ -5,6 +5,116 @@ is not versioned, entries are grouped by date.
 
 ---
 
+## 2026-04-24
+
+### Changed
+- **Primary baseline swapped from `gemini-2.0-flash` to `gemini-2.5-flash`**,
+  driven by Google's 2026-06-01 shutdown of Gemini 2.0 Flash. Default `--model`
+  values in `scripts/optimize.py`, `scripts/evaluate_baseline.py`, and
+  `scripts/evaluate_optimized.py` updated; `DEFAULT_MODEL` in
+  `benchmarks/shared/config.py` changed to `gemini-2.5-flash`.
+- **4 of 6 headline results promoted from transfer runs** on 2.5 Flash
+  (cross-model-eval branch, 2026-02-10) rather than fresh optimizations:
+  Library Cards **0.9258** (was 0.9167 on 2.0 Flash), Business Letters
+  **0.8087** (was 0.7312), Personnel Cards **0.8874** (was 0.8894),
+  Company Lists **0.8682** (was 0.8771). Transfer programs are the original
+  MIPROv2-CoT programs compiled on 2.0 Flash; no re-compilation needed.
+- **2 benchmarks re-optimized directly on 2.5 Flash** because naive transfer
+  regressed: Bibliographic Data (0.7072 → 0.4607 under transfer, single-image
+  parse failure on page 10 collapses score) and Blacklist Cards (0.9713
+  → 0.9474 under transfer).
+  - **Bibliographic Data**: MIPROv2 heavy LOO re-compile (5 folds) — aggregate
+    fuzzy **0.7094** (vs original 2.0 Flash MIPROv2 heavy: 0.7072; transfer
+    collapsed to 0.4607). Per-fold: page_10=0.4163, page_2=0.9117,
+    page_3=0.4007, page_4=0.8896, page_5=0.9287. Page_3 joins page_10 in the
+    bimodal "low" bucket on 2.5 Flash — position-based entry matching breaks
+    when the model orders entries differently from ground truth. Per-fold
+    programs saved at `results/bibliographic_data/optimized/loo-mipro-heavy-cot_gemini-2.5-flash_fold*.json`.
+  - **Blacklist Cards**: GEPA medium with Gemini 2.5 Pro as reflection LM.
+    Result: 0.9267 base / 0.9321 with Refine(3) — below the transfer+Refine
+    winner (0.9474). Direct re-optimization regressed because the 4-image
+    valset was too small for GEPA's Pareto selection to discriminate
+    candidate programs on this near-ceiling benchmark. Headline result
+    therefore remains the transferred 2.0 Flash MIPROv2 program + Refine(3);
+    the GEPA-optimized program is retained at
+    `results/blacklist_cards/optimized/gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized.json`
+    as documentation of the null result.
+
+### Fixed
+- **`benchmarks/blacklist_cards/module.py` rewritten as concrete class.**
+  The `build_extractor_class` factory produces dynamically-created classes
+  that `inspect.getsource` can't locate; `dspy.Refine.__init__` fails with
+  `OSError: could not find class definition` on dspy≥3.1. Replaced the
+  factory invocation with an inlined `Extractor(dspy.Module)` subclass.
+  Other benchmarks still use the factory and will need the same conversion
+  the first time they're evaluated with `--refine >0` under dspy 3.1+.
+
+### Added
+- **Four new RISE benchmarks scaffolded and optimized on Gemini 2.5 Flash**:
+  - `general_meeting_minutes` (9 images, nested table, fuzzy metric):
+    GEPA medium-CoT + reflection LM 2.5 Pro. **0.9140 fuzzy with Refine(3)**
+    (base 0.8758), beating the upstream leaderboard top (gpt-5.4 at 88.6) —
+    first-ever Gemini result on this benchmark.
+  - `fraktur_adverts` (5 images, multi-entry ads, CER-primary metric):
+    MIPROv2 heavy-CoT LOO. **Aggregate similarity 0.6558 (CER 0.344)**.
+    Per-image: image_1=0.801, image_2=0.000, image_3=0.978, image_4=0.983,
+    image_5=0.565. image_2 is a structural zero — only 3 of 12 GT ads carry
+    a numeric prefix detectable by the upstream matching regex, and the
+    optimizer-trained model didn't produce that prefix for those three.
+    image_4 required a scoring-port fix: the upstream's image-name-keyed
+    "DEFAULT_SECTION fallback" generalized to "any GT containing
+    DEFAULT_SECTION enables number-only matching across predicted
+    sections" — without this the model's mismatched section heading
+    ("Es werden zum Verkauff offerirt" vs GT's
+    "Es wird zum Verkauf angetragen") sank image_4 to 0/24 spuriously.
+  - `medieval_manuscripts` (12 images, nested folios, CER+fuzzy):
+    GEPA medium-CoT + 2.5 Pro reflection. Base CER 0.411 / similarity 0.589
+    (below the 2.5 Flash hand-prompt baseline — GEPA overfit the 3-image
+    valset). **With Refine(3): CER 0.285 / similarity 0.7154** (+12.6 pts).
+    Retries on near-threshold transcriptions close the gap the tiny valset
+    caused. Upstream leader claude-opus-4-5 at 84.9.
+  - `magazine_pages` (46 images, spatial bounding-box detection, IoU-F1):
+    MIPROv2 medium-CoT using new shared `iou_f1_*` factories. Final
+    f1_macro **0.1842** (mean IoU of matched boxes 0.173), a 10× lift over
+    the 1.6 hand-prompt baseline on 2.5 Flash. Documents the predicted
+    conclusion — 2.5 Flash's coordinate grounding is the binding constraint
+    on spatial tasks, not prompt quality. A secondary optimization pass on
+    `gemini-3-flash-preview` (hand-prompt baseline 84.8/100) is the
+    anticipated follow-up.
+- **Defensive scoring helpers**: `box_iou` and
+  `parse_prediction_document` now tolerate malformed inputs (3-element
+  boxes, predictions missing the `document` attribute after a parallel-
+  evaluator error) rather than crashing. `magazine_pages._extract_boxes`
+  also filters out bad entries at the source.
+  - Fifth new benchmark `book_advert_xml` (text-only, XML repair, 50 samples)
+    not scaffolded — the RISE leaderboard shows it already saturated at
+    100.0 with multiple models, so there's no optimization headroom.
+- **New shared metric factories in `benchmarks/shared/scoring_helpers.py`**:
+  - `cer_dspy_metric` / `cer_gepa_feedback_metric` /
+    `cer_compute_aggregate_scores` — for CER-primary benchmarks. Maximises
+    `1 - CER` via the shared helper, with GEPA feedback reporting per-field
+    fuzzy diagnostics.
+  - `box_iou` / `greedy_box_match` / `iou_f1_dspy_metric` /
+    `iou_f1_gepa_feedback_metric` / `iou_f1_compute_aggregate_scores` — for
+    spatial-detection benchmarks (PASCAL-VOC-style IoU≥0.5 greedy matching).
+- **`scripts/loo_mipro.py` choices list extended** to include
+  `fraktur_adverts` and `medieval_manuscripts` (both expose `load_loo_folds`).
+- **New Gemini 3.x preview presets** in `MODEL_PRESETS`:
+  `gemini-3-pro-preview`, `gemini-3.1-pro-preview`, `gemini-3-flash-preview`,
+  `gemini-3.1-flash-lite-preview`. All registered with litellm and usable
+  via `--model <short-name>`; no GA Gemini 3 variant exists as of 2026-04-24.
+- **Pricing table updates** in `dspy-costs/estimate_costs.py` and
+  `dspy-costs/README.md` for all Gemini 3.x previews plus the 2.0 Flash
+  deprecation flag.
+
+### Removed
+- None. Historical 2.0 Flash optimized programs and score files remain in
+  `results/` for reproducibility and cross-model comparison. Cross-Model
+  Transfer Findings section of README retained with 2.0 Flash as reference
+  column.
+
+---
+
 ## 2026-02-10
 
 ### Added

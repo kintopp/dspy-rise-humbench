@@ -90,7 +90,7 @@ def run_gepa(trainset, devset, feedback_metric, ExtractorClass, auto="light", mo
 def main():
     parser = argparse.ArgumentParser(description="Optimize extraction with DSPy")
     parser.add_argument("--benchmark", default="library_cards",
-                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists"],
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists", "fraktur_adverts", "general_meeting_minutes", "medieval_manuscripts", "magazine_pages"],
                         help="Benchmark name")
     parser.add_argument(
         "--optimizer",
@@ -101,7 +101,7 @@ def main():
     parser.add_argument("--auto", choices=["light", "medium", "heavy"], default="light")
     parser.add_argument("--max-bootstrapped", type=int, default=2)
     parser.add_argument("--max-labeled", type=int, default=2)
-    parser.add_argument("--model", type=str, default="gpt-4o", help="Model preset or full model string")
+    parser.add_argument("--model", type=str, default="gemini-2.5-flash", help="Model preset or full model string")
     parser.add_argument("--num-threads", type=int, default=8, help="Number of parallel threads for evaluation")
     parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
     parser.add_argument("--seed", type=int, default=42)

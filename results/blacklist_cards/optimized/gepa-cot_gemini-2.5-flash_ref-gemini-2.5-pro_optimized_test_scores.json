@@ -1,0 +1,149 @@
+{
+  "benchmark": "blacklist_cards",
+  "program": "results/blacklist_cards/optimized/gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized.json",
+  "model": "gemini/gemini-2.5-flash",
+  "module_type": "cot",
+  "refine_n": 0,
+  "refine_reward": null,
+  "aggregate": {
+    "fuzzy": 0.9267,
+    "total_instances": 25,
+    "total_keys": 154
+  },
+  "usage": {
+    "gemini/gemini-2.5-flash": {
+      "calls": 25,
+      "input_tokens": 54773,
+      "output_tokens": 28421,
+      "cache_read_tokens": 4088,
+      "reasoning_tokens": 15784
+    }
+  },
+  "per_image": [
+    {
+      "id": "638948511454726998_22_u_093",
+      "fuzzy": 0.8333,
+      "total_keys": 6
+    },
+    {
+      "id": "638948514122960907_37_u_033",
+      "fuzzy": 0.9928,
+      "total_keys": 7
+    },
+    {
+      "id": "638948515760652556_40_u_143",
+      "fuzzy": 0.8333,
+      "total_keys": 6
+    },
+    {
+      "id": "638948517510844987_48_u_067",
+      "fuzzy": 0.9921,
+      "total_keys": 6
+    },
+    {
+      "id": "638948511454726998_22_u_011",
+      "fuzzy": 0.9952,
+      "total_keys": 6
+    },
+    {
+      "id": "638948520648250905_63_u_027",
+      "fuzzy": 0.9523,
+      "total_keys": 7
+    },
+    {
+      "id": "638948517510844987_48_u_183",
+      "fuzzy": 0.9946,
+      "total_keys": 6
+    },
+    {
+      "id": "638948509529371336_13_u_019",
+      "fuzzy": 0.9949,
+      "total_keys": 6
+    },
+    {
+      "id": "638948518962299305_51_u_049",
+      "fuzzy": 0.9955,
+      "total_keys": 6
+    },
+    {
+      "id": "638948506246463270_1_u_003",
+      "fuzzy": 0.792,
+      "total_keys": 5
+    },
+    {
+      "id": "638948521003028544_66_u_055",
+      "fuzzy": 0.9966,
+      "total_keys": 6
+    },
+    {
+      "id": "638948513657936804_34_u_033",
+      "fuzzy": 0.8021,
+      "total_keys": 6
+    },
+    {
+      "id": "638948515760652556_40_u_089",
+      "fuzzy": 0.9691,
+      "total_keys": 6
+    },
+    {
+      "id": "638948507035339442_4_u_043",
+      "fuzzy": 0.9848,
+      "total_keys": 6
+    },
+    {
+      "id": "638948515760652556_40_u_029",
+      "fuzzy": 0.9921,
+      "total_keys": 6
+    },
+    {
+      "id": "638948517510844987_48_u_007",
+      "fuzzy": 0.9264,
+      "total_keys": 6
+    },
+    {
+      "id": "638948507035339442_4_u_135",
+      "fuzzy": 0.7935,
+      "total_keys": 7
+    },
+    {
+      "id": "638948521003028544_66_u_019",
+      "fuzzy": 0.9729,
+      "total_keys": 7
+    },
+    {
+      "id": "638948508323810801_7_u_025",
+      "fuzzy": 0.987,
+      "total_keys": 7
+    },
+    {
+      "id": "638948520112305720_57_u_047",
+      "fuzzy": 0.9508,
+      "total_keys": 5
+    },
+    {
+      "id": "638948521556863527_71_u_029",
+      "fuzzy": 0.9963,
+      "total_keys": 6
+    },
+    {
+      "id": "638948510550116959_19_u_053",
+      "fuzzy": 0.8261,
+      "total_keys": 7
+    },
+    {
+      "id": "638948517510844987_48_u_127",
+      "fuzzy": 0.9518,
+      "total_keys": 6
+    },
+    {
+      "id": "638948506246463270_1_u_079",
+      "fuzzy": 0.8205,
+      "total_keys": 6
+    },
+    {
+      "id": "638948510008849475_16_u_033",
+      "fuzzy": 0.8223,
+      "total_keys": 6
+    }
+  ]
+}

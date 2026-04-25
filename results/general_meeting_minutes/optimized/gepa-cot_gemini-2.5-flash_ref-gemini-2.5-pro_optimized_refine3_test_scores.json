@@ -1,0 +1,48 @@
+{
+  "benchmark": "general_meeting_minutes",
+  "program": "results/general_meeting_minutes/optimized/gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized.json",
+  "model": "gemini/gemini-2.5-flash",
+  "module_type": "cot",
+  "refine_n": 3,
+  "refine_reward": "quality",
+  "aggregate": {
+    "fuzzy": 0.914,
+    "total_instances": 5,
+    "total_keys": 321
+  },
+  "usage": {
+    "gemini/gemini-2.5-flash": {
+      "calls": 5,
+      "input_tokens": 47117,
+      "output_tokens": 103483,
+      "reasoning_tokens": 77802
+    }
+  },
+  "per_image": [
+    {
+      "id": "Se_23_Assembl\u00e9e_1951_Generalversammlung5_page_20",
+      "fuzzy": 0.8309,
+      "total_keys": 53
+    },
+    {
+      "id": "Se_18_Bilanz1967_page_4",
+      "fuzzy": 0.9613,
+      "total_keys": 61
+    },
+    {
+      "id": "Se_19_Assembl\u00e9e Mine d. Costano_2.9_12.1962_page_4",
+      "fuzzy": 0.8875,
+      "total_keys": 85
+    },
+    {
+      "id": "Se_18_Assembl\u00e9es_3_Bilanz1968_2_page_9",
+      "fuzzy": 0.9696,
+      "total_keys": 61
+    },
+    {
+      "id": "Se_18_Assembl\u00e9es_4_Bilanz1965_1_page_7",
+      "fuzzy": 0.9209,
+      "total_keys": 61
+    }
+  ]
+}

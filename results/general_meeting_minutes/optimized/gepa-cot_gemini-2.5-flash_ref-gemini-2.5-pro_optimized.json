@@ -1,0 +1,32 @@
+{
+  "predict.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Extract shareholder-meeting attendance + vote table from a scanned minutes page.",
+      "fields": [
+        {
+          "prefix": "Page Image:",
+          "description": "Scanned page of meeting minutes for Mines de Costano S.A."
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Document:",
+          "description": "A JSON object representing one page of meeting minutes of Mines de Costano S.A. (1930s-1960s).\nSchema:\n{\n  \"document\": \"string — document filename (passed as input)\",\n  \"page_number\": integer — page number (passed as input),\n  \"entries\": [\n    {\n      \"number\": \"string — row number in the attendee table\",\n      \"name\": \"string — attendee's name\",\n      \"address\": \"string — attendee's address (separate from name)\",\n      \"actions_o\": \"string — ordinary share count\",\n      \"actions_p\": \"string — preferred share count\",\n      \"no_de_voix\": \"string — number of votes\",\n      \"signature_present\": true or false,\n      \"signature\": \"string — transcribed signature text, or empty if absent\"\n    }\n  ],\n  \"total_actions\": {\n    \"total_o\": \"string — total ordinary shares\",\n    \"total_p\": \"string — total preferred shares\",\n    \"total_voix\": \"string — total votes\"\n  }\n}\n\nAbout the source:\n- Table-like shareholder meeting minutes, typed and handwritten, 1930s–1960s.\n- Languages mix French, German, and Italian within a single document.\n- Name and Address share a single cell in the source table — split them into\n  the separate \"name\" and \"address\" fields, preserving line breaks between\n  multi-line addresses. Drop visual splitter characters (dashes) between\n  name and address, but retain dashes that are part of the address itself.\n- Optional fields (actions_p, signature) are often empty — use empty strings,\n  not null.\n- Numeric fields (actions_o, actions_p, no_de_voix, totals) are stored as\n  strings for tolerant fuzzy comparison.\n- Return ONLY the JSON object, no commentary or code fences.\n"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

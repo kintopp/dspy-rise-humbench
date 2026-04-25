@@ -28,6 +28,10 @@ METRIC_KEYS = {
     "business_letters": _F1_METRICS,
     "blacklist_cards": ["fuzzy", "total_instances", "total_keys"],
     "company_lists": _F1_METRICS,
+    "fraktur_adverts": ["cer", "similarity", "total_instances"],
+    "general_meeting_minutes": ["fuzzy", "total_instances", "total_keys"],
+    "medieval_manuscripts": ["cer", "similarity", "total_instances"],
+    "magazine_pages": ["f1_macro", "f1_micro", "mean_iou_macro", "total_instances"],
 }
 
 
@@ -61,7 +65,7 @@ def print_row(label: str, scores: dict | None, metric_keys: list[str], ref: dict
 def main():
     parser = argparse.ArgumentParser(description="Compare results")
     parser.add_argument("--benchmark", default="library_cards",
-                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists"],
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists", "fraktur_adverts", "general_meeting_minutes", "medieval_manuscripts", "magazine_pages"],
                         help="Benchmark name")
     args = parser.parse_args()
 

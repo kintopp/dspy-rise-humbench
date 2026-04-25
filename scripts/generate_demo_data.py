@@ -417,7 +417,7 @@ def main():
                         choices=list(BENCHMARK_CONFIG.keys()),
                         help="Single benchmark to process")
     parser.add_argument("--all", action="store_true", help="Process all benchmarks")
-    parser.add_argument("--model", type=str, default="gemini-2.0-flash",
+    parser.add_argument("--model", type=str, default="gemini-2.5-flash",
                         help="Model preset or full model string")
     parser.add_argument("--n-images", type=int, default=5,
                         help="Number of test images to process per benchmark")

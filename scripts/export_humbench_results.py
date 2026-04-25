@@ -39,7 +39,7 @@ def main():
     )
     parser.add_argument("--program", type=str, required=True,
                         help="Path to saved optimized program JSON")
-    parser.add_argument("--model", type=str, default="gemini-2.0-flash",
+    parser.add_argument("--model", type=str, default="gemini-2.5-flash",
                         help="Model preset or full model string")
     parser.add_argument("--module", choices=["predict", "cot"], default="cot",
                         help="Module type")

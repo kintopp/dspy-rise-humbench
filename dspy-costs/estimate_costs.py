@@ -19,33 +19,43 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = PROJECT_ROOT / "results"
 
 # ---------------------------------------------------------------------------
-# Pricing tables ($ per 1M tokens). Retrieved 2026-04-21.
+# Pricing tables ($ per 1M tokens). Retrieved 2026-04-24.
 # Gemini:     https://ai.google.dev/gemini-api/docs/pricing (AI Studio)
 #             https://cloud.google.com/vertex-ai/generative-ai/pricing (Vertex)
 # Anthropic:  https://claude.com/pricing
 # OpenAI:     https://platform.openai.com/docs/pricing
 # OpenRouter: https://openrouter.ai/models (pass-through, no per-token markup)
 #
-# Tiered models (Gemini 2.5 Pro, 3 Pro Preview) use the ≤200k-token tier; above
-# 200k input tokens pricing doubles. Our prompts are well under that threshold.
+# Tiered models (Gemini 2.5 Pro, 3.x Pro Preview) use the ≤200k-token tier; above
+# 200k input tokens pricing increases (2.5 Pro: 2×, 3.1 Pro Preview: 2× input /
+# 1.5× output). Our prompts are well under that threshold.
+# gemini-2.0-flash is deprecated and shuts down 2026-06-01 — retained for
+# historical cost reconstruction only; new experiments should use 2.5 Flash
+# or gemini-3-flash-preview.
 # ---------------------------------------------------------------------------
 
 PRICING = {
-    # Google AI Studio (Gemini API). gemini-2.0-flash has a free tier.
+    # Google AI Studio (Gemini API).
     "ai_studio": {
-        "gemini-3-pro-preview":  {"input": 2.00,  "output": 12.00},
-        "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
-        "gemini-2.5-flash":      {"input": 0.30,  "output": 2.50},
-        "gemini-2.0-flash":      {"input": 0.10,  "output": 0.40},
+        "gemini-3.1-pro-preview":        {"input": 2.00,  "output": 12.00},
+        "gemini-3-pro-preview":          {"input": 2.00,  "output": 12.00},
+        "gemini-3-flash-preview":        {"input": 0.50,  "output": 3.00},
+        "gemini-3.1-flash-lite-preview": {"input": 0.25,  "output": 1.50},
+        "gemini-2.5-pro":                {"input": 1.25,  "output": 10.00},
+        "gemini-2.5-flash":              {"input": 0.30,  "output": 2.50},
+        "gemini-2.0-flash":              {"input": 0.10,  "output": 0.40},  # deprecated 2026-06-01
         # gemini-1.5-pro: deprecated on Gemini API as of Feb 2026.
     },
     # Google Vertex AI: some models priced identically to AI Studio, some higher.
     "vertex_ai": {
-        "gemini-3-pro-preview":  {"input": 2.00,  "output": 12.00},
-        "gemini-2.5-pro":        {"input": 1.25,  "output": 10.00},
-        "gemini-2.5-flash":      {"input": 0.30,  "output": 2.50},
-        "gemini-2.0-flash":      {"input": 0.15,  "output": 0.60},
-        "gemini-1.5-pro":        {"input": 1.25,  "output": 5.00},
+        "gemini-3.1-pro-preview":        {"input": 2.00,  "output": 12.00},
+        "gemini-3-pro-preview":          {"input": 2.00,  "output": 12.00},
+        "gemini-3-flash-preview":        {"input": 0.50,  "output": 3.00},
+        "gemini-3.1-flash-lite-preview": {"input": 0.25,  "output": 1.50},
+        "gemini-2.5-pro":                {"input": 1.25,  "output": 10.00},
+        "gemini-2.5-flash":              {"input": 0.30,  "output": 2.50},
+        "gemini-2.0-flash":              {"input": 0.15,  "output": 0.60},  # deprecated 2026-06-01
+        "gemini-1.5-pro":                {"input": 1.25,  "output": 5.00},
     },
     "anthropic": {
         "claude-sonnet-4-5":     {"input": 3.00,  "output": 15.00},
