@@ -533,10 +533,12 @@ Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program 
 
 | Configuration | similarity | CER |
 |---|---|---|
-| **GEPA medium (CoT) + Refine(3)** | **0.7154** | **0.285** |
-| GEPA medium (CoT) base | 0.589 | 0.411 |
+| **MIPROv2 medium-CoT on gemini-2.5-pro + Refine(3) (Phase A.5 Swap 4)** ← new headline | **0.7553** | **0.2447** |
+| MIPROv2 medium-CoT on gemini-2.5-pro (no Refine) | 0.6814 | 0.3186 |
+| Phase A: GEPA medium-CoT on 2.5 Flash + Refine(3) | 0.7154 | 0.2854 |
+| Phase A: GEPA medium-CoT on 2.5 Flash (no Refine) | 0.5890 | 0.4110 |
 
-**GEPA medium-CoT + Refine(3) reached 0.7154 similarity** — above the 2.5 Flash hand-prompt baseline (~66) and competitive with mid-tier multimodal models, though below the Claude Opus leader. The base score (0.589) was actually *below* the 2.5 Flash hand-prompt baseline; GEPA overfit the 3-image valset, and Refine(3) recovered +12.6 pts on transcription-stochastic errors.
+**Phase A.5 Swap 4 (executed 2026-04-25):** MIPROv2 medium-CoT compiled on `gemini-2.5-pro` + Refine(3) lifts headline to 0.7553 (CER 0.2447) — +0.04 over the Phase A 2.5 Flash GEPA winner (0.7154). Trails live #1 (claude-opus-4-5 at 84.9) by 0.094 — Claude Opus's transcription depth is the binding constraint here, not prompt engineering. The no-Refine 2.5 Pro number (0.6814) was *below* the Phase A best, confirming on this benchmark that **Refine(3) is the load-bearing component**: stochastic transcription errors are what the optimised program leaves on the table, and better-of-N at higher temperature recovers them.
 
 #### Key findings
 
