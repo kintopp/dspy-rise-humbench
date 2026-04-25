@@ -74,13 +74,17 @@ is not versioned, entries are grouped by date.
     Retries on near-threshold transcriptions close the gap the tiny valset
     caused. Upstream leader claude-opus-4-5 at 84.9.
   - `magazine_pages` (46 images, spatial bounding-box detection, IoU-F1):
-    MIPROv2 medium-CoT using new shared `iou_f1_*` factories. Final
-    f1_macro **0.1842** (mean IoU of matched boxes 0.173), a 10× lift over
-    the 1.6 hand-prompt baseline on 2.5 Flash. Documents the predicted
-    conclusion — 2.5 Flash's coordinate grounding is the binding constraint
-    on spatial tasks, not prompt quality. A secondary optimization pass on
-    `gemini-3-flash-preview` (hand-prompt baseline 84.8/100) is the
-    anticipated follow-up.
+    MIPROv2 medium-CoT using new shared `iou_f1_*` factories. On 2.5 Flash:
+    f1_macro **0.1842** (matched-box IoU 0.173), a 10× lift over the 1.6
+    hand-prompt baseline. **Stage-4 follow-up on Gemini 3 Flash Preview**
+    (re-compiled, same recipe): f1_macro **0.4245** (matched-box IoU
+    0.383) — 2.3× better, IoU +0.21. Spatial tasks are model-bound; the
+    same optimization recipe doubles the score on a model with stronger
+    coordinate grounding. The 3 Flash Preview run required a
+    `_maybe_rescale_normalized` helper in `magazine_pages/scoring.py`
+    because Gemini 3 emits boxes in a 0–1000 normalized grid regardless
+    of pixel-space prompt instructions; auto-detection rescales to
+    GT-derived pixel space.
 - **Defensive scoring helpers**: `box_iou` and
   `parse_prediction_document` now tolerate malformed inputs (3-element
   boxes, predictions missing the `document` attribute after a parallel-

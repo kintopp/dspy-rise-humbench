@@ -216,7 +216,8 @@ The RISE suite gained five benchmarks after the original 2.0 Flash work (book_ad
 | general_meeting_minutes | 9 | GEPA-CoT (reflection=2.5 Pro) + Refine(3) | **0.9140** fuzzy | gpt-5.4: 88.6 *(only gpt-5.x tested upstream)* |
 | fraktur_adverts | 5 | MIPROv2 heavy-CoT LOO | **0.6558** similarity (CER 0.344) | gemini-3.1-pro-preview: 97.9 |
 | medieval_manuscripts | 12 | GEPA-CoT (reflection=2.5 Pro) + Refine(3) | **0.7154** similarity (CER 0.285) | claude-opus-4-5: 84.9 |
-| magazine_pages | 46 | MIPROv2 medium-CoT | **0.1842** f1_macro (mean_iou 0.173) | gpt-5.2: 88.5 / 2.5 Flash hand-prompt: 1.6 |
+| magazine_pages (2.5 Flash) | 46 | MIPROv2 medium-CoT | **0.1842** f1_macro (mean_iou 0.173) | gpt-5.2: 88.5 / 2.5 Flash hand-prompt: 1.6 |
+| magazine_pages (3 Flash Preview) | 46 | MIPROv2 medium-CoT (rescaled) | **0.4245** f1_macro (mean_iou 0.383) | 3 Flash Preview hand-prompt: 84.8 |
 
 *`magazine_pages` is a vision-localization (bounding-box) task; its 1.6/100 hand-prompt score on 2.5 Flash suggests the model's coordinate emission is the binding constraint, not prompt quality. A secondary optimization pass on `gemini-3-flash-preview` is anticipated.*
 
@@ -555,15 +556,20 @@ Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program 
 
 | Configuration | f1_macro | mean_iou (matched) |
 |---|---|---|
-| **MIPROv2 medium (CoT)** | **0.1842** | 0.173 |
-| Hand-prompt baseline (upstream) | 0.016 | — |
+| MIPROv2 medium (CoT) on **Gemini 2.5 Flash** | 0.1842 | 0.173 |
+| **MIPROv2 medium (CoT) on Gemini 3 Flash Preview** | **0.4245** | **0.383** |
+| 2.5 Flash hand-prompt baseline (upstream) | 0.016 | — |
+| 3 Flash Preview hand-prompt (upstream) | 0.848 | — |
 
-**MIPROv2 medium-CoT delivered a 12× lift over the hand-prompt baseline (1.6 → 18.4 F1)** but the absolute score remains far below the leaderboard. The 0.173 mean IoU on matched boxes confirms 2.5 Flash's coordinate emission is the binding constraint, not prompt quality.
+**On 2.5 Flash:** MIPROv2 medium-CoT delivered a 12× lift over the hand-prompt baseline (1.6 → 18.4 F1) but absolute score remains far below the leaderboard — IoU 0.173 on matched boxes confirms 2.5 Flash's coordinate emission is the binding constraint.
+
+**On Gemini 3 Flash Preview:** the same MIPROv2 medium-CoT recipe (re-compiled, since 2.5 Flash demos didn't transfer well) reached 0.4245 f1_macro and IoU 0.383 on matched boxes — **2.3× better than 2.5 Flash, double the localisation accuracy** — but still only half the upstream hand-prompt's 84.8. A `_maybe_rescale_normalized` helper in `magazine_pages/scoring.py` was required: Gemini 3 emits boxes in a 0–1000 normalized grid by default, regardless of explicit pixel-space prompt instructions, so the scoring auto-detects this case and rescales to GT-derived pixel space.
 
 #### Key findings
 
-- **2.5 Flash cannot accurately emit pixel coordinates.** Even with MIPROv2-tuned demonstrations and instructions, IoU stays below 0.2 on matched boxes — the gap to gemini-3-flash-preview (84.8) is a model-capability gap, not a prompt-engineering gap.
-- **Optimization still helps proportionally.** A 12× lift over hand-prompt is meaningful evidence that DSPy's instruction proposer + few-shot demonstrations push 2.5 Flash to its (low) ceiling. The same program transferred to gemini-3-flash-preview would likely close most of the gap.
+- **Spatial tasks are model-bound, not prompt-bound.** The 2.5 Flash → 3 Flash Preview switch alone, holding the optimization recipe constant, doubles f1 and improves IoU on matched boxes by +0.21. The gap from 0.42 to the upstream hand-prompt's 0.85 likely reflects (i) imperfect rescale heuristic vs. exact page dimensions, and (ii) the upstream prompt being tuned to Gemini 3's grounding API.
+- **Optimization still helps proportionally on the weaker model.** 2.5 Flash got a 12× lift over its hand-prompt baseline; that proves DSPy can extract every drop the model has, but spatial accuracy is a hard ceiling on cheap-tier vision models.
+- **Gemini 3's 0–1000 default grounding grid is a portable gotcha.** Models with grounding APIs may ignore explicit pixel-space prompts; the auto-rescale heuristic in scoring should ship with any future spatial benchmark to defend against this.
 
 ---
 
