@@ -1,0 +1,26 @@
+{
+  "benchmark": "fraktur_adverts",
+  "model": "gemini/gemini-3.1-pro-preview",
+  "module_type": "cot",
+  "aggregate": {
+    "cer": 0.0425,
+    "similarity": 0.9575,
+    "total_instances": 2
+  },
+  "per_image": [
+    {
+      "id": "image_5",
+      "fuzzy": 0.964,
+      "cer": 0.061,
+      "total_ads": 18,
+      "matched_ads": 18
+    },
+    {
+      "id": "image_1",
+      "fuzzy": 0.982,
+      "cer": 0.024,
+      "total_ads": 31,
+      "matched_ads": 31
+    }
+  ]
+}

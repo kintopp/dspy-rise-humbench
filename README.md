@@ -500,7 +500,9 @@ Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program 
 
 | Configuration | similarity | CER | per-image |
 |---|---|---|---|
-| **MIPROv2 medium-CoT on gemini-2.5-pro (Phase A.5 Swap 5, 70/30 test split = 2 images)** ← new headline | **0.9460** | **0.054** | image_5: 0.94 / image_1: 0.95 |
+| **MIPROv2 medium-CoT on gemini-3.1-pro-preview (Phase A.6 swap, no Refine = MIPROv2 saturated default)** ← new headline (clean 2-image test split) | **0.9575** | **0.0425** | image_5: 0.964 / image_1: 0.982 |
+| MIPROv2 medium-CoT on gemini-3.1-pro-preview + Refine(3) (Refine *hurt*) | 0.9100 | 0.090 | — |
+| MIPROv2 medium-CoT on gemini-2.5-pro (Phase A.5 Swap 5) | 0.9460 | 0.054 | image_5: 0.94 / image_1: 0.95 |
 | MIPROv2 medium-CoT on gemini-2.5-pro + Refine(3) (no further lift) | 0.9430 | 0.057 | — |
 | Phase A: MIPROv2 heavy LOO-CoT on 2.5 Flash (5 folds, all images) | 0.6558 | 0.344 | image_1: 0.80 / image_2: 0.00 / image_3: 0.98 / image_4: 0.98 / image_5: 0.57 |
 
