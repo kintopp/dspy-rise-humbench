@@ -15,14 +15,14 @@
       "output_tokens": 6231200
     },
     "gemini-2.5-pro": {
-      "calls": 1758,
-      "input_tokens": 5279000,
-      "output_tokens": 1655500
+      "calls": 1958,
+      "input_tokens": 5754000,
+      "output_tokens": 1755500
     },
     "gemini-2.5-flash": {
-      "calls": 1189,
-      "input_tokens": 4145000,
-      "output_tokens": 1085100
+      "calls": 1534,
+      "input_tokens": 4876500,
+      "output_tokens": 2120100
     },
     "gemini-3-pro-preview": {
       "calls": 320,
@@ -260,6 +260,26 @@
       "output_tokens": 6000,
       "measured": false,
       "notes": "gepa-cot_gemini-2.0-flash_optimized_test_scores.json"
+    },
+    {
+      "name": "Optimize: loo-mipro",
+      "benchmark": "bibliographic_data",
+      "model": "gemini-2.5-flash",
+      "calls": 340,
+      "input_tokens": 714000,
+      "output_tokens": 1020000,
+      "measured": false,
+      "notes": "loo-mipro-heavy-cot_gemini-2.5-flash_fold0_page_10.json"
+    },
+    {
+      "name": "Test eval: loo-mipro",
+      "benchmark": "bibliographic_data",
+      "model": "gemini-2.5-flash",
+      "calls": 5,
+      "input_tokens": 17500,
+      "output_tokens": 15000,
+      "measured": false,
+      "notes": "loo-mipro-heavy-cot_gemini-2.5-flash_test_scores.json"
     },
     {
       "name": "Optimize: loo-mipro",
@@ -642,6 +662,36 @@
       "notes": "scores_gemini-2.0-flash.json"
     },
     {
+      "name": "Optimize: gepa",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.5-pro",
+      "calls": 100,
+      "input_tokens": 175000,
+      "output_tokens": 50000,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized.json"
+    },
+    {
+      "name": "Test eval: gepa +Refine(3)",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.5-pro",
+      "calls": 75,
+      "input_tokens": 225000,
+      "output_tokens": 37500,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: gepa",
+      "benchmark": "blacklist_cards",
+      "model": "gemini-2.5-pro",
+      "calls": 25,
+      "input_tokens": 75000,
+      "output_tokens": 12500,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized_test_scores.json"
+    },
+    {
       "name": "Optimize: mipro-medium",
       "benchmark": "blacklist_cards",
       "model": "gemini-2.0-flash",
@@ -791,13 +841,13 @@
     },
     "gemini-2.5-pro": {
       "provider": "ai_studio",
-      "base_cost": 23.1537,
-      "adjusted_cost": 30.0999
+      "base_cost": 24.7475,
+      "adjusted_cost": 32.1718
     },
     "gemini-2.5-flash": {
       "provider": "ai_studio",
-      "base_cost": 3.9562,
-      "adjusted_cost": 5.1431
+      "base_cost": 6.7632,
+      "adjusted_cost": 8.7922
     },
     "gemini-3-pro-preview": {
       "provider": "ai_studio",
@@ -805,5 +855,5 @@
       "adjusted_cost": 5.5328
     }
   },
-  "total_adjusted_cost": 45.73
+  "total_adjusted_cost": 51.45
 }
