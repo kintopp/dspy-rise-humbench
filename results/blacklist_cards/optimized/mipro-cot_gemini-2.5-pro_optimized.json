@@ -1,0 +1,32 @@
+{
+  "predict.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "You are an expert in OCR and data extraction from historical documents. Your task is to analyze an image of a WWII-era British blacklist index card and extract specific information into a structured JSON format.\n\nFirst, think step-by-step to outline your plan for extracting each required field. Describe where you will find each piece of information on the card and how you will handle any missing or unreadable data.\n\nAfter your reasoning, provide the extracted data as a single JSON object.\n\n**Extraction Guidelines:**\n1.  **`company`**: The primary company or person's name, located at the top-left of the card.\n2.  **`location`**: The city or town, usually following the company name.\n3.  **`b_id`**: The identifier code in the top-right corner, typically starting with 'B.'.\n4.  **`date`**: Look for a stamped date on the card. If a stamped date is present, format it as YYYY-MM-DD. If there is no stamped date, this field must be an empty string (`\"\"`). Dates mentioned within the body of the text should be included in the `information` field, not here.\n5.  **`information`**: Transcribe all distinct text blocks from the main body of the card, including both typed and handwritten notes. Each block should be a separate entry in the list.\n\n**Transcription and Formatting Rules:**\n*   **Exact Transcription**: Preserve the original language (German), spelling, capitalization, diacritics (e.g., `é`, `ü`), and punctuation precisely as they appear on the card.\n*   **Line Breaks**: Within the `information` text blocks, represent line breaks with `\\n`.\n*   **Missing/Unreadable Data**: If you cannot read a value or if a field is not present (e.g., no stamped date), its corresponding transcription value must be an empty string (`\"\"`).\n*   **JSON Schema**: The final output must be a single JSON object that strictly adheres to the following structure:\n\n```json\n{\n  \"company\": {\"transcription\": \"string\"},\n  \"location\": {\"transcription\": \"string\"},\n  \"b_id\": {\"transcription\": \"string\"},\n  \"date\": \"string\",\n  \"information\": [\n    {\"transcription\": \"string\"}\n  ]\n}\n```",
+      "fields": [
+        {
+          "prefix": "Card Image:",
+          "description": "Scanned blacklist index card"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Document:",
+          "description": "A JSON object with the extracted data from a 1940s British blacklist index card.\nThe JSON must follow this exact schema:\n{\n  \"company\": {\"transcription\": \"string — primary company or person name, top-left of card\"},\n  \"location\": {\"transcription\": \"string — city or town, often following the company name\"},\n  \"b_id\": {\"transcription\": \"string — identifier code, top-right, starting with 'B.'\"},\n  \"date\": \"string — stamped date in YYYY-MM-DD format, or empty string if absent\",\n  \"information\": [\n    {\"transcription\": \"string — text block from the card body\"}\n  ]\n}\n\nRules:\n- company, location, and b_id each have a nested \"transcription\" field.\n- date is a flat string (no transcription wrapper). Use \"\" if no date is stamped.\n- information is a list of objects, each with a \"transcription\" field. Use \"\" (empty string) if the card body has no text blocks.\n- Preserve line breaks in information blocks with \\n.\n- Preserve original language, diacritics, and punctuation exactly as written.\n- If you cannot read a value, use an empty string for its transcription.\n"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

@@ -202,7 +202,7 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 | Bibliographic Data | MIPROv2 heavy-CoT LOO (compiled on 2.5 Flash) | **0.7094** avg fuzzy (LOO) | GPT-4o: 71.4 |
 | Personnel Cards | MIPROv2-CoT (compiled on 2.5 Flash, proposer=3.1-pro-preview) + Refine(3) | **0.9116** f1_macro | trails live #1 (3.1-pro-preview 97.04) by 5.9 pts; +2.4 pts over our prior best |
 | Business Letters | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.8087** f1_macro | GPT-5: 77.0 |
-| Blacklist Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.9474** avg fuzzy | GPT-4.1: 95.7 |
+| Blacklist Cards | MIPROv2-CoT compiled on **gemini-2.5-pro** + Refine(3) (Phase A.5 Swap 3) | **0.9689** avg fuzzy | **leaderboard #1** (was claude-sonnet-4-6 at 96.76) |
 | Company Lists | MIPROv2-CoT (compiled on 2.0 Flash) | **0.8682** f1_macro | GPT-5: 58.4 |
 
 *The individual benchmark sections below retain the original 2.0 Flash narrative — what worked, why, and which configurations won during the original campaign — with a "**On Gemini 2.5 Flash**" callout at the top of each section reporting the post-migration result. The Cross-Model Transfer Findings section gives the full transfer comparison.*
@@ -379,7 +379,7 @@ The key challenge is person name matching: names must exactly match entries in t
 
 *33 images of 1940s British blacklist index cards. Each card identifies a company (with location and BID code) that appeared on wartime trade blacklists, with optional date and information fields. Task: extract structured data into a flat JSON with nested company/location/b\_id objects.*
 
-**On Gemini 2.5 Flash:** The 2.0 Flash-compiled MIPROv2-CoT program + Refine(3) transferred to **0.9474 fuzzy** (-2.39 pts vs. 2.0 Flash — slight regression). A direct re-compile via GEPA medium with Gemini 2.5 Pro as reflection LM was attempted (cost ~$2.65) and produced 0.9267 base / 0.9321 with Refine(3) — *worse* than the transfer. A 4-image valset is too small for GEPA's Pareto selection to discriminate candidates at the >0.92 fuzzy ceiling. **The transferred 2.0 Flash program + Refine(3) remains the headline winner.** The GEPA-compiled program is preserved as a documented null result.
+**Phase A.5 Swap 3 (executed 2026-04-25, gemini-2.5-pro + MIPROv2-CoT + Refine(3)) → 0.9689 fuzzy = leaderboard #1.** Beats live #1 (claude-sonnet-4-6 hand-prompt at 0.9676) by +0.0013 and the Phase A best (transferred 2.0 Flash MIPROv2 + Refine(3) at 0.9474) by +0.0215. Earlier on Gemini 2.5 Flash: a direct re-compile via GEPA medium with Gemini 2.5 Pro as reflection LM was attempted (cost ~$2.65) and produced 0.9267 base / 0.9321 with Refine(3) — *worse* than the 2.0 Flash transfer. The 4-image valset is too small for GEPA's Pareto selection to discriminate candidates at the >0.92 fuzzy ceiling.
 
 **Metric**: Average fuzzy score across all leaf fields (continuous, no threshold). **Data split**: 4 train (15%) / 4 dev (15%) / 25 test (70%), seed=42.
 
