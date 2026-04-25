@@ -200,7 +200,7 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 |---|---|---|---|
 | Library Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.9258** f1_macro | GPT-5: 89.5 |
 | Bibliographic Data | MIPROv2 heavy-CoT LOO (compiled on 2.5 Flash) | **0.7094** avg fuzzy (LOO) | GPT-4o: 71.4 |
-| Personnel Cards | MIPROv2-CoT (compiled on 2.5 Flash, proposer=3.1-pro-preview) + Refine(3) | **0.9116** f1_macro | trails live #1 (3.1-pro-preview 97.04) by 5.9 pts; +2.4 pts over our prior best |
+| Personnel Cards | MIPROv2-CoT compiled on **claude-sonnet-4-6** + Refine(3) (Phase A.5 Swap 2) | **0.9151** f1_macro | trails live #1 (3.1-pro-preview 97.04) by 5.5 pts; +0.0035 over Phase A Track 1 |
 | Business Letters | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.8087** f1_macro | GPT-5: 77.0 |
 | Blacklist Cards | MIPROv2-CoT compiled on **gemini-2.5-pro** + Refine(3) (Phase A.5 Swap 3) | **0.9689** avg fuzzy | **leaderboard #1** (was claude-sonnet-4-6 at 96.76) |
 | Company Lists | MIPROv2-CoT (compiled on 2.0 Flash) | **0.8682** f1_macro | GPT-5: 58.4 |
