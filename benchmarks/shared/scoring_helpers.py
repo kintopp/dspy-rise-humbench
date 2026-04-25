@@ -279,6 +279,127 @@ def fuzzy_gepa_feedback_metric(
     )
 
 
+# ---------------------------------------------------------------------------
+# Foundation 1 (2026-04-25) — rich-feedback GEPA metric factory
+# ---------------------------------------------------------------------------
+#
+# `rich_feedback_metric` generalises `_make_gepa_feedback_metric` by replacing
+# the single `low_field_threshold` filter with a per-field error categorizer.
+# The categorizer assigns each scored field to a named error class
+# ("missing_or_wrong" / "very_low" / "low" / "near_miss" / a benchmark-specific
+# label like "wrong_dittomark"); the feedback string lists the category for
+# each flagged field, giving GEPA's reflection LM signal to write *targeted*
+# prompt revisions rather than generic "improve the output."
+#
+# Used (per offline/2026-04-25_phase-a-foundations-plan.md) by Personnel Cards,
+# Magazine Pages, Medieval Manuscripts, Book Advert XML, and Phase-B sweeps
+# of the leading benchmarks.
+
+
+def _default_error_categorizer(field_path: str, info: dict) -> str | None:
+    """Score-range categorizer used when the caller does not supply one.
+
+    Returns ``None`` for fields that do not warrant a critique line
+    (perfect or near-perfect matches).
+    """
+    s = info.get("score", 0.0)
+    if s == 0.0:
+        return "missing_or_wrong"
+    if s < 0.5:
+        return "very_low"
+    if s < 0.8:
+        return "low"
+    if s < 0.95:
+        return "near_miss"
+    return None
+
+
+def _truncate_for_critique(value, max_chars: int) -> str:
+    """Repr-and-truncate so feedback strings stay compact for the reflection LM."""
+    s = repr(value)
+    return s if len(s) <= max_chars else s[: max_chars - 1] + "…"
+
+
+def rich_feedback_metric(
+    score_fn,
+    score_key: str,
+    *,
+    error_categorizer=None,
+    max_critique_lines: int = 8,
+    truncate_value_chars: int = 80,
+):
+    """Build a GEPA-compatible metric emitting structured per-field critique.
+
+    The returned metric matches DSPy's GEPA signature:
+        metric(gold, pred, trace=None, pred_name=None, pred_trace=None)
+            -> dspy.Prediction(score=float, feedback=str)
+
+    Args:
+        score_fn: benchmark's ``score_single_prediction(pred_dict, gt_dict)``.
+            Must return a dict containing ``score_key`` and a ``field_scores``
+            sub-dict mapping field paths to ``{"response", "ground_truth", "score"}``.
+        score_key: which key in score_fn's output to use as the headline score
+            (e.g. "f1_score", "fuzzy", "cer").
+        error_categorizer: callable(field_path: str, info: dict) -> str | None.
+            Returns a category label for fields worth flagging, or None to
+            skip. Defaults to ``_default_error_categorizer`` (score-range
+            bucketing). Benchmarks supply their own to surface
+            domain-specific failure modes.
+        max_critique_lines: cap on how many field critiques appear in the
+            feedback string. Excess fields are summarised as "... (N more)".
+        truncate_value_chars: per-field, predicted and gold values are
+            truncated to this many characters in the feedback string.
+
+    Feedback string shape (when there are flagged errors):
+        "<score_key>=<x>. <N> errors:
+          - <field_path>: <category> — predicted=<…>, gold=<…>
+          - ..."
+
+    Feedback shape with no flagged errors:
+        "<score_key>=<x>"
+
+    Feedback shape on perfect score:
+        "Perfect score"
+    """
+    if error_categorizer is None:
+        error_categorizer = _default_error_categorizer
+
+    def metric(gold, pred, trace=None, pred_name=None, pred_trace=None):
+        pred_dict = parse_prediction_document(pred)
+        gt_dict = parse_gt_document(gold)
+        if pred_dict is None or gt_dict is None:
+            return dspy.Prediction(score=0.0, feedback="Failed to parse JSON output")
+
+        scores = score_fn(pred_dict, gt_dict)
+        score = scores[score_key]
+        if score >= 1.0:
+            return dspy.Prediction(score=score, feedback="Perfect score")
+
+        critiques = []
+        for field_path, info in scores.get("field_scores", {}).items():
+            category = error_categorizer(field_path, info)
+            if category is None:
+                continue
+            pred_val = _truncate_for_critique(info.get("response", ""), truncate_value_chars)
+            gold_val = _truncate_for_critique(info.get("ground_truth", ""), truncate_value_chars)
+            critiques.append(
+                f"  - {field_path}: {category} — predicted={pred_val}, gold={gold_val}"
+            )
+
+        if not critiques:
+            feedback = f"{score_key}={score:.3f}"
+        else:
+            shown = critiques[:max_critique_lines]
+            elided = len(critiques) - len(shown)
+            header = f"{score_key}={score:.3f}. {len(critiques)} errors:"
+            elided_note = f"\n  ... ({elided} more)" if elided > 0 else ""
+            feedback = header + "\n" + "\n".join(shown) + elided_note
+
+        return dspy.Prediction(score=score, feedback=feedback)
+
+    return metric
+
+
 def f1_compute_aggregate_scores(all_scores: list[dict]) -> dict:
     """Compute micro and macro F1 across all scored images.
 
