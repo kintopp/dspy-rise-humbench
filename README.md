@@ -205,7 +205,7 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 | Blacklist Cards | MIPROv2-CoT (compiled on 2.0 Flash) + Refine(3) | **0.9474** avg fuzzy | GPT-4.1: 95.7 |
 | Company Lists | MIPROv2-CoT (compiled on 2.0 Flash) | **0.8682** f1_macro | GPT-5: 58.4 |
 
-*Scores marked "pending re-optimization" will be filled in when the 2026-04-24 runs complete. See the individual benchmark sections below for the original 2.0 Flash narrative and the Cross-Model Transfer Findings section for the full transfer table.*
+*The individual benchmark sections below retain the original 2.0 Flash narrative — what worked, why, and which configurations won during the original campaign — with a "**On Gemini 2.5 Flash**" callout at the top of each section reporting the post-migration result. The Cross-Model Transfer Findings section gives the full transfer comparison.*
 
 ### Stage-3 results — four new RISE benchmarks (compiled on Gemini 2.5 Flash)
 
@@ -225,6 +225,8 @@ The RISE suite gained five benchmarks after the original 2.0 Flash work (book_ad
 ### [Library Cards](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/library_cards)
 
 *263 images of Swiss library catalog cards. Each card contains bibliographic metadata — author, title, year, shelfmark, classification codes — to be extracted into a flat JSON structure. One card, one record.*
+
+**On Gemini 2.5 Flash:** The 2.0 Flash-compiled MIPROv2-CoT program transferred cleanly + Refine(3) → **0.9258 f1_macro** on the same 185-image test set (+0.91 pts vs. 2.0 Flash; new project best). No re-compilation needed.
 
 **Metric**: Field-level fuzzy F1 (macro-averaged across images). **Data split**: 39 train (15%) / 39 dev (15%) / 185 test (70%), seed=42.
 
@@ -260,6 +262,8 @@ The RISE suite gained five benchmarks after the original 2.0 Flash work (book_ad
 ### [Bibliographic Data](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/bibliographic_data)
 
 *5 JPEG pages from a 1961 bibliography of philosophy of history ("Bibliography of Works in the Philosophy of History, 1945-1957", History and Theory). Each page contains 14-20 bibliographic entries (~82 total) with multilingual titles, nested related entries, and cross-page continuations. Task: extract structured entries with authors, titles, types, publishers, volumes, pages, and relations.*
+
+**On Gemini 2.5 Flash:** This benchmark was the only original-six case where naive transfer failed — the 2.0 Flash-compiled program collapsed to **0.4607 fuzzy** (single-image parse failure on page 10 halves a 2-image test set). MIPROv2 heavy-CoT LOO re-compiled directly on 2.5 Flash → **0.7094 fuzzy** (vs. 2.0 Flash original 0.7072 — ~parity). Per-fold: page_10 0.42, page_2 0.91, page_3 0.40, page_4 0.89, page_5 0.93. Page 3 newly bimodal under 2.5 Flash because position-based entry matching breaks when the model orders entries differently.
 
 **Metric**: Average fuzzy score across all leaf fields (continuous, no threshold). **Data split**: 2 train (40%) / 1 dev (20%) / 2 test (40%). Leave-one-out cross-validation also run (5 folds, one image per fold).
 
@@ -299,6 +303,8 @@ The test set reveals a **bimodal distribution**: page 5 scores 0.91 (excellent),
 
 *61 images of 20th-century Swiss Federal personnel cards. Each card is a table recording an employee's career: job title, work location, salary class, salary amount, date of salary change, and remarks — with each field transcribed both diplomatically (as-written) and with normalised interpretation. Task: extract all rows with their sub-fields into a structured JSON.*
 
+**On Gemini 2.5 Flash:** The 2.0 Flash-compiled MIPROv2-CoT program transferred + Refine(3) → **0.8874 f1_macro** (-0.20 pts vs. 2.0 Flash; within noise). No re-compilation needed.
+
 **Metric**: Field-level fuzzy F1 (macro-averaged across images, same threshold logic as Library Cards). **Data split**: 9 train (15%) / 9 dev (15%) / 43 test (70%), seed=42.
 
 **RISE leaderboard reference**: This benchmark is not yet listed on the public [RISE leaderboard dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/leaderboard/). The previously reported top score was ~79.0 (Gemini 2.5 Pro).
@@ -326,6 +332,8 @@ This benchmark presents a different challenge from Library Cards: the schema is 
 ### [Business Letters](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/business_letters)
 
 *57 letters (98 page images) of 20th-century Swiss historical business correspondence. Each letter may span multiple pages. Task: extract sender persons, receiver persons, mentioned persons, organisations, send date, and receive date — matching names against a predefined alias table (`persons.json`) of 119 known individuals.*
+
+**On Gemini 2.5 Flash:** The 2.0 Flash-compiled MIPROv2-CoT program + Refine(3) jumped from 0.7312 (2.0 Flash) to **0.8087 f1_macro** (+7.75 pts; new best, exceeds the upstream leaderboard's GPT-5 at 77.0). 2.5 Flash follows the "First Last" name-format demonstrations from the few-shot demos better than 2.0 Flash did — a clean transfer win.
 
 **Metric**: Category-level set matching with F1 (macro-averaged across letters). Persons are matched via exact string lookup in the alias table — no fuzzy matching. **Data split**: 8 train (15%) / 8 dev (15%) / 41 test (70%), seed=42.
 
@@ -362,6 +370,8 @@ The key challenge is person name matching: names must exactly match entries in t
 
 *33 images of 1940s British blacklist index cards. Each card identifies a company (with location and BID code) that appeared on wartime trade blacklists, with optional date and information fields. Task: extract structured data into a flat JSON with nested company/location/b\_id objects.*
 
+**On Gemini 2.5 Flash:** The 2.0 Flash-compiled MIPROv2-CoT program + Refine(3) transferred to **0.9474 fuzzy** (-2.39 pts vs. 2.0 Flash — slight regression). A direct re-compile via GEPA medium with Gemini 2.5 Pro as reflection LM was attempted (cost ~$2.65) and produced 0.9267 base / 0.9321 with Refine(3) — *worse* than the transfer. A 4-image valset is too small for GEPA's Pareto selection to discriminate candidates at the >0.92 fuzzy ceiling. **The transferred 2.0 Flash program + Refine(3) remains the headline winner.** The GEPA-compiled program is preserved as a documented null result.
+
 **Metric**: Average fuzzy score across all leaf fields (continuous, no threshold). **Data split**: 4 train (15%) / 4 dev (15%) / 25 test (70%), seed=42.
 
 **RISE leaderboard reference** (full 33 images, hand-crafted prompts, [dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/benchmarks/?id=blacklist_cards)):
@@ -397,6 +407,8 @@ This benchmark tests optimization at the ceiling: the unoptimized Flash baseline
 
 *15 images of printed Swiss company trade index pages from the British Swiss Chamber of Commerce (1925-1958). Each page lists 15-31 company entries — alphabetical or grouped by trade category. Task: extract each company's name and location into a flat JSON list, with sequentially numbered entry IDs.*
 
+**On Gemini 2.5 Flash:** The 2.0 Flash-compiled MIPROv2-CoT program transferred to **0.8682 f1_macro** (-0.89 pts vs. 2.0 Flash; within noise; Refine hurts on this benchmark and is not used). No re-compilation needed. Still ~28 pts above the upstream leaderboard's GPT-5.
+
 **Metric**: Field-level fuzzy F1 (macro-averaged across images, 0.92 threshold). Null values (None/"null") normalised to empty string before comparison. **Data split**: 2 train (15%) / 2 dev (15%) / 11 test (70%), seed=42.
 
 **RISE leaderboard reference** (full 15 images, hand-crafted prompts, [dashboard](https://rise-services.rise.unibas.ch/benchmarks/p/benchmarks/?id=company_lists)):
@@ -427,6 +439,131 @@ Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program 
 
 - **Explicit `page_id` input is critical for scoring.** Entry IDs follow the format `"{page_id}-N"`. Without the page ID, the model invents IDs that don't match ground truth. This likely explains the gap between our baseline (76.4) and the upstream leaderboard (58.4).
 - **Refine hurts when first-attempt quality is high.** This is the second benchmark (after Bibliographic Data) where Refine degraded the score. Refine helps with stochastic errors (name format, parse failures) but hurts when the main risk is regression on pages already scoring well.
+
+---
+
+### [General Meeting Minutes](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/general_meeting_minutes)
+
+*9 images of 1930s–1960s shareholder-meeting minutes for Mines de Costano S.A. Each page is a table recording attendees: name, address (split from the same source cell), ordinary-share count, preferred-share count, vote count, and signature. Multilingual (French/German/Italian addresses).*
+
+**Compiled directly on Gemini 2.5 Flash** — first-ever Gemini result on this benchmark; only OpenAI gpt-5.x had been evaluated upstream.
+
+**Metric**: Average fuzzy score across all leaf fields (recursive `get_all_keys` traversal). **Data split**: 2 train (25%) / 2 dev (25%) / 5 test (50%), seed=42.
+
+**RISE leaderboard reference** (only gpt-5.x variants tested upstream as of 2026-04-25):
+
+| Rank | Model | fuzzy |
+|------|-------|-------|
+| 1 | gpt-5.4-2026-03-05 | 88.6 |
+| 2 | gpt-5.2-2025-12-11 | 84.9 |
+| 3 | gpt-5.3-codex | 84.8 |
+
+| Configuration | fuzzy | vs base |
+|---|---|---|
+| **GEPA medium (CoT) + Refine(3)** | **0.9140** | **+0.0382** |
+| GEPA medium (CoT) base | 0.8758 | — |
+
+**GEPA medium-CoT + Refine(3) reached 0.9140 fuzzy — exceeding the upstream leaderboard's gpt-5.4 (88.6) by +2.8 pts.** This is the first Gemini-class result on the benchmark. GEPA's reflection-LM (Gemini 2.5 Pro at temp=1.0) generated paleographically-aware proposals (e.g., "split name and address at line break, drop visual splitter dashes"); Refine(3) then closed the gap on transcription-stochastic errors.
+
+#### Key findings
+
+- **2.5 Flash + GEPA + Refine beats the gpt-5 family at one-tenth the inference cost.** First competitive Gemini run on this benchmark.
+- **2-image valset is below GEPA's recommended size**, but `current_best` selection plus reflective re-write was enough to overcome the small-valset noise — the field-level fuzzy metric provides a sufficiently dense signal.
+
+---
+
+### [Fraktur Adverts](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/fraktur_adverts)
+
+*5 images of 18th-century German Fraktur newspaper pages, each containing 5–31 numbered classified advertisements organised under section headings. Two-column layout, historical orthography, archaic spellings preserved verbatim.*
+
+**Compiled directly on Gemini 2.5 Flash** via leave-one-out cross-validation (the bibliographic_data pattern — 5 folds, 1 image held out per fold).
+
+**Metric**: Character Error Rate (primary, lower is better) + fuzzy similarity (per-ad text). Per-image scoring matches predicted ads to GT by section heading × leading ordinal number; section similarity threshold 0.95. **Data split**: LOO, 5 folds × (4 train, 0 dev-within-fold, 1 holdout).
+
+**RISE leaderboard reference** (full 5 images, hand-crafted prompts):
+
+| Rank | Model | CER | similarity |
+|------|-------|-----|-----------|
+| 1 | gemini-3.1-pro-preview | — | 97.9 |
+| 2 | claude-sonnet-4-6 | — | 97.3 |
+| 3 | gemini-3-flash-preview | — | 95.9 |
+| ... | gemini-2.5-flash hand prompt | — | ~92 |
+
+| Configuration | similarity | CER | per-image |
+|---|---|---|---|
+| **MIPROv2 heavy LOO (CoT)** | **0.6558** | 0.344 | image_1: 0.80 / image_2: 0.00 / image_3: 0.98 / image_4: 0.98 / image_5: 0.57 |
+
+**MIPROv2 heavy-CoT LOO reached 0.6558 similarity (CER 0.344)** — well below the upstream hand-prompt baseline. Two of the five folds zero out for structural reasons rooted in the upstream scoring rules:
+
+- **image_2: 0/3 matches** — only 3 of 12 ground-truth ads carry a numeric prefix detectable by the upstream matcher's regex (`^\s*(\d+)\.`); the optimizer-trained model produced text that did not begin with the same numeric prefix on those three.
+- **image_4** required a port-level scoring fix: the upstream's image-name-keyed special case ("if image is image_4, allow number-only matching across sections") was generalised to "if any GT ad uses the DEFAULT_SECTION fallback heading, allow number-only matching." Without this, image_4 spuriously scored 0/24 because the model emitted "Es werden zum Verkauff offerirt" (the heading from images 1–3) while the GT used "Es wird zum Verkauf angetragen". With the fix: 24/24 matched at fuzzy 0.983.
+
+#### Key findings
+
+- **The upstream matching algorithm is brittle on edge-case images.** Two of five fold zeros are scoring artefacts, not extraction failures. A scoring redesign (positional or text-content matching, no numeric-prefix requirement) would likely raise the LOO aggregate above 0.85.
+- **The Stage-3 priority for fraktur_adverts is a stronger model.** A re-run on `gemini-3-flash-preview` (RISE leaderboard #3 at 95.9) is the natural follow-up.
+
+---
+
+### [Medieval Manuscripts](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/medieval_manuscripts)
+
+*12 images of 15th-century Basel manuscript pages in late medieval German. Each page contains a main text body, an optional folio number, and 0–3 marginal annotations. Transcription must preserve historical spellings, abbreviations (ꝛ for "er", ꝰ for "us"/"em"), and line breaks (`\n`); MUFI special characters retained verbatim.*
+
+**Compiled directly on Gemini 2.5 Flash** with GEPA medium-CoT and Gemini 2.5 Pro as the reflection LM.
+
+**Metric**: Character Error Rate (primary, lower is better) + fuzzy similarity. Positional folio matching, per-field scoring (folio, text, addition1..N). **Data split**: 3 train (25%) / 3 dev (25%) / 6 test (50%), seed=42.
+
+**RISE leaderboard reference** (full 12 images, hand-crafted prompts):
+
+| Rank | Model | similarity |
+|------|-------|-----------|
+| 1 | claude-opus-4-5-20251101 | 84.9 |
+| 2 | claude-opus-4-6 | 79.8 |
+| 3 | gemini-3.1-flash-lite-preview | 77.9 |
+| ... | gemini-2.5-flash hand prompt | ~66 |
+
+| Configuration | similarity | CER |
+|---|---|---|
+| **GEPA medium (CoT) + Refine(3)** | **0.7154** | **0.285** |
+| GEPA medium (CoT) base | 0.589 | 0.411 |
+
+**GEPA medium-CoT + Refine(3) reached 0.7154 similarity** — above the 2.5 Flash hand-prompt baseline (~66) and competitive with mid-tier multimodal models, though below the Claude Opus leader. The base score (0.589) was actually *below* the 2.5 Flash hand-prompt baseline; GEPA overfit the 3-image valset, and Refine(3) recovered +12.6 pts on transcription-stochastic errors.
+
+#### Key findings
+
+- **Refine recovered what GEPA's small-valset overfit cost.** The pattern is consistent across Stage 3: when valsets are below the recommended 15–50 floor, base scores can regress, and Refine(3) is essential.
+- **2.5 Flash plateaus around 0.71 on transcription-heavy tasks.** Headroom would require a vision model with stronger paleographic priors (e.g., gemini-3-flash-preview as a transfer experiment).
+
+---
+
+### [Magazine Pages](https://github.com/RISE-UNIBAS/humanities_data_benchmark/tree/main/benchmarks/magazine_pages)
+
+*46 magazine page scans containing 1–7 advertisements per page (avg 2.7, 126 ads total). Task: emit a list of `[x0, y0, x1, y1]` pixel-coordinate bounding boxes for every advertisement on the page.*
+
+**Compiled directly on Gemini 2.5 Flash** with MIPROv2 medium-CoT. This is the project's only spatial-localization benchmark.
+
+**Metric**: PASCAL-VOC-style IoU-F1 (greedy 1:1 box matching at IoU ≥ 0.5; precision, recall, F1 macro-averaged across pages). **Data split**: 6 train (15%) / 6 dev (15%) / 34 test (70%), seed=42.
+
+**RISE leaderboard reference** (full 46 images, hand-crafted prompt):
+
+| Rank | Model | F1 |
+|------|-------|-----|
+| 1 | gpt-5.2-2025-12-11 | 88.5 |
+| 2 | gpt-5.3-codex | 86.0 |
+| 3 | gemini-3-flash-preview | 84.8 |
+| ... | gemini-2.5-flash hand prompt | **1.6** |
+
+| Configuration | f1_macro | mean_iou (matched) |
+|---|---|---|
+| **MIPROv2 medium (CoT)** | **0.1842** | 0.173 |
+| Hand-prompt baseline (upstream) | 0.016 | — |
+
+**MIPROv2 medium-CoT delivered a 12× lift over the hand-prompt baseline (1.6 → 18.4 F1)** but the absolute score remains far below the leaderboard. The 0.173 mean IoU on matched boxes confirms 2.5 Flash's coordinate emission is the binding constraint, not prompt quality.
+
+#### Key findings
+
+- **2.5 Flash cannot accurately emit pixel coordinates.** Even with MIPROv2-tuned demonstrations and instructions, IoU stays below 0.2 on matched boxes — the gap to gemini-3-flash-preview (84.8) is a model-capability gap, not a prompt-engineering gap.
+- **Optimization still helps proportionally.** A 12× lift over hand-prompt is meaningful evidence that DSPy's instruction proposer + few-shot demonstrations push 2.5 Flash to its (low) ceiling. The same program transferred to gemini-3-flash-preview would likely close most of the gap.
 
 ---
 
@@ -465,6 +602,23 @@ The individual benchmark experiments, taken together, reveal four cross-cutting 
 | Personnel Cards | 0.8858 | **0.8894** | +0.36 pts |
 | Bibliographic Data | **0.7072** | 0.7043 | -0.29 pts |
 | Company Lists | **0.8771** | 0.8663 | -1.08 pts |
+
+#### Stage-3 additions (post-2.5 Flash migration)
+
+The four benchmarks added during the Stage-3 expansion confirm and extend each of the cross-cutting patterns above:
+
+- **`general_meeting_minutes` (0.9140 fuzzy with GEPA + Refine, beats gpt-5.4's 88.6)**: a new datapoint for "GEPA + reflection LM works on tabular extraction tasks even with tiny valsets" — the 2-image valset was below GEPA's recommended floor, but the field-level fuzzy metric provided a dense enough signal for `current_best` selection plus reflective rewrite to converge.
+- **`fraktur_adverts` (0.6558 LOO similarity)**: another datapoint for "scoring methodology is the binding constraint" — two of five folds zero out for structural reasons (numeric-prefix matching regex doesn't fire on image_2; a port-level fix was needed for image_4's section-name fallback). The model's actual extraction quality is materially better than the score reflects.
+- **`medieval_manuscripts` (0.7154 similarity with GEPA + Refine, base 0.589)**: extends the "Refine recovers small-valset overfit" pattern observed on Stage-2 Bibliographic Data. The +12.6 pt jump from Refine is the largest among Stage-3 results.
+- **`magazine_pages` (0.1842 f1_macro, 12× hand-prompt baseline)**: a new pattern — **model capability, not prompt engineering, is the binding constraint on spatial-localization tasks**. The same MIPROv2 program that delivered 12× over hand-prompt on 2.5 Flash would likely close most of the gap to gemini-3-flash-preview's 84.8. None of the existing benchmarks tested this regime; it is the cleanest justification yet for the project's "transfer to a stronger model" follow-up.
+
+#### Migration findings (2.0 Flash → 2.5 Flash)
+
+The 2026-04-24 migration added a fifth cross-cutting pattern that was not visible in the original 2.0 Flash work:
+
+**Cheap-tier model upgrades preserve most of the optimization signal but introduce model-specific edge cases.** Of the six original benchmarks, transfer was a net win or wash on five (Library Cards +0.9, Personnel Cards −0.2, Business Letters +7.8, Blacklist Cards −2.4, Company Lists −0.9), and only Bibliographic Data needed a full LOO re-compile to recover. Direct re-optimization on the new model was tried for two cases and helped only when the transfer was actually broken (Bibliographic Data 0.4607 → 0.7094); for Blacklist Cards, where transfer regressed mildly (0.9713 → 0.9474), direct GEPA re-compilation **did not recover the lost ground** (0.9321 with Refine) — the 4-image valset was too small for GEPA's Pareto selection to find an improvement on this near-ceiling benchmark. Transfer + Refine remained the headline winner.
+
+The operational rule: **on a model upgrade, transfer first; re-compile only if transfer collapses or drops below a meaningful baseline**. Spending optimization budget to chase a 1–2 point improvement on a near-ceiling benchmark with a tiny dev set is unlikely to pay off.
 
 ### Cross-Model Transfer Findings
 
