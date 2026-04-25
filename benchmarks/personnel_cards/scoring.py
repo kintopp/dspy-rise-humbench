@@ -78,7 +78,7 @@ def score_single_prediction(pred_dict: dict, gt_dict: dict) -> dict:
     precision, recall, f1 = compute_f1(tp, fp, fn)
 
     return {
-        "f1_score": round(f1, 4),
+        "f1_score": round(f1, 2),  # 2dp matches upstream personnel_cards/benchmark.py:160 for byte-for-byte leaderboard parity
         "precision": precision,
         "recall": recall,
         "true_positives": tp,

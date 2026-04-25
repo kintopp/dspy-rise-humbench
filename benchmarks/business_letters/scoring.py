@@ -287,8 +287,9 @@ def compute_aggregate_scores(all_scores: list[dict]) -> dict:
     micro_p, micro_r, f1_micro = compute_f1(total_tp, total_fp, total_fn)
 
     return {
-        "f1_micro": round(f1_micro, 4),
-        "f1_macro": round(f1_macro, 4),
+        # 2dp matches upstream business_letters/benchmark.py:196 (_get_f1_macro) and :212 (_get_f1_micro) for byte-for-byte leaderboard parity
+        "f1_micro": round(f1_micro, 2),
+        "f1_macro": round(f1_macro, 2),
         "micro_precision": round(micro_p, 4),
         "micro_recall": round(micro_r, 4),
         "total_instances": n_valid,
