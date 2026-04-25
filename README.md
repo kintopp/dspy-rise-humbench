@@ -209,10 +209,11 @@ The RISE benchmarks are designed for practical deployment on large archival coll
 
 ### Stage-3 results — four new RISE benchmarks (compiled on Gemini 2.5 Flash)
 
-The RISE suite gained five benchmarks after the original 2.0 Flash work (book_advert_xml, fraktur_adverts, general_meeting_minutes, magazine_pages, medieval_manuscripts). Four of those have realistic optimization headroom — `book_advert_xml` is saturated on the leaderboard at 100.0 and is maintained only as a regression check. The rest were scaffolded and optimized directly on 2.5 Flash during the 2026-04-24 migration:
+The RISE suite gained five benchmarks after the original 2.0 Flash work (book_advert_xml, fraktur_adverts, general_meeting_minutes, magazine_pages, medieval_manuscripts). All five were scaffolded and optimized directly on 2.5 Flash during the 2026-04-24 migration; `book_advert_xml` was originally believed saturated at 100 but the live leaderboard re-check on 2026-04-25 showed grok-4.20 #1 at 98.61, with our DSPy-structured CoT pipeline already at 99.00 — the +17 pt gap to upstream's free-form 2.5 Flash hand-prompt (81.59) is structural, attributable to DSPy's JSON-schema adapter eliminating parse-failure penalties. MIPROv2 medium found no further lift (saturation pattern: best valset = default valset = 99.68).
 
 | Benchmark | N | Optimizer | Best score | RISE leaderboard #1 |
 |---|---|---|---|---|
+| book_advert_xml | 36 | CoT baseline (= MIPROv2-CoT optimised, at saturation) ± Refine(3) | **0.9900** fuzzy | grok-4.20: 98.61 / our pipeline already #1 |
 | general_meeting_minutes | 9 | GEPA-CoT (reflection=2.5 Pro) + Refine(3) | **0.9140** fuzzy | gpt-5.4: 88.6 *(only gpt-5.x tested upstream)* |
 | fraktur_adverts | 5 | MIPROv2 heavy-CoT LOO | **0.6558** similarity (CER 0.344) | gemini-3.1-pro-preview: 97.9 |
 | medieval_manuscripts | 12 | GEPA-CoT (reflection=2.5 Pro) + Refine(3) | **0.7154** similarity (CER 0.285) | claude-opus-4-5: 84.9 |

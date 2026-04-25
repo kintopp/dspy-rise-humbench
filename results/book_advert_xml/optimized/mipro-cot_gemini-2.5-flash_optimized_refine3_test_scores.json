@@ -1,0 +1,167 @@
+{
+  "benchmark": "book_advert_xml",
+  "program": "results/book_advert_xml/optimized/mipro-cot_gemini-2.5-flash_optimized.json",
+  "model": "gemini/gemini-2.5-flash",
+  "module_type": "cot",
+  "refine_n": 3,
+  "refine_reward": "quality",
+  "aggregate": {
+    "fuzzy": 0.99,
+    "total_instances": 36
+  },
+  "usage": {
+    "gemini/gemini-2.5-flash": {
+      "calls": 36,
+      "input_tokens": 39553,
+      "output_tokens": 93208,
+      "cache_read_tokens": 2034,
+      "reasoning_tokens": 71424
+    }
+  },
+  "per_image": [
+    {
+      "id": "line_45",
+      "fuzzy": 0.9732
+    },
+    {
+      "id": "line_44",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_19",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_31",
+      "fuzzy": 0.9765
+    },
+    {
+      "id": "line_41",
+      "fuzzy": 0.9978
+    },
+    {
+      "id": "line_1",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_49",
+      "fuzzy": 0.987
+    },
+    {
+      "id": "line_26",
+      "fuzzy": 0.9947
+    },
+    {
+      "id": "line_4",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_8",
+      "fuzzy": 0.9901
+    },
+    {
+      "id": "line_47",
+      "fuzzy": 0.9853
+    },
+    {
+      "id": "line_37",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_35",
+      "fuzzy": 0.9884
+    },
+    {
+      "id": "line_28",
+      "fuzzy": 0.9983
+    },
+    {
+      "id": "line_3",
+      "fuzzy": 0.9795
+    },
+    {
+      "id": "line_48",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_6",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_42",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_39",
+      "fuzzy": 0.9724
+    },
+    {
+      "id": "line_5",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_21",
+      "fuzzy": 0.9989
+    },
+    {
+      "id": "line_9",
+      "fuzzy": 0.9874
+    },
+    {
+      "id": "line_7",
+      "fuzzy": 0.9883
+    },
+    {
+      "id": "line_11",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_34",
+      "fuzzy": 0.9987
+    },
+    {
+      "id": "line_43",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_14",
+      "fuzzy": 0.8499
+    },
+    {
+      "id": "line_40",
+      "fuzzy": 0.9976
+    },
+    {
+      "id": "line_15",
+      "fuzzy": 0.993
+    },
+    {
+      "id": "line_17",
+      "fuzzy": 0.9972
+    },
+    {
+      "id": "line_22",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_23",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_25",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_10",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_16",
+      "fuzzy": 1.0
+    },
+    {
+      "id": "line_46",
+      "fuzzy": 0.9858
+    }
+  ]
+}
