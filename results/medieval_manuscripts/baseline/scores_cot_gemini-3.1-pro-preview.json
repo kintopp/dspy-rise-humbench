@@ -1,0 +1,48 @@
+{
+  "benchmark": "medieval_manuscripts",
+  "model": "gemini/gemini-3.1-pro-preview",
+  "module_type": "cot",
+  "aggregate": {
+    "cer": 0.1273,
+    "similarity": 0.8727,
+    "total_instances": 6
+  },
+  "per_image": [
+    {
+      "id": "image_9",
+      "fuzzy": 0.809,
+      "cer": 0.2354,
+      "total_fields": 2
+    },
+    {
+      "id": "image_12",
+      "fuzzy": 0.9373,
+      "cer": 0.0462,
+      "total_fields": 2
+    },
+    {
+      "id": "image_2",
+      "fuzzy": 0.9265,
+      "cer": 0.0522,
+      "total_fields": 2
+    },
+    {
+      "id": "image_1",
+      "fuzzy": 0.9793,
+      "cer": 0.0116,
+      "total_fields": 2
+    },
+    {
+      "id": "image_10",
+      "fuzzy": 0.9545,
+      "cer": 0.05,
+      "total_fields": 2
+    },
+    {
+      "id": "image_8",
+      "fuzzy": 0.617,
+      "cer": 0.3683,
+      "total_fields": 3
+    }
+  ]
+}

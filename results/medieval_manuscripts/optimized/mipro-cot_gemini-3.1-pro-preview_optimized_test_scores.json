@@ -1,0 +1,58 @@
+{
+  "benchmark": "medieval_manuscripts",
+  "program": "results/medieval_manuscripts/optimized/mipro-cot_gemini-3.1-pro-preview_optimized.json",
+  "model": "gemini/gemini-3.1-pro-preview",
+  "module_type": "cot",
+  "refine_n": 0,
+  "refine_reward": null,
+  "aggregate": {
+    "cer": 0.1133,
+    "similarity": 0.8867,
+    "total_instances": 6
+  },
+  "usage": {
+    "gemini/gemini-3.1-pro-preview": {
+      "calls": 6,
+      "input_tokens": 26112,
+      "output_tokens": 4442
+    }
+  },
+  "per_image": [
+    {
+      "id": "image_9",
+      "fuzzy": 0.8184,
+      "cer": 0.221,
+      "total_fields": 2
+    },
+    {
+      "id": "image_12",
+      "fuzzy": 0.9701,
+      "cer": 0.0314,
+      "total_fields": 2
+    },
+    {
+      "id": "image_2",
+      "fuzzy": 0.9503,
+      "cer": 0.0141,
+      "total_fields": 2
+    },
+    {
+      "id": "image_1",
+      "fuzzy": 0.9741,
+      "cer": 0.0168,
+      "total_fields": 2
+    },
+    {
+      "id": "image_10",
+      "fuzzy": 0.9657,
+      "cer": 0.0306,
+      "total_fields": 2
+    },
+    {
+      "id": "image_8",
+      "fuzzy": 0.619,
+      "cer": 0.366,
+      "total_fields": 3
+    }
+  ]
+}

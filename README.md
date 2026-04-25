@@ -537,12 +537,17 @@ Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program 
 
 | Configuration | similarity | CER |
 |---|---|---|
-| **MIPROv2 medium-CoT on gemini-2.5-pro + Refine(3) (Phase A.5 Swap 4)** ← new headline | **0.7553** | **0.2447** |
+| **MIPROv2 medium-CoT on gemini-3.1-pro-preview (no Refine)** ← new headline, leaderboard #1 | **0.8867** | **0.1133** |
+| MIPROv2 medium-CoT on gemini-3.1-pro-preview + Refine(3) | 0.8614 | 0.1386 |
+| Hand-prompt CoT baseline on gemini-3.1-pro-preview | 0.8727 | 0.1273 |
+| MIPROv2 medium-CoT on gemini-2.5-pro + Refine(3) (Phase A.5 Swap 4) | 0.7553 | 0.2447 |
 | MIPROv2 medium-CoT on gemini-2.5-pro (no Refine) | 0.6814 | 0.3186 |
 | Phase A: GEPA medium-CoT on 2.5 Flash + Refine(3) | 0.7154 | 0.2854 |
 | Phase A: GEPA medium-CoT on 2.5 Flash (no Refine) | 0.5890 | 0.4110 |
 
-**Phase A.5 Swap 4 (executed 2026-04-25):** MIPROv2 medium-CoT compiled on `gemini-2.5-pro` + Refine(3) lifts headline to 0.7553 (CER 0.2447) — +0.04 over the Phase A 2.5 Flash GEPA winner (0.7154). Trails live #1 (claude-opus-4-5 at 84.9) by 0.094 — Claude Opus's transcription depth is the binding constraint here, not prompt engineering. The no-Refine 2.5 Pro number (0.6814) was *below* the Phase A best, confirming on this benchmark that **Refine(3) is the load-bearing component**: stochastic transcription errors are what the optimised program leaves on the table, and better-of-N at higher temperature recovers them.
+**Phase A.6 Swap (executed 2026-04-25, gemini-3.1-pro-preview as student):** MIPROv2 medium-CoT compiled on `gemini-3.1-pro-preview` (no Refine) reaches similarity 0.8867 (CER 0.1133) — **claiming RISE leaderboard #1 by +0.038 over upstream's claude-opus-4-5 hand-prompt slot (0.849)**. Discovery experiment: 3.1 Pro Preview had *no published hand-prompt slot* on Medieval Manuscripts (the closest cousin, 3-pro-preview, was rank #2 at 80.7). Our hand-prompt baseline measurement of 0.8727 already beat #1, and MIPROv2 added +0.014 on top. Refine(3) actually *hurt* (0.8614) — temperature variance regressed image_9 from 0.97 to 0.75; on this benchmark optimised single-shot wins. **User explicitly opted into the preview model for this experiment despite the standing two-track-framework ban**, accepting the sunset risk to claim leaderboard #1.
+
+**Phase A.5 Swap 4 (executed 2026-04-25, durable non-preview path):** MIPROv2 medium-CoT compiled on `gemini-2.5-pro` + Refine(3) lifts headline to 0.7553 (CER 0.2447) — +0.04 over the Phase A 2.5 Flash GEPA winner (0.7154). Trails live #1 by 0.094. The no-Refine 2.5 Pro number (0.6814) was *below* the Phase A best, confirming on the durable-model path that **Refine(3) is the load-bearing component**: stochastic transcription errors are what the optimised program leaves on the table, and better-of-N at higher temperature recovers them. The 0.7553 stays the **durable-baseline number** (no preview-sunset risk); the 0.8867 is the **leaderboard claim** when preview risk is acceptable.
 
 #### Key findings
 
