@@ -1,0 +1,36 @@
+{
+  "predict.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Locate every advertisement on a magazine page and emit its pixel bounding box.",
+      "fields": [
+        {
+          "prefix": "Page Image:",
+          "description": "Magazine page scan"
+        },
+        {
+          "prefix": "Page Size:",
+          "description": "Original page dimensions as 'WIDTHxHEIGHT' in pixels (e.g. '2480x3508'). Use these dimensions as the coordinate space for every bounding box."
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Document:",
+          "description": "A JSON object listing every advertisement on the magazine page, with each\nadvertisement expressed as a pixel-coordinate bounding box on the ORIGINAL\nimage (not a resized / cropped view).\n\nSchema:\n{\n  \"advertisements\": [\n    {\"box\": [x0, y0, x1, y1]}\n  ]\n}\n\nCRITICAL — coordinate space:\n- ``x0, y0`` is the top-left corner of the advertisement bounding box;\n  ``x1, y1`` is the bottom-right.\n- ALL four values are integer pixel coordinates on the ORIGINAL image,\n  scaled to the dimensions given in the ``page_size`` input.\n- DO NOT use normalized [0, 1] coordinates.\n- DO NOT use the model's default 0-1000 grounding grid.\n- Coordinates MUST satisfy: 0 ≤ x0 < x1 ≤ width, 0 ≤ y0 < y1 ≤ height,\n  where ``width`` and ``height`` come from ``page_size``. For a typical\n  magazine page (~2480x3500), valid x values run from 0 to ~2480 and\n  y values from 0 to ~3500.\n\nExample for a page_size of \"2479x3508\" with one advertisement\noccupying the lower-left quadrant:\n  {\"advertisements\": [{\"box\": [175, 1723, 1169, 3192]}]}\n\nOther rules:\n- If the page contains no advertisements, return ``{\"advertisements\": []}``.\n- Do NOT include editorial articles, page numbers, mastheads, or decorative\n  elements — only genuine advertisements.\n- Return ONLY the JSON object, no commentary or code fences.\n"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}
