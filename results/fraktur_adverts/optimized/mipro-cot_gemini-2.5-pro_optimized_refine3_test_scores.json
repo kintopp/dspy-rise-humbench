@@ -1,0 +1,38 @@
+{
+  "benchmark": "fraktur_adverts",
+  "program": "results/fraktur_adverts/optimized/mipro-cot_gemini-2.5-pro_optimized.json",
+  "model": "gemini/gemini-2.5-pro",
+  "module_type": "cot",
+  "refine_n": 3,
+  "refine_reward": "quality",
+  "aggregate": {
+    "cer": 0.057,
+    "similarity": 0.943,
+    "total_instances": 2
+  },
+  "usage": {
+    "gemini/gemini-2.5-pro": {
+      "calls": 2,
+      "input_tokens": 14214,
+      "output_tokens": 9234,
+      "cache_read_tokens": 4697,
+      "reasoning_tokens": 3943
+    }
+  },
+  "per_image": [
+    {
+      "id": "image_5",
+      "fuzzy": 0.96,
+      "cer": 0.066,
+      "total_ads": 18,
+      "matched_ads": 18
+    },
+    {
+      "id": "image_1",
+      "fuzzy": 0.962,
+      "cer": 0.048,
+      "total_ads": 31,
+      "matched_ads": 31
+    }
+  ]
+}

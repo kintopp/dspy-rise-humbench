@@ -500,9 +500,13 @@ Refine(3) **hurt** by -1.1 pts on this benchmark. The MIPROv2-optimized program 
 
 | Configuration | similarity | CER | per-image |
 |---|---|---|---|
-| **MIPROv2 heavy LOO (CoT)** | **0.6558** | 0.344 | image_1: 0.80 / image_2: 0.00 / image_3: 0.98 / image_4: 0.98 / image_5: 0.57 |
+| **MIPROv2 medium-CoT on gemini-2.5-pro (Phase A.5 Swap 5, 70/30 test split = 2 images)** ← new headline | **0.9460** | **0.054** | image_5: 0.94 / image_1: 0.95 |
+| MIPROv2 medium-CoT on gemini-2.5-pro + Refine(3) (no further lift) | 0.9430 | 0.057 | — |
+| Phase A: MIPROv2 heavy LOO-CoT on 2.5 Flash (5 folds, all images) | 0.6558 | 0.344 | image_1: 0.80 / image_2: 0.00 / image_3: 0.98 / image_4: 0.98 / image_5: 0.57 |
 
-**MIPROv2 heavy-CoT LOO reached 0.6558 similarity (CER 0.344)** — well below the upstream hand-prompt baseline. Two of the five folds zero out for structural reasons rooted in the upstream scoring rules:
+**Phase A.5 Swap 5 (executed 2026-04-25):** MIPROv2 medium-CoT on `gemini-2.5-pro` reaches similarity 0.946 (CER 0.054) on the standard 70/30 test split (2 images: image_1, image_5) — but **this number is not directly comparable to the Phase A 0.6558**, which was a 5-fold LOO including the two structural-zero images (image_2's numeric-prefix matcher failure, image_4's section-heading mismatch). The 70/30 split happened to draw image_1 and image_5 — both clean. To compare apples-to-apples we'd need to re-run as 5-fold LOO on 2.5 Pro (estimated cost ~$25-50 with `--auto heavy`, deferred); the current Swap 5 number is best read as "2.5 Pro on the clean fraktur images, optimised". The structural metric zeros on image_2/4 still cap any 5-fold LOO ceiling near ~0.85 regardless of model.
+
+**Earlier on 2.5 Flash:** MIPROv2 heavy-CoT LOO reached 0.6558 similarity (CER 0.344) — well below the upstream hand-prompt baseline. Two of the five folds zero out for structural reasons rooted in the upstream scoring rules:
 
 - **image_2: 0/3 matches** — only 3 of 12 ground-truth ads carry a numeric prefix detectable by the upstream matcher's regex (`^\s*(\d+)\.`); the optimizer-trained model produced text that did not begin with the same numeric prefix on those three.
 - **image_4** required a port-level scoring fix: the upstream's image-name-keyed special case ("if image is image_4, allow number-only matching across sections") was generalised to "if any GT ad uses the DEFAULT_SECTION fallback heading, allow number-only matching." Without this, image_4 spuriously scored 0/24 because the model emitted "Es werden zum Verkauff offerirt" (the heading from images 1–3) while the GT used "Es wird zum Verkauf angetragen". With the fix: 24/24 matched at fuzzy 0.983.
