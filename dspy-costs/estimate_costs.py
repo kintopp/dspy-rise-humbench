@@ -140,6 +140,47 @@ BENCHMARKS = {
         "avg_output_tokens": 2500,            # list JSON (15-31 entries per page × 5 fields)
         "image_field": "page_image",
     },
+    # Stage 3 benchmarks (added 2026-04-24/25 for the 2.5 Flash migration).
+    "general_meeting_minutes": {
+        "total_images": 9,
+        "train": 2,
+        "dev": 2,
+        "test": 5,
+        "avg_input_tokens_baseline": 700,     # prompt + page image (table)
+        "avg_input_tokens_optimized": 4000,   # instructions + 2 demos w/ images + query
+        "avg_output_tokens": 1500,            # nested table JSON (~7-8 rows × 8 fields)
+        "image_field": "page_image",
+    },
+    "fraktur_adverts": {
+        "total_images": 5,
+        "train": 3,
+        "dev": 1,
+        "test": 1,                             # LOO: per-fold split
+        "avg_input_tokens_baseline": 800,
+        "avg_input_tokens_optimized": 5000,   # heavy auto = larger demo set, 18 trials
+        "avg_output_tokens": 3000,            # 5-31 ads × 3 fields, multilingual text
+        "image_field": "page_image",
+    },
+    "medieval_manuscripts": {
+        "total_images": 12,
+        "train": 3,
+        "dev": 3,
+        "test": 6,
+        "avg_input_tokens_baseline": 700,
+        "avg_input_tokens_optimized": 4500,
+        "avg_output_tokens": 2500,            # ~400-char folio text + additions
+        "image_field": "page_image",
+    },
+    "magazine_pages": {
+        "total_images": 46,
+        "train": 6,
+        "dev": 6,
+        "test": 34,
+        "avg_input_tokens_baseline": 600,
+        "avg_input_tokens_optimized": 3500,
+        "avg_output_tokens": 200,             # bounding boxes only — small output
+        "image_field": "page_image",
+    },
 }
 
 
@@ -157,8 +198,12 @@ class Experiment:
     notes: str = ""
 
 
-# Longest-first so "gemini-2.5-pro" wins over "gemini-2.5" for cross-model tags.
+# Longest-first so "gemini-3.1-flash-lite-preview" wins over "gemini-3.1-flash"
+# and "gemini-3-pro-preview" wins over "gemini-3-pro", etc.
 MODEL_NAMES = [
+    "gemini-3.1-flash-lite-preview",
+    "gemini-3.1-pro-preview",
+    "gemini-3-flash-preview",
     "gemini-3-pro-preview",
     "gemini-2.5-pro",
     "gemini-2.5-flash",
@@ -173,15 +218,18 @@ MODEL_NAMES = [
 # Which pricing surface each model bills through. OpenRouter variants are
 # resolved from the filename via the "or-" prefix (see detect_model).
 MODEL_PROVIDER = {
-    "gemini-3-pro-preview":  "ai_studio",
-    "gemini-2.5-pro":        "ai_studio",
-    "gemini-2.5-flash":      "ai_studio",
-    "gemini-2.0-flash":      "ai_studio",
-    "gemini-1.5-pro":        "vertex_ai",
-    "claude-sonnet-4-5":     "anthropic",
-    "claude-haiku-3-5":      "anthropic",
-    "gpt-4o":                "openai",
-    "gpt-4o-mini":           "openai",
+    "gemini-3.1-pro-preview":        "ai_studio",
+    "gemini-3.1-flash-lite-preview": "ai_studio",
+    "gemini-3-pro-preview":          "ai_studio",
+    "gemini-3-flash-preview":        "ai_studio",
+    "gemini-2.5-pro":                "ai_studio",
+    "gemini-2.5-flash":              "ai_studio",
+    "gemini-2.0-flash":              "ai_studio",
+    "gemini-1.5-pro":                "vertex_ai",
+    "claude-sonnet-4-5":             "anthropic",
+    "claude-haiku-3-5":              "anthropic",
+    "gpt-4o":                        "openai",
+    "gpt-4o-mini":                   "openai",
 }
 
 

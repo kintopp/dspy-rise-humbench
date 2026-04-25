@@ -15,19 +15,24 @@
       "output_tokens": 6231200
     },
     "gemini-2.5-pro": {
-      "calls": 1958,
-      "input_tokens": 5754000,
-      "output_tokens": 1755500
+      "calls": 2202,
+      "input_tokens": 6437000,
+      "output_tokens": 2245500
     },
     "gemini-2.5-flash": {
-      "calls": 1534,
-      "input_tokens": 4876500,
-      "output_tokens": 2120100
+      "calls": 2071,
+      "input_tokens": 6330400,
+      "output_tokens": 3193500
     },
     "gemini-3-pro-preview": {
       "calls": 320,
       "input_tokens": 592000,
       "output_tokens": 256000
+    },
+    "gemini-3-flash-preview": {
+      "calls": 192,
+      "input_tokens": 475404,
+      "output_tokens": 39922
     }
   },
   "experiments": [
@@ -300,16 +305,6 @@
       "output_tokens": 15000,
       "measured": false,
       "notes": "loo-mipro-medium-cot_gemini-2.0-flash_test_scores.json"
-    },
-    {
-      "name": "Test eval: loo-mipro",
-      "benchmark": "bibliographic_data",
-      "model": "gemini-2.5-flash",
-      "calls": 0,
-      "input_tokens": 0,
-      "output_tokens": 0,
-      "measured": false,
-      "notes": "loo-mipro-medium-cot_gemini-2.5-flash_test_scores.json"
     },
     {
       "name": "Test eval: mipro-medium",
@@ -830,6 +825,126 @@
       "output_tokens": 27500,
       "measured": false,
       "notes": "mipro-cot_gemini-2.0-flash_optimized_test_scores.json"
+    },
+    {
+      "name": "Optimize: gepa",
+      "benchmark": "general_meeting_minutes",
+      "model": "gemini-2.5-pro",
+      "calls": 100,
+      "input_tokens": 235000,
+      "output_tokens": 150000,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized.json"
+    },
+    {
+      "name": "Test eval: gepa +Refine(3)",
+      "benchmark": "general_meeting_minutes",
+      "model": "gemini-2.5-pro",
+      "calls": 15,
+      "input_tokens": 60000,
+      "output_tokens": 22500,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: gepa",
+      "benchmark": "general_meeting_minutes",
+      "model": "gemini-2.5-pro",
+      "calls": 5,
+      "input_tokens": 20000,
+      "output_tokens": 7500,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized_test_scores.json"
+    },
+    {
+      "name": "Optimize: loo-mipro",
+      "benchmark": "fraktur_adverts",
+      "model": "gemini-2.5-flash",
+      "calls": 340,
+      "input_tokens": 986000,
+      "output_tokens": 1020000,
+      "measured": false,
+      "notes": "loo-mipro-heavy-cot_gemini-2.5-flash_fold0_image_1.json"
+    },
+    {
+      "name": "Test eval: loo-mipro",
+      "benchmark": "fraktur_adverts",
+      "model": "gemini-2.5-flash",
+      "calls": 5,
+      "input_tokens": 25000,
+      "output_tokens": 15000,
+      "measured": false,
+      "notes": "loo-mipro-heavy-cot_gemini-2.5-flash_test_scores.json"
+    },
+    {
+      "name": "Optimize: gepa",
+      "benchmark": "medieval_manuscripts",
+      "model": "gemini-2.5-pro",
+      "calls": 100,
+      "input_tokens": 260000,
+      "output_tokens": 250000,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized.json"
+    },
+    {
+      "name": "Test eval: gepa +Refine(3)",
+      "benchmark": "medieval_manuscripts",
+      "model": "gemini-2.5-pro",
+      "calls": 18,
+      "input_tokens": 81000,
+      "output_tokens": 45000,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized_refine3_test_scores.json"
+    },
+    {
+      "name": "Test eval: gepa",
+      "benchmark": "medieval_manuscripts",
+      "model": "gemini-2.5-pro",
+      "calls": 6,
+      "input_tokens": 27000,
+      "output_tokens": 15000,
+      "measured": false,
+      "notes": "gepa-cot_gemini-2.5-flash_ref-gemini-2.5-pro_optimized_test_scores.json"
+    },
+    {
+      "name": "Optimize: mipro-medium",
+      "benchmark": "magazine_pages",
+      "model": "gemini-2.5-flash",
+      "calls": 158,
+      "input_tokens": 323900,
+      "output_tokens": 31600,
+      "measured": false,
+      "notes": "mipro-cot_gemini-2.5-flash_optimized.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "magazine_pages",
+      "model": "gemini-2.5-flash",
+      "calls": 34,
+      "input_tokens": 119000,
+      "output_tokens": 6800,
+      "measured": false,
+      "notes": "mipro-cot_gemini-2.5-flash_optimized_test_scores.json"
+    },
+    {
+      "name": "Optimize: mipro-medium",
+      "benchmark": "magazine_pages",
+      "model": "gemini-3-flash-preview",
+      "calls": 158,
+      "input_tokens": 323900,
+      "output_tokens": 31600,
+      "measured": false,
+      "notes": "mipro-cot_gemini-3-flash-preview_optimized.json"
+    },
+    {
+      "name": "Test eval: mipro-medium",
+      "benchmark": "magazine_pages",
+      "model": "gemini-3-flash-preview",
+      "calls": 34,
+      "input_tokens": 151504,
+      "output_tokens": 8322,
+      "measured": true,
+      "notes": "mipro-cot_gemini-3-flash-preview_optimized_test_scores.json"
     }
   ],
   "costs_by_model": {
@@ -841,19 +956,24 @@
     },
     "gemini-2.5-pro": {
       "provider": "ai_studio",
-      "base_cost": 24.7475,
-      "adjusted_cost": 32.1718
+      "base_cost": 30.5012,
+      "adjusted_cost": 39.6516
     },
     "gemini-2.5-flash": {
       "provider": "ai_studio",
-      "base_cost": 6.7632,
-      "adjusted_cost": 8.7922
+      "base_cost": 9.8829,
+      "adjusted_cost": 12.8477
     },
     "gemini-3-pro-preview": {
       "provider": "ai_studio",
       "base_cost": 4.256,
       "adjusted_cost": 5.5328
+    },
+    "gemini-3-flash-preview": {
+      "provider": "ai_studio",
+      "base_cost": 0.3575,
+      "adjusted_cost": 0.4647
     }
   },
-  "total_adjusted_cost": 51.45
+  "total_adjusted_cost": 63.45
 }
