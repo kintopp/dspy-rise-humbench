@@ -16,11 +16,20 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 
-def run_mipro(trainset, devset, metric, ExtractorClass, auto="light", max_bootstrapped=2, max_labeled=2, num_threads=8, module_type="predict", metric_threshold=None):
-    """Run MIPROv2 optimization."""
+def run_mipro(trainset, devset, metric, ExtractorClass, auto="light", max_bootstrapped=2, max_labeled=2, num_threads=8, module_type="predict", metric_threshold=None, prompt_model=None):
+    """Run MIPROv2 optimization.
+
+    Args:
+        prompt_model: optional dspy.LM used as MIPROv2's instruction proposer.
+            When None, MIPROv2 uses the globally-configured LM for both
+            proposing and executing — i.e. prompt_model = task_model. Pass a
+            stronger LM here to get teacher-student-style optimization where
+            instructions are drafted by a strong model but executed (and
+            evaluated) on the cheap student configured via dspy.configure.
+    """
     import dspy
 
-    optimizer = dspy.MIPROv2(
+    mipro_kwargs = dict(
         metric=metric,
         auto=auto,
         num_threads=num_threads,
@@ -28,6 +37,10 @@ def run_mipro(trainset, devset, metric, ExtractorClass, auto="light", max_bootst
         max_labeled_demos=max_labeled,
         metric_threshold=metric_threshold,
     )
+    if prompt_model is not None:
+        mipro_kwargs["prompt_model"] = prompt_model
+
+    optimizer = dspy.MIPROv2(**mipro_kwargs)
     extractor = ExtractorClass(module_type=module_type)
     optimized = optimizer.compile(
         extractor,
@@ -90,7 +103,7 @@ def run_gepa(trainset, devset, feedback_metric, ExtractorClass, auto="light", mo
 def main():
     parser = argparse.ArgumentParser(description="Optimize extraction with DSPy")
     parser.add_argument("--benchmark", default="library_cards",
-                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists", "fraktur_adverts", "general_meeting_minutes", "medieval_manuscripts", "magazine_pages"],
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists", "fraktur_adverts", "general_meeting_minutes", "medieval_manuscripts", "magazine_pages", "book_advert_xml"],
                         help="Benchmark name")
     parser.add_argument(
         "--optimizer",
@@ -101,7 +114,8 @@ def main():
     parser.add_argument("--auto", choices=["light", "medium", "heavy"], default="light")
     parser.add_argument("--max-bootstrapped", type=int, default=2)
     parser.add_argument("--max-labeled", type=int, default=2)
-    parser.add_argument("--model", type=str, default="gemini-2.5-flash", help="Model preset or full model string")
+    parser.add_argument("--model", type=str, default="gemini-2.5-flash", help="Model preset or full model string (the student/task model — the one deployed for inference)")
+    parser.add_argument("--prompt-model", type=str, default=None, help="MIPROv2: optional stronger LM used as the instruction proposer (teacher-student distillation). Defaults to --model. Ignored by non-MIPRO optimizers.")
     parser.add_argument("--num-threads", type=int, default=8, help="Number of parallel threads for evaluation")
     parser.add_argument("--module", choices=["predict", "cot"], default="predict", help="Module type: predict or cot (ChainOfThought)")
     parser.add_argument("--seed", type=int, default=42)
@@ -131,8 +145,16 @@ def main():
     train_ex, dev_ex, test_ex, *_ = data_mod.load_and_split(seed=args.seed)
     logger.info(f"Data split: train={len(train_ex)}, dev={len(dev_ex)}, test={len(test_ex)}")
 
+    if args.prompt_model and args.optimizer != "mipro":
+        logger.warning(f"--prompt-model is only used by --optimizer=mipro; ignored for {args.optimizer}")
+
     if args.optimizer == "mipro":
-        logger.info(f"Running MIPROv2 (auto={args.auto}, module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads}, metric_threshold={bootstrap_threshold})")
+        prompt_lm = None
+        if args.prompt_model:
+            import dspy
+            prompt_lm = dspy.LM(resolve_model(args.prompt_model), temperature=1.0, max_tokens=8000)
+            logger.info(f"MIPROv2 prompt_model (instruction proposer): {resolve_model(args.prompt_model)}")
+        logger.info(f"Running MIPROv2 (auto={args.auto}, module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads}, metric_threshold={bootstrap_threshold}, prompt_model={'(default = task)' if prompt_lm is None else args.prompt_model})")
         optimized = run_mipro(
             train_ex, dev_ex, metric, ExtractorClass,
             auto=args.auto,
@@ -141,6 +163,7 @@ def main():
             num_threads=args.num_threads,
             module_type=args.module,
             metric_threshold=bootstrap_threshold,
+            prompt_model=prompt_lm,
         )
     elif args.optimizer == "bootstrap":
         logger.info(f"Running BootstrapFewShot (module={args.module}, bootstrapped={args.max_bootstrapped}, labeled={args.max_labeled}, threads={args.num_threads}, metric_threshold={bootstrap_threshold})")

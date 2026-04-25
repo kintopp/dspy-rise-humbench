@@ -181,6 +181,20 @@ BENCHMARKS = {
         "avg_output_tokens": 200,             # bounding boxes only — small output
         "image_field": "page_image",
     },
+    # Phase A target #2 (added 2026-04-25). Text-only benchmark: input is a
+    # malformed XML string (~900 tokens), output is the corrected XML (~1100
+    # tokens). No image overhead. These estimates are rough and will be refined
+    # once measured `usage` data exists in the score files.
+    "book_advert_xml": {
+        "total_images": 50,                    # paired samples (text-only)
+        "train": 7,
+        "dev": 7,
+        "test": 36,
+        "avg_input_tokens_baseline": 1000,
+        "avg_input_tokens_optimized": 4500,
+        "avg_output_tokens": 1500,
+        "image_field": None,                   # text-only — no image input
+    },
 }
 
 

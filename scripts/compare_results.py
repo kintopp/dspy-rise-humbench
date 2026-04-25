@@ -32,12 +32,13 @@ METRIC_KEYS = {
     "general_meeting_minutes": ["fuzzy", "total_instances", "total_keys"],
     "medieval_manuscripts": ["cer", "similarity", "total_instances"],
     "magazine_pages": ["f1_macro", "f1_micro", "mean_iou_macro", "total_instances"],
+    "book_advert_xml": ["fuzzy", "total_instances"],
 }
 
 
 def primary_metric_key(benchmark: str) -> str:
     """Return the primary metric name for a benchmark."""
-    if benchmark in ("bibliographic_data", "blacklist_cards"):
+    if benchmark in ("bibliographic_data", "blacklist_cards", "book_advert_xml"):
         return "fuzzy"
     return "f1_macro"
 
@@ -65,7 +66,7 @@ def print_row(label: str, scores: dict | None, metric_keys: list[str], ref: dict
 def main():
     parser = argparse.ArgumentParser(description="Compare results")
     parser.add_argument("--benchmark", default="library_cards",
-                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists", "fraktur_adverts", "general_meeting_minutes", "medieval_manuscripts", "magazine_pages"],
+                        choices=["library_cards", "bibliographic_data", "personnel_cards", "business_letters", "blacklist_cards", "company_lists", "fraktur_adverts", "general_meeting_minutes", "medieval_manuscripts", "magazine_pages", "book_advert_xml"],
                         help="Benchmark name")
     args = parser.parse_args()
 
